@@ -13,22 +13,30 @@ const Header = () => {
   return (
     <header className={styles.headerContainer}>
       <div className={styles.logo}>АПД Табель</div>
-      <div className={styles.userInfo}>
-        <Image
+
+	  <div className={styles.avatarImg}>
+		<Image
           src={currentUser.avatarUrl}
           alt='Аватар'
-          className={styles.avatarImg}
-          width={40} // Установлена ширина
-          height={40} // Установлена высота
+        //   className={styles.avatarImg}
+          width={50} // Установлена ширина
+          height={50} // Установлена высота
           quality={75} // Качество изображения
         />
+	  </div>
+
+      <div className={styles.userInfo}>
+
         <span className={styles.username}>{currentUser.username}</span>
-        {/* <span className={styles.dateTime}>{new Date().toLocaleDateString()}</span> */}
 
       </div>
+
+
+
 	  <div className={styles.clock}>
 		<AnalogClock /> {/* Добавляем часы назад */}
 	  </div>
+
     </header>
   );
 };

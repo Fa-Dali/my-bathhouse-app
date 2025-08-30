@@ -1,53 +1,58 @@
 /* components/Header.module.css */
 .headerContainer {
+	/* margin: 0px; */
 	text-align:center;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 5px 0px;
+	/* padding: 10px; */
 	/* background-color: #cfcdc3; */
 	color: white;
 	width: 100%;
-	height: 200%;
+	height: 250%;
 	box-sizing: border-box;
 	/* Дополнительная мера предосторожности */
-	background-color: rgb(110, 134, 134);
+	background-color: rgb(87, 113, 113);
 }
 
 .logo {
-	height: 300%;
+	height: 100%;
+	/* height: auto; */
 	text-align: center;
 	padding: 5px;
-	width: 20%;
+	width: 14%;
 	font-weight: bold;
-	background-color: rgb(126, 138, 138);
+	background-color: rgb(101, 130, 130);
+	/* border-radius: 5px; */
+}
+
+.avatarImg {
+	width: 25%;
+	width: 60px;
+	height: 60px;
+	border-radius: 50%;
+	/* margin-right: 10px; */
+	background-color: aqua;
 }
 
 .userInfo {
-	height: 300%;
-	width: 20%;
+	/* height: 300%; */
+	/* height: 80px; */
+	height: 100%;
+	width: 25%;
 	display: inline-block;
 	vertical-align: middle;
 	line-height: normal;
 	font-size: 16px;
-	background-color: rgb(111, 124, 125);
-}
-
-.avatarImg {
-	/* width: 25%; */
-	width: 40px;
-	height: 40px;
-	border-radius: 50%;
-	margin-right: 10px;
-}
-
-.dateTime {
-	font-size: 10px;
-	margin-left: 10px;
+	/* background-color: rgb(111, 124, 125); */
+	background-color: rgb(101, 130, 130);
+	/* border-radius: 5px; */
 }
 
 .clock {
-	width: 46%;
+	height: 176px;
+	/* height: auto; */
+	width: 36%;
 	max-width: 180px;
 	display: inline-block;
 	vertical-align: middle;

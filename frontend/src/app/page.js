@@ -9,7 +9,7 @@ export default function Home() {
       <Header />
 
       <main className={styles.main}>
-      
+
         <Image
           className={styles.logo}
           src="/next.svg"
@@ -33,6 +33,7 @@ export default function Home() {
         </div>
 
       </main>
+      
       <footer className={styles.footer}>
         <a
           href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
