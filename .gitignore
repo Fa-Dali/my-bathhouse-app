@@ -1,0 +1,10 @@
+# Ignore common files
+node_modules/
+dist/
+coverage/
+.env*
+*.log
+*.sqlite3
+.DS_Store
+Thumbs.db
+__pycache__/
