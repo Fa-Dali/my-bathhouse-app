@@ -1,16 +1,10 @@
-from django.http import HttpResponse
+from django.shortcuts import render
 
 def index(request):
-    response = HttpResponse()
-    response.write("<h1>Это главная страница</h1>"
-                   "<a href='/hello'>Перейти на страницу Hello</a><br>"
-                   "<a href='/about'>Перейти на страницу About</a>")
-    return response
+    return render(request, 'banya/index.html')  # Рендерим шаблон
 
 def hello_world(request):
-    return HttpResponse("<h1>Hello World!</h1>"
-                        "<a href='/'>Назад на главную</a>")
+    return render(request, 'banya/hello.html')
 
 def about_us(request):
-    return HttpResponse("<h1 style='color: red;'>О нас</h1>"
-                        "<a href='/'>Назад на главную</a>")
+    return render(request, 'banya/about.html')
