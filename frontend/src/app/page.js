@@ -2,6 +2,9 @@
 import Image from "next/image";
 import styles from "./page.module.css";
 import Header from "../components/Header";
+import CalendarWrapper from "../components/CalendarWrapper";
+import Link from "next/link";
+
 
 export default function Home() {
   return (
@@ -10,14 +13,22 @@ export default function Home() {
 
       <main className={styles.main}>
 
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
+        <div className="">
+
+          <div className={styles.calendar}>
+            <CalendarWrapper />
+          </div>
+
+          <div className="sidebar">
+            <Link href="/register">
+              <button className="butt_sidebar">Вход</button>
+            </Link>
+            <Link href="/register">
+              <button className="butt_sidebar">Вход</button>
+            </Link>
+          </div>
+
+        </div>
 
         <ol>
           <li>
@@ -33,7 +44,7 @@ export default function Home() {
         </div>
 
       </main>
-      
+
       <footer className={styles.footer}>
         <a
           href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"

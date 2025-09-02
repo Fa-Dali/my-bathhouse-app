@@ -1,5 +1,5 @@
 """
-ASGI config for apd_banya project.
+ASGI config for my_bathhouse_app project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'apd_banya.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'my_bathhouse_app.settings')
 
 application = get_asgi_application()

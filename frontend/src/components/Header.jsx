@@ -1,12 +1,12 @@
 // components/Header.js
-import styles from './Header.module.css';
+import styles from '../styles/Header.module.css'
 import AnalogClock from './Clock'; // Импортируем компонент часов
 import Image from 'next/image'; // Подключаем компонент Image
 
 const Header = () => {
   // Локальная переменная для демонстрационного пользователя
   const currentUser = {
-    username: 'Ваше имя пользователя',
+    username: 'Сергей Фадеев',
     avatarUrl: '/avatar.jpg', // Убедитесь, что изображение доступно
   };
 

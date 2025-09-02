@@ -24,6 +24,26 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.sidebar {
+  margin: 10px;
+  width: 100px;
+  background-color: #ededed;
+  border-radius: 5px;
+  border: 1px solid #3d8bca;
+}
+
+.butt_sidebar {
+  /* Сброс стилей по умолчанию */
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 2px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
 * {
   box-sizing: border-box;
   padding: 0;
