@@ -1,0 +1,47 @@
+/* CustomCheckbox.module.css */
+
+.checkboxLabel {
+	margin: 10px 10px 10px 0;
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+	user-select: none;
+}
+
+.hiddenCheckbox {
+	opacity: 0;
+	/* Скрываем настоящий чекбокс */
+	position: absolute;
+	width: 0;
+	height: 0;
+}
+
+.checkmark {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	margin-right: 8px;
+	border: 2px solid #aaa;
+	border-radius: 4px;
+	transition: background 0.3s ease;
+}
+
+.checked {
+	background-color: #40da55;
+	/* Заливка при активации */
+	border-radius: 50%;
+	border-color: #113760;
+}
+
+.checked::after {
+	content: '';
+	display: block;
+	width: 10px;
+	height: 10px;
+	background-color: white;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	border-radius: 50%;
+}
