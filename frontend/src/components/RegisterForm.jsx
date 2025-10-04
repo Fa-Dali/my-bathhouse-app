@@ -11,17 +11,22 @@ const RegisterForm = () => {
     const [testMode, setTestMode] = useState(false); // Переключатель тестового режима
 
     const initialValues = {
-        firstName: "",
-        lastName: "",
-        phoneNumber: "",
+        first_name: "",
+        last_name: "",
+        phone_number: "",
         email: "",
         password: "",
-        confirmPassword: "",
-        pinCode: "",
+        confirm_password: "",
+        pin_code: "",
         avatar: null,
     };
 
     const [values, setValues] = useState(initialValues);
+
+    // Временная форма с аватаром заглушкой
+    // const fakeAvatar = new File([], 'empty.jpg', { type: 'image/jpeg' });
+    // formData.append('avatar', fakeAvatar);
+    // Временная форма с аватаром заглушкой
 
     const handleChange = (e) => {
         const target = e.target;
@@ -38,8 +43,10 @@ const RegisterForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData();
+
+        // Заполняем форму данными
         for (let key of Object.keys(values)) {
-            formData.append(key, values[key]);
+            formData.append(key, values[key]); // Добавляем все введённые пользователем данные
         }
 
         // Печатаем данные, отправляемые на сервер
@@ -49,14 +56,17 @@ const RegisterForm = () => {
         }
 
         try {
-            const response = await fetch("/register/", {
+            const response = await fetch("http://localhost:8000/api/register/", {
                 method: "POST",
-                body: formData,
+                body: formData, // Данные отправляются как FormData
             });
+
+            // Для отладки (потом можно удалить)
+            console.log("Server Response:", response);
 
             // Если запрос прошёл неудачно, получаем подробный ответ
             if (!response.ok) {
-                const errorText = await response.text(); // Преобразуем ответ в текст
+                const errorText = await response.text(); // Читаем текст ошибки
                 console.error("Сервер вернул ошибку ../RegisterForm.jsx:", errorText); // Печатаем ошибку
                 throw new Error(`Запрос не удался со статусом ../RegisterForm.jsx: ${response.status}: ${errorText}`);
             }
@@ -64,7 +74,7 @@ const RegisterForm = () => {
             alert("Вы успешно зарегистрированы!");
         } catch (err) {
             console.error("Ошибка регистрации:", err);
-            alert("При регистрации произошла неожиданная ошибка.");
+            alert("При регистрации произошла неожиданная ошибка. Что-то пошло не так");
         }
     };
 
@@ -95,9 +105,19 @@ const RegisterForm = () => {
         <form onSubmit={handleSubmit}>
             {/* Добавляем чекбокс для включения тестового режима */}
 
+            {/* components/RegisterForm.jsx */}
             <input className={`${styles.conteiner} ${styles.inputField}`}
                 type="text"
-                name="firstName"
+                name="username"
+                placeholder="Придумайте логин"
+                required
+                value={values.username || ''}
+                onChange={handleChange}
+            />
+
+            <input className={`${styles.conteiner} ${styles.inputField}`}
+                type="text"
+                name="first_name"
                 placeholder="Имя"
                 required
                 value={values.firstName}
@@ -105,7 +125,7 @@ const RegisterForm = () => {
             />
             <input className={`${styles.conteiner} ${styles.inputField}`}
                 type="text"
-                name="lastName"
+                name="last_name"
                 placeholder="Фамилия"
                 required
                 value={values.lastName}
@@ -113,7 +133,7 @@ const RegisterForm = () => {
             />
             <input className={`${styles.conteiner} ${styles.inputField}`}
                 type="tel"
-                name="phoneNumber"
+                name="phone_number"
                 placeholder="+7(000) 000-00-00"
                 required
                 value={values.phoneNumber}
@@ -137,7 +157,7 @@ const RegisterForm = () => {
             />
             <input className={`${styles.conteiner} ${styles.inputField}`}
                 type="password"
-                name="confirmPassword"
+                name="password"
                 placeholder="Пароль (контроль)"
                 required
                 value={values.confirmPassword}
@@ -145,7 +165,7 @@ const RegisterForm = () => {
             />
             <input className={`${styles.conteiner} ${styles.inputField}`}
                 type="number"
-                name="pinCode"
+                name="pin_code"
                 placeholder="PIN код (5 цифр)"
                 required
                 value={values.pinCode}
