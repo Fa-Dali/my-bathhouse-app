@@ -23,6 +23,9 @@ const RegisterForm = () => {
 
     const [values, setValues] = useState(initialValues);
 
+    // Новое состояние для хранения превью изображения
+    const [previewImageUrl, setPreviewImageUrl] = useState(null);
+
     // Временная форма с аватаром заглушкой
     // const fakeAvatar = new File([], 'empty.jpg', { type: 'image/jpeg' });
     // formData.append('avatar', fakeAvatar);
@@ -32,6 +35,21 @@ const RegisterForm = () => {
         const target = e.target;
         const value = target.type === 'file' ? target.files[0] : target.value;
         const field = target.name;
+
+        // Обрабатываем изменение аватара отдельно
+        if (target.name === 'avatar') {
+            if (value) {
+                // Создаем объект URL для показа превью
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    setPreviewImageUrl(event.target.result); // Устанавливаем previewImageUrl
+                };
+                reader.readAsDataURL(value); // Преобразовываем файл в base64 строку
+            } else {
+                setPreviewImageUrl(null); // Если файл не выбран, очищаем превью
+            }
+        }
+
         setValues((prevState) => ({
             ...prevState,
             [field]: value,
@@ -49,7 +67,7 @@ const RegisterForm = () => {
             formData.append(key, values[key]); // Добавляем все введённые пользователем данные
         }
 
-        // Печатаем данные, отправляемые на сервер
+        // Печатаем В КОНСОЛЬ данные, отправляемые на сервер
         console.log("Sending Data:");
         for (let pair of formData.entries()) {
             console.log(`${pair[0]}: ${pair[1]}`);
@@ -61,8 +79,8 @@ const RegisterForm = () => {
                 body: formData, // Данные отправляются как FormData
             });
 
-            // Для отладки (потом можно удалить)
-            console.log("Server Response:", response);
+            // Для отладки В КОНСОЛЬ (потом можно удалить)
+            console.log("Ответ сервера:", response);
 
             // Если запрос прошёл неудачно, получаем подробный ответ
             if (!response.ok) {
@@ -102,7 +120,7 @@ const RegisterForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className={styles.conteinerBase}>
             {/* Добавляем чекбокс для включения тестового режима */}
 
             {/* components/RegisterForm.jsx */}
@@ -172,29 +190,95 @@ const RegisterForm = () => {
                 onChange={handleChange}
             />
 
-            {/* КНОПКА ВЫБОРА ФОТО */}
-            <label className={styles.fileInputContainer}>
-                <input
-                    type="file"
-                    name="avatar"
-                    accept="image/*"
-                    onChange={handleChange}
-                    className={styles.hiddenFileInput}
-                />
-                <span className={styles.fileInputButton}>Выбрать фото</span>
-            </label>
+{/* 1 Вариант =========== КНОПКИ + АВАТАР ======================================== */}
 
-            {/* КНОПКА РЕГИСТРАЦИИ */}
-            <button type="submit" className={styles.submitBtn}>Регистрация</button>
+            <div className={styles.conteinerBtn}>
+                <div className={styles.leftDiv}>
+
+                    {/* КНОПКА ВЫБОРА ФОТО */}
+                    <label className={styles.fileInputContainer}>
+                        <input
+                            type="file"
+                            name="avatar"
+                            accept="image/*"
+                            onChange={handleChange}
+                            className={styles.hiddenFileInput}
+                        />
+                        <span className={styles.fileInputButton}>Фото</span>
+                    </label>
+
+                    {/* КНОПКА РЕГИСТРАЦИИ */}
+                    <button type="submit" className={styles.submitBtn}>Регистрация</button>
+
+
+                </div>
+
+                <div className={styles.rightDiv}>
+                    {/* Отображение предварительного просмотра изображения */}
+                    {previewImageUrl && (
+                        <img src={previewImageUrl} alt="Selected Avatar Preview" className={styles.avatar}/>
+                    )}
+                </div>
+
+
+            </div>
 
             {/* ЧЕКБОКС */}
-            <div>
-                <CustomCheckbox
-                    label="Тестовый режим:"
-                    checked={testMode}
-                    onChange={() => setTestMode(!testMode)}
-                />
-            </div>
+            <CustomCheckbox
+                label="Тестовый режим:"
+                checked={testMode}
+                onChange={() => setTestMode(!testMode)}
+            />
+{/* end ======= КНОПКИ + АВАТАР ==================================== end */}
+
+{/* 2 Вариант =========== КНОПКИ + АВАТАР ======================================== */}
+
+            {/* ГЛАВНЫЙ CONTAINER для распределения элементов */}
+            {/* <div style={{ display: 'flex',
+                            justifyContent: 'space-between',
+                            border: '1px solid #ccc',
+                            borderRadius: '5px',
+                            backgroundColor: 'rgba(0, 18, 37, 0.5)',
+                            padding: '10px' }}> */}
+
+                {/* ЛЕВЫЙ СТОЛБЕЦ: Кнопки и чекбокс */}
+                {/* <div className="gridButtons"> */}
+
+                    {/* КНОПКА ВЫБОРА ФОТО */}
+                    {/* <label className="fileInputContainer">
+                        <input
+                            type="file"
+                            name="avatar"
+                            accept="image/*"
+                            onChange={handleChange}
+                            className="hiddenFileInput"
+                        />
+                        <span className="selectPhotoBtn">Выбрать фото</span>
+                    </label> */}
+
+                    {/* КНОПКА РЕГИСТРАЦИИ */}
+                    {/* <button type="submit" className="submitBtn">Регистрация</button> */}
+
+                    {/* ЧЕКБОКС */}
+                    {/* <div>
+                        <CustomCheckbox
+                            label="Тестовый режим:"
+                            checked={testMode}
+                            onChange={() => setTestMode(!testMode)}
+                        />
+                    </div>
+                </div> */}
+
+                {/* ПРАВЫЙ СТОЛБЕЦ: Аватар */}
+                {/* <div style={{ flexGrow: 1 }}> */}
+                    {/* Отображение предварительного просмотра изображения */}
+                    {/* {previewImageUrl && (
+                        <img src={previewImageUrl} alt="Selected Avatar Preview" style={{ width: '100%', height: 'auto', borderRadius: '50%' }} />
+                    )}
+                </div>
+            </div> */}
+
+{/* end ======= КНОПКИ + АВАТАР ==================================== end */}
 
         </form>
     );
