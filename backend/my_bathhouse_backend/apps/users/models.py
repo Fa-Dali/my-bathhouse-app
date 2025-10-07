@@ -1,4 +1,4 @@
-# users/models.py
+# my_bathhouse_backend/apps/users/models.py
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser

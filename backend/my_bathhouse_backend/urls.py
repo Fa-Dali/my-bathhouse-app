@@ -1,18 +1,19 @@
 """
-URL configuration for my_bathhouse_backend project.
+Конфигурация URL для проекта my_bathhouse_backend.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
+Список `urlpatterns` направляет URL-адреса к представлениям (views.py).
+Для получения дополнительной информации смотри.:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+Например:
+Функции views.py
+    1. Добавить импорт:  from my_bathhouse_backend import views
+    2. Добавьте URL в urlpatterns:  path('', views.home, name='home')
+Class-based (основной класс) views.py
+    1. Добавить импорт:  from other_app.views import Home
+    2. Добавьте URL в urlpatterns:  path('', Home.as_view(), name='home')
+Включая другую конфигурацию URL
+    1. Импортируйте функцию include(): from django.urls import include, path
+    2. Добавьте URL в urlpatterns:  path('blog/', include('blog.urls'))
 """
 # my_bathhouse_backend/urls.py
 
