@@ -1,3 +1,5 @@
+/* page.module.css */
+
 .page {
   --gray-rgb: 0, 0, 0;
   --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
@@ -11,7 +13,6 @@
   align-items: center;
   justify-items: center;
   min-height: 100svh;
-  /* padding-top: 90px; */
   padding-top: 80px;
   gap: 64px;
   font-family: var(--font-geist-sans);
@@ -28,7 +29,23 @@
   }
 }
 
+.contentContainer {
+  display: flex;
+  flex-direction: row;
+  height: 100%; /* Высота родительского элемента */
+}
+
+.sidebarDescktop {
+  width: 25%;
+  background-color: #fafafa;
+  padding: 1rem;
+  border-right: 1px solid #ddd;
+  overflow-y: auto; /* Чтобы прокручивался, если пунктов много */
+}
+
 .main {
+  width: 75%;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 32px;
@@ -108,7 +125,7 @@ a.secondary {
   flex-shrink: 0;
 }
 
-/* Enable hover only on non-touch devices */
+/* Включить наведение только на устройствах без сенсорного экрана */
 @media (hover: hover) and (pointer: fine) {
   a.primary:hover {
     background: var(--button-primary-hover);
@@ -127,14 +144,26 @@ a.secondary {
 }
 
 @media (max-width: 600px) {
+  .sidebarDescktop {
+    display: none !important; /* Прячем сайдбар на мобильных устройствах */
+  }
+
   .page {
-    /* padding: 32px; */
     padding-top: 80px;
     padding-bottom: 80px;
   }
 
+  .contentContainer {
+    flex-direction: column; /* На маленьких экранах показываем вертикально */
+  }
+
+  .sidebarDescktop {
+    width: 100%;
+  }
+
   .main {
-    align-items: center;
+    width: 100%;
+    /* align-items: center; */
   }
 
   .main ol {
@@ -156,14 +185,56 @@ a.secondary {
   }
 
   .footer {
+    width: 100%;
+    height: 60px;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
+    background-color: #b1bbc6;
+  }
+
+  .menuRow {
+    display: flex;
+    white-space: nowrap;
+    margin-left: 0;
+    padding-left: 0;
+  }
+
+  .menuRow > * {
+    margin-right: 16px; /* Расстояние между элементами */
+  }
+
+  .footer .carousel {
+    width: 100%;
+    height: 60px; /* Ограничиваем высоту карусели */
+  }
+
+  .footerMenu {
+
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    width: 100%; /* Максимальная ширина равна ширине экрана */
+    overflow-x: auto; /* Возможность горизонтальной прокрутки */
+  }
+
+  .footer .carouselItem {
+    font-size: 14px;
+    padding: 8px;
   }
 }
 
 @media (prefers-color-scheme: dark) {
   .logo {
     filter: invert();
+  }
+
+  .page {
+    --gray-rgb: 255, 255, 255;
+    --gray-alpha-200: rgba(var(--gray-rgb), 0.145);
+    --gray-alpha-100: rgba(var(--gray-rgb), 0.06);
+
+    --button-primary-hover: #ccc;
+    --button-secondary-hover: #1a1a1a;
   }
 }

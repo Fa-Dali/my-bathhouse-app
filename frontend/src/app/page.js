@@ -1,37 +1,47 @@
 // app/page.js
-"use client";
+'use client'
 
-import Image from "next/image";
-import styles from "./page.module.css";
-import Header from "../components/Header";
-import CalendarWrapper from "../components/CalendarWrapper"; // Календарь
-import Link from "next/link";
+import Head from 'next/head';
+import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
+import Main from '../components/Main';
+import Footer from '../components/Footer';
+import styles from '../styles/Page.module.css';
+import { useState } from 'react';
 
 export default function Home() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleToggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
-    <div className={styles.page}>
-      <Header />
+    <>
+      <Head>
+        <title>Моя баня</title>
+        <meta name="description" content="Описание моей бани" />
+      </Head>
 
-      <main className={styles.main}>
-        <div className="">
-          <div className={styles.calendar}>
-            <CalendarWrapper />
-          </div>
+      <div className={styles.container}>
+        <Header />
+
+        <div className={styles.content}>
+          <Sidebar className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}/>
+
+          <Main />
+
+          <button
+            aria-label="Открыть/закрыть боковую панель"
+            onClick={handleToggleSidebar}
+            className={styles['open-sidebar-btn']}
+          >
+            ☰
+          </button>
         </div>
 
-        <ol>
-          <li>ol === 1 ===</li>
-          <li>ol === 2 ===</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          === 1 ===
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        {/* Остальные элементы футера остаются без изменений */}
-      </footer>
-    </div>
+        <Footer />
+      </div>
+    </>
   );
 }

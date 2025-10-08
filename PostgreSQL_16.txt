@@ -1,0 +1,17 @@
+auth_group
+auth_group_permission
+auth_permission
+django_admin_log
+django_content_tipe
+django_migration
+django_session
+users_customuser
+users_customuser_group
+users_customuser_user_permission
+id password last_login is_superuser username first_name last_name email is_staff is_active data_joined phone_number pin_code avatar
+
+Работаю в Windows: Django python PyCharm React Next.js PostgreSQL_16 Браузео Chrome.
+Есть главная страница с кнопкой вход.
+Кнопка "вход" должна вести на модальное окно:
+- логин
+- пароль
