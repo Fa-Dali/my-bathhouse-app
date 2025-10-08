@@ -34,6 +34,13 @@ SECRET_KEY = 'django-insecure-bd2td8c*d9pyy3^8$%oko6%ng#=w7_-)x))u2j2kqa&(*@2@-n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# ALLOWED_HOSTS = ['bathhouse-app.ru', 'www.bathhouse-app.ru']
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# ['localhost', '127.0.0.1']: Эти два адреса означают, что приложение
+#   примет запросы только с локальных машин (например, при разработке).
+#   Когда вы развертываете сайт публично, вам потребуется добавить
+#   реальные домены, на которых ваше приложение размещено
+#   (например, example.com, www.example.com).
 ALLOWED_HOSTS = []
 
 
@@ -85,6 +92,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'my_bathhouse_backend.wsgi.application'
 
+ASGI_APPLICATION = 'my_bathhouse_backend.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
