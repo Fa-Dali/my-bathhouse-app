@@ -1,3 +1,5 @@
+# my_bathhouse_backend/apps/users/apps.py
+
 from django.apps import AppConfig
 
 
