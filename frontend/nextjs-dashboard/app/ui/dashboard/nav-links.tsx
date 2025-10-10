@@ -10,10 +10,13 @@ import {
   AcademicCapIcon,
   BookOpenIcon,
   ViewColumnsIcon,
+  PencilSquareIcon,
+  IdentificationIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
+import Header from '@/app/components/Header';
 
 // Карта ссылок для отображения в боковой навигации.
 // В зависимости от размера приложения это будет храниться в базе данных.
@@ -46,7 +49,7 @@ const links = [
 
     { name: '6 Отчет Мастера',
     href: '/dashboard/report-master',
-    icon: ViewColumnsIcon
+    icon: PencilSquareIcon
   },
 
   { name: '7 Отчет Администратора',
@@ -56,7 +59,7 @@ const links = [
 
   { name: '8 Должности',
     href: '/dashboard/staff-table',
-    icon: UserGroupIcon
+    icon: IdentificationIcon
   },
 
   { name: '9 Зарплатные ведомости',
@@ -72,21 +75,25 @@ export default function NavLinks() {
 
   return (
     <>
+      {/* <Header /> */}
       {links.map((link) => {
         const LinkIcon = link.icon;
         return (
+
           <Link
             key={link.name}
             href={link.href}
             className={clsx(
-              'flex h-[35px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3',
+              'mt-2 flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3',
               {
                 'bg-sky-100 text-blue-600': pathname === link.href,
               },
             )}
           >
-            <LinkIcon className="w-6" />
-            <p className="hidden md:block">{link.name}</p>
+            <LinkIcon className="w-8" />
+            <p className="hidden md:block">
+              {link.name}
+            </p>
           </Link>
         );
       })}
