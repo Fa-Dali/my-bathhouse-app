@@ -23,13 +23,13 @@ const drawClock = (ctx, time, width, height) => {
 	// Рисуем ободок и фон
 	ctx.beginPath();
 	ctx.arc(cx, cy, clockRadius, 0, 2 * Math.PI);
-	ctx.lineWidth = 4;
+	ctx.lineWidth = 3;
 	ctx.strokeStyle = '#415b6dff';
 	ctx.stroke();
 
 	ctx.beginPath();
 	ctx.arc(cx, cy, clockRadius - 6, 0, 2 * Math.PI);
-	ctx.lineWidth = 2;
+	ctx.lineWidth = 1;
 	ctx.strokeStyle = '#415b6dff';
 	ctx.stroke();
 

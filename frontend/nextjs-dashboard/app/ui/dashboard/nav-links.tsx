@@ -75,7 +75,6 @@ export default function NavLinks() {
 
   return (
     <>
-      {/* <Header /> */}
       {links.map((link) => {
         const LinkIcon = link.icon;
         return (
@@ -84,9 +83,9 @@ export default function NavLinks() {
             key={link.name}
             href={link.href}
             className={clsx(
-              'mt-2 flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3',
+              'mt-1 flex h-[40px] sm:h-[30px] grow items-center justify-center gap-1 rounded-sm bg-slate-400 p-2 text-sm font-medium hover:bg-gray-500 hover:text-emerald-100 md:flex-none md:justify-start md:p-5 md:px-1 m-1',
               {
-                'bg-sky-100 text-blue-600': pathname === link.href,
+                'bg-slate-500 sm:bg-sky-950 text-emerald-50': pathname === link.href,
               },
             )}
           >
