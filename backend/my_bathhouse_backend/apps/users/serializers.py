@@ -6,6 +6,7 @@
 
 from rest_framework import serializers
 from .models import CustomUser
+from django.contrib.auth import authenticate  # Добавьте эту строку
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -61,3 +62,21 @@ class UserSerializer(serializers.ModelSerializer):
             user.save(update_fields=['avatar'])
 
         return user
+
+class LoginSerializer(serializers.Serializer):
+    """
+    Сериализатор для проверки данных при входе пользователя.
+    """
+    username = serializers.CharField(max_length=255)
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        username = attrs.get('username')
+        password = attrs.get('password')
+
+        user = authenticate(username=username, password=password)
+
+        if not user or not user.is_active:
+            raise serializers.ValidationError("Невалидные учетные данные")
+
+        return {'user': user}

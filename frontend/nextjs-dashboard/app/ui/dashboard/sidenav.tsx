@@ -1,10 +1,45 @@
+// frontend/nextjs-dasboard/app/ui/dashboard/sidenav.tsx
+
+'use client';
+
 import Link from 'next/link';
 import NavLinks from '@/app/ui/dashboard/nav-links';
 import AcmeLogo from '@/app/ui/acme-logo';
 import { PowerIcon } from '@heroicons/react/24/outline';
 import Clock from '@/app/components/Clock'
+import { useState } from 'react';
+import axios from 'axios';
 
 export default function SideNav() {
+
+    const [loading, setLoading] = useState(false);
+
+  const handleLoginClick = async () => {
+    setLoading(true);
+
+    try {
+      // Данные пользователя (здесь предполагаются hardcoded для примера)
+      const credentials = {
+        username: 'example_username',
+        password: 'example_password',
+      };
+
+      // Отправляем запрос на сервер
+      const response = await axios.post('/api/login/', credentials);
+
+      // Сохраняем токен в localStorage
+      localStorage.setItem('token', response.data.access_token);
+
+      // Направляем пользователя на домашнюю страницу или любую другую цель
+      window.location.href = "/dashboard";
+    } catch (error) {
+      console.error("Ошибка входа:", error);
+      alert("Ошибка входа");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="bg-slate-600 flex h-auto flex-col px-3 py-4 md:px-2">
 
@@ -48,7 +83,11 @@ export default function SideNav() {
 
         {/* для мобильного экрана */}
         <form>
-          <button className="flex h-[48px] w-full grow items-center justify-center gap-2 rounded-md bg-sky-100 sm:bg-stone-300 p-3 text-sm font-medium hover:bg-green-700 hover:text-blue-100 md:flex-none md:justify-start md:p-2 md:px-3">
+          <button
+            className={`flex h-[48px] w-full grow items-center justify-center gap-2 rounded-md bg-sky-100 sm:bg-stone-300 p-3 text-sm font-medium hover:bg-green-700 hover:text-blue-100 md:flex-none md:justify-start md:p-2 md:px-3 ${loading && 'opacity-50 cursor-wait'}`}
+            disabled={loading}
+            onClick={handleLoginClick}
+          >
             <PowerIcon className="w-6" />
             <div className="hidden md:block">Вход</div>
           </button>
