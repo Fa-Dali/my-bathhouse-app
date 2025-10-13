@@ -32,12 +32,12 @@ class UserSerializer(serializers.ModelSerializer):
     # ========================
     def validate_first_name(self, value):
         if not value.strip():  # Убедись, что имя не пустое
-            raise serializers.ValidationError("First Name cannot be empty.")
+            raise serializers.ValidationError("Имя не может быть пустым.")
         return value
 
     def validate_last_name(self, value):
         if not value.strip():  # То же для фамилии
-            raise serializers.ValidationError("Last Name cannot be empty.")
+            raise serializers.ValidationError("Фамилия не может быть пустой.")
         return value
     # =========================
 
