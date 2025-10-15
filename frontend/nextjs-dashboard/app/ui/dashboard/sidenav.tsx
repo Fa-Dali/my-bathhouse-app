@@ -7,34 +7,47 @@ import NavLinks from '@/app/ui/dashboard/nav-links';
 import AcmeLogo from '@/app/ui/acme-logo';
 import { PowerIcon } from '@heroicons/react/24/outline';
 import Clock from '@/app/components/Clock'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { usePathname, useSearchParams, redirect } from 'next/navigation';  // Новые хуки
 
 export default function SideNav() {
 
-    const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const pathname = usePathname();  // Хук для получения текущего пути
+
+  // **
+  // Новая версия проверки токена и переадресации
+  useEffect(() => {
+    const checkTokenAndRedirect = async () => {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        redirect('/auth/login');  // Используем новый метод переадресации
+      }
+    };
+
+    checkTokenAndRedirect();
+  }, []); // [] - пустой массив, чтобы функция выполнялась только один раз
+
+
 
   const handleLoginClick = async () => {
     setLoading(true);
 
     try {
-      // Данные пользователя (здесь предполагаются hardcoded для примера)
-      const credentials = {
-        username: 'example_username',
-        password: 'example_password',
-      };
+      const token = localStorage.getItem('token');
 
-      // Отправляем запрос на сервер
-      const response = await axios.post('/api/login/', credentials);
+      if (!token) {
+        redirect('/login');  // Перемещаемся на страницу входа, если токен отсутствует
+        return;
+      }
+      // alert('Тестирование входа');
 
-      // Сохраняем токен в localStorage
-      localStorage.setItem('token', response.data.access_token);
 
-      // Направляем пользователя на домашнюю страницу или любую другую цель
-      window.location.href = "/dashboard";
     } catch (error) {
-      console.error("Ошибка входа:", error);
-      alert("Ошибка входа");
+      console.error("frontend/nextjs-dashboard/app/ui/dashboard/sidenav.tsx (55): Ошибка входа:", error);
+      alert("frontend/nextjs-dashboard/app/ui/dashboard/sidenav.tsx (56): Ошибка входа");
     } finally {
       setLoading(false);
     }
@@ -45,7 +58,7 @@ export default function SideNav() {
 
       <Link
         className="mb- flex h-20 items-center justify-center rounded-md bg-zinc-100 p-4 md:h-40"
-        href="/" // ссылка
+        href="/" // ссылка на часах
       >
         <div className="w-32 text-white md:w-40">
           {/* <AcmeLogo /> */}

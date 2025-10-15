@@ -5,11 +5,11 @@
 '''
 
 
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import LoginSerializer, UserSerializer
 
 
@@ -19,7 +19,9 @@ class RegisterAPI(APIView):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Регистрация прошла успешно"}, status=status.HTTP_201_CREATED)
+            return Response({"my_bathhouse_backend/apps/users/api_views.py: "
+                             "message": "Регистрация успешна"},
+                            status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -29,11 +31,24 @@ class LoginAPI(APIView):
 
     def post(self, request, format=None):
         serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
+
+        if serializer.is_valid():  # Если данные валидные
             token = RefreshToken.for_user(serializer.validated_data['user'])
             return Response({
                 'access_token': str(token.access_token),
                 'refresh_token': str(token)
             }, status=status.HTTP_200_OK)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Если произошла ошибка, формируем детальное сообщение
+            errors = serializer.errors
+
+            # Формируем подходящее сообщение для пользователя
+            if 'non_field_errors' in errors:
+                # Преобразовываем список ошибок в строку
+                message = ', '.join(errors['non_field_errors'])
+            elif 'username' in errors or 'password' in errors:
+                message = 'Неправильно указаны имя пользователя или пароль.'
+            else:
+                message = 'Ошибка входа.'
+
+            return Response({'detail': message}, status=status.HTTP_400_BAD_REQUEST)

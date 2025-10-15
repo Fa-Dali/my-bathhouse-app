@@ -21,15 +21,16 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import home
+from .views import home          # ( !? откинул из кода : убрал эту строку)
 
 
 urlpatterns = [
-    # Главная страница
-    path('', home, name='home'),
+    # Администраторская панель Django
     path('admin/', admin.site.urls),
     # Включаем маршруты нашего приложения
     path('api/', include('my_bathhouse_backend.apps.users.urls')),
+    # Главная страница
+    path('', home, name='home'), # ( !? откинул из кода : убрал эту строку)
 ]
 
 # Добавляем маршрут для обслуживания медиа файлов

@@ -6,7 +6,7 @@
 
 from rest_framework import serializers
 from .models import CustomUser
-from django.contrib.auth import authenticate  # Добавьте эту строку
+from django.contrib.auth import authenticate
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -32,12 +32,13 @@ class UserSerializer(serializers.ModelSerializer):
     # ========================
     def validate_first_name(self, value):
         if not value.strip():  # Убедись, что имя не пустое
-            raise serializers.ValidationError("Имя не может быть пустым.")
+            raise serializers.ValidationError("# "
+                                              "my_bathhouse_backend/apps/users/serializers.py: Имя не может быть пустым.")
         return value
 
     def validate_last_name(self, value):
         if not value.strip():  # То же для фамилии
-            raise serializers.ValidationError("Фамилия не может быть пустой.")
+            raise serializers.ValidationError("my_bathhouse_backend/apps/users/serializers.py: Фамилия не может быть пустой.")
         return value
     # =========================
 
@@ -77,6 +78,6 @@ class LoginSerializer(serializers.Serializer):
         user = authenticate(username=username, password=password)
 
         if not user or not user.is_active:
-            raise serializers.ValidationError("Невалидные учетные данные")
+            raise serializers.ValidationError("my_bathhouse_backend/apps/users/serializers.py: Невалидные учетные данные")
 
         return {'user': user}

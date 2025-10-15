@@ -16,14 +16,14 @@ from datetime import timedelta
 
 # from django.conf.global_settings import AUTH_USER_MODEL
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Создайте пути внутри проекта следующим образом: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Определяем папку для медиа файлов (если нужно, можно заменить)
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')  # Папка для хранения загрузок
 
 # URL для обслуживания медиа файлов
-MEDIA_URL = '/media/'
+MEDIA_URL = '/media/'  # URL для обращений к загруженным данным
 
 
 # Quick-start development settings - unsuitable for production
@@ -42,13 +42,14 @@ DEBUG = True
 #   Когда вы развертываете сайт публично, вам потребуется добавить
 #   реальные домены, на которых ваше приложение размещено
 #   (например, example.com, www.example.com).
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [] # ALLOWED_HOSTS = ["*"] Можно оставить открытым для
+# тестирования
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'my_bathhouse_backend.apps.users.apps.UsersConfig',
+    # 'my_bathhouse_backend.apps.users.apps.UsersConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -58,6 +59,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
+    'my_bathhouse_backend.apps.users',
 ]
 
 MIDDLEWARE = [
@@ -84,6 +86,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug', # добавлено 14.10.25
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
