@@ -39,15 +39,15 @@ export default function SideNav() {
       const token = localStorage.getItem('token');
 
       if (!token) {
+        alert('Токен отсутствует. Пожалуйста, войдите в систему.');
         redirect('/login');  // Перемещаемся на страницу входа, если токен отсутствует
         return;
       }
-      // alert('Тестирование входа');
 
 
     } catch (error) {
       console.error("frontend/nextjs-dashboard/app/ui/dashboard/sidenav.tsx (55): Ошибка входа:", error);
-      alert("frontend/nextjs-dashboard/app/ui/dashboard/sidenav.tsx (56): Ошибка входа");
+      // alert("frontend/nextjs-dashboard/app/ui/dashboard/sidenav.tsx (56): Ошибка входа");
     } finally {
       setLoading(false);
     }
