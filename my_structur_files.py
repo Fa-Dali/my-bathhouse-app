@@ -96,10 +96,11 @@ my-bathhouse-app/
 │       ├── app/                       # Исходники клиентской части приложения
 │       │   ├── auth/                  # Аутентификация
 │       │   │   ├── login/            # Страница входа
-│       │   │   │   ├── Login.tsx
+│       │   │   │   ├── LoginForm.tsx
 │       │   │   │   ├── page.tsx
 │       │   │   │   └── loading.tsx
 │       │   │   ├── register/        # Страница регистрации
+│       │   │   │   ├── RegisterForm.tsx
 │       │   │   │   ├── page.tsx
 │       │   │   │   └── loading.tsx
 │       │   │   ├── recover/        # Страница восстановления пароля

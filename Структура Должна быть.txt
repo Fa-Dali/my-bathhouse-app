@@ -15,6 +15,7 @@ my-bathhouse-app/
 │   │   ├── apps/                         # Приложения проекта
 │   │   │   ├── users/                    # Приложение пользователей
 │   │   │   │   ├── migrations/          # Миграции базы данных
+│   │   │   │   │   ├── 0001_initial.py
 │   │   │   │   │   └── __init.py__       # Пустой инициализационный файл
 │   │   │   │   ├── __init.py__           # Пустой инициализационный файл
 │   │   │   │   ├── admin.py              # Административная панель
@@ -249,17 +250,14 @@ export default Loading;
 │   │   ├── page.tsx
 │   │   └── loading.tsx
 │   |
-
 │   ├── timetable-user/       =         # Табель для зарегистрированных пользователей
 │   │   ├── page.tsx
 │   │   └── loading.tsx
 │   |
-
 │   ├── timing-all-masters/   =         # Тайминги всех мастеров на заданную дату
 │   │   ├── page.tsx
 │   │   └── loading.tsx
 │   |
-
 │   ├── timing-one-master/      =       # Тайминги одного мастера на неделю вперёд
 │   │   ├── week-ahead/        =        # Тайминги на неделю вперед
 │   │   │   ├── page.tsx
@@ -297,7 +295,6 @@ export default Loading;
 │   │   ├── page.tsx                   # Общая страница тайминга одного мастера
 │   │   └── loading.tsx
 │   |
-
 │   ├── archive-programs/       =       # Архив программ сеансов с музыкальным плеером
 │   │   ├── menu-list/          =       # Внутренний список меню программ
 │   │   │   ├── page.tsx
@@ -310,12 +307,10 @@ export default Loading;
 │   │   ├── page.tsx                   # Главная страница архива программ
 │   │   └── loading.tsx
 │   |
-
 │   ├── report-master/         =        # Отчёт мастера после выполнения работ
 │   │   ├── page.tsx
 │   │   └── loading.tsx
 │   |
-
 │   ├── report-administrator/   =       # Отчёт администратора с калькулятором таблиц
 │   │   ├── calculator/         =       # Калькулятор расчёта разных ячеек таблицы
 │   │   │   ├── page.tsx
@@ -324,7 +319,6 @@ export default Loading;
 │   │   ├── page.tsx                   # Основная страница отчёта администратора
 │   │   └── loading.tsx
 │   |
-
 │   ├── staff-table/            =       # Таблица сотрудников и их должностей
 │   │   ├── calculator/         =       # Калькулятор расчёта разных ячеек таблицы
 │   │   │   ├── page.tsx
@@ -332,12 +326,10 @@ export default Loading;
 │   │   ├── page.tsx
 │   │   └── loading.tsx
 │   |
-
 │   ├── salary-staff-table/            # Таблица коллективов зарплат администратору
 │   │   ├── page.tsx
 │   │   └── loading.tsx
 │   |
-
 │   ├── page.tsx                       # Главная страница панели инструментов
 │   └── loading.tsx
 ```

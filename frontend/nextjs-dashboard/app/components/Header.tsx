@@ -25,7 +25,7 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         </ul>
       </nav>
     </header>
-        
+
   );
 };
 

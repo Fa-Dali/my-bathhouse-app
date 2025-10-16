@@ -68,3 +68,100 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 /* *** END *** КРАСИВЫЙ СКРОЛЛБАР */
+
+/* ================================ */
+
+/* ЗАСТАВКА ЗАГРУЗКИ loadung.tsx */
+
+/* styles.css или global.css */
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+    padding: 10px;
+    border: solid 0.5px #dde8f3;
+    border-radius: 30%;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+    padding: 10px;
+    background-color: #f1f8f9;
+    border-radius: 45%;
+  }
+}
+
+/* ПОКАЧИВАНИЕ */
+@keyframes swing {
+  /*0%, 100% {
+    transform: rotate(0deg);  Начальная позиция
+  }*/
+  30% {
+    transform: rotate(-10deg); /* Отклонение влево */
+  }
+  /*50% {
+    transform: rotate(0deg);  Возвращаемся в исходное положение
+  }*/
+  75% {
+    transform: rotate(10deg); /* Отклонение вправо */
+  }
+}
+
+.loading-page {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;   /* Элементы расположены вертикально */
+  align-items: center;       /* Горизонтальное центрирование */
+  justify-content: center;   /* Вертикальное центрирование */
+  background-color: #fafafa;
+  color: #333;
+  font-family: 'Rubik', sans-serif; /* Можно выбрать понравившийся шрифт */
+  font-size: 1.5em;           /* Размер основного текста */
+  gap: 1.5rem;               /* Интервал между элементами */
+
+}
+
+.loading-image {
+  animation-name: pulse;
+  animation-duration: 4s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  margin-bottom: 1rem;       /* Небольшой отступ снизу */
+
+  animation-name: swing;
+  animation-duration: 5s; /* Длительность цикла */
+  animation-iteration-count: infinite; /* Повторять бесконечно */
+  animation-timing-function: ease-in-out; /* Гладкий переход между ключевыми кадрами */
+}
+
+.loading-text {
+  font-weight: bold;
+  font-size: 1.0em;          /* Большой красивый шрифт */
+  letter-spacing: 0.05em;    /* Немного увеличить межбуквенное пространство */
+}
+
+/* .button-container {
+  /* margin-top: auto;            Отступ кнопки от остальных элементов
+} */
+
+/* Стилизация кнопки */
+.loading-button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  font-size: 1.2em;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Легкая тень */
+  transition: all 0.3s ease; /* Анимация перехода */
+}
+
+.loading-button:hover {
+  background-color: #0056b3; /* Меняем цвет фона при наведении */
+  transform: translateY(-2px); /* Немного приподнять кнопку */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Тень увеличивается */
+}
+
+/* *** END *** ЗАСТАВКА ЗАГРУЗКИ loading.tsx */

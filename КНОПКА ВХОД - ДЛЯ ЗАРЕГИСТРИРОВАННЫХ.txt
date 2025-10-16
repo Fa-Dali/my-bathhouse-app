@@ -651,6 +651,86 @@ if __name__ == '__main__':
 # my-bathhouse-app/backend/env/
 --------------------------------------
 
+=========================================
+=========================================
+ДОПОЛНЕНИЯ К СУЩЕСТВУЮЩЕМУ КОДУ
+=========================================
+=========================================
+# backend/my-bathhouse-backend/apps/users/api_views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
+from .serializers import UserSerializer
+
+class AuthenticateAPI(APIView):
+    def post(self, request, format=None):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({'token': token.key}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Неправильные учетные данные'}, status=status.HTTP_401_UNAUTHORIZED)
+
+--------------------------------
+
+from django.urls import path, include
+from my_bathhouse_backend.apps.users.api_views import RegisterAPI, AuthenticateAPI
+
+urlpatterns = [
+    path('register/', RegisterAPI.as_view(), name='register-api'),
+    path('authenticate/', AuthenticateAPI.as_view(), name='authenticate-api'),
+]
+
+--------------------------------
+
+// frontend/nextjs-dashboard/app/dashboard/login.tsx
+import React, { useState } from 'react';
+import axios from 'axios';
+import Router from 'next/router';
+
+const LoginForm = () => {
+    const [credentials, setCredentials] = useState({
+        username: '',
+        password: ''
+    });
+
+    const handleChange = (event) => {
+        const { name, value } = event.target;
+        setCredentials((prevState) => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault(); // Предотвращаем перезагрузку страницы
+        try {
+            const response = await axios.post('/api/authenticate/', credentials);
+            localStorage.setItem('authToken', response.data.token); // Сохраняем токен в хранилище
+            Router.push('/dashboard'); // Переходим на страницу Dashboard
+        } catch (error) {
+            console.error('Ошибка:', error); // Сообщаем об ошибке
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <label>Имя пользователя:</label><br/>
+            <input type="text" name="username" value={credentials.username} onChange={handleChange}/><br/><br/>
+
+            <label>Пароль:</label><br/>
+            <input type="password" name="password" value={credentials.password} onChange={handleChange}/><br/><br/>
+
+            <button type="submit">Войти</button>
+        </form>
+    );
+};
+
+export default LoginForm;
 
 
 

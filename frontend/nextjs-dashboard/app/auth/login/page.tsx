@@ -1,5 +1,7 @@
 // frontend/nextjs-dashboard/app/auth/login/page.tsx
 
+// ОРИГИНАЛ ШАБЛОНА
+
 // 'use client';
 
 // import React, { useState } from 'react';
@@ -31,6 +33,7 @@ import Header from 'app/components/Header'
 const LoginPage = () => {
   return (
     <div className="flex h-screen flex-col md:flex-row md:overflow-hidden relative">
+
       {/* Боковая панель слева на десктопе, снизу на мобайл */}
       <div className="w-full flex-none md:w-64 order-last md:order-first  -mt-5">
         <SideNav />
@@ -38,6 +41,7 @@ const LoginPage = () => {
 
       {/* Контейнер для шапки и основного контента */}
       <div className="flex-grow relative overflow-hidden">
+
         {/* Шапка, занимающая всю ширину экрана и расположенная сверху */}
         <Header className="sticky top-0 z-50 bg-gray-800 text-white w-full py-4" />
 
@@ -46,9 +50,12 @@ const LoginPage = () => {
           {/* {children} */}
           <LoginForm />
         </main>
+        
       </div>
     </div>
   );
 };
 
 export default LoginPage;
+
+// ===================================

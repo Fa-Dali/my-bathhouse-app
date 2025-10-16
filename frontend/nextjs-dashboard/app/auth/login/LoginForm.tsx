@@ -1,9 +1,14 @@
-// frontend/nextjs-dashboard/app/dashboard/login.tsx
+// frontend/nextjs-dashboard/app/auth/login/LoginForm.tsx
 
 import React, { useState } from 'react';
 import axios from 'axios';
 import { usePathname, useSearchParams, redirect } from 'next/navigation';  // Импорт необходимых хуков
-import LoadingPage from './loading';
+import LoadingPage from '@/app/auth/login/loading';
+
+// type CredentialsType = {
+//   username: string;
+//   password: string;
+// };
 
 type ApiError = {
   response?: {
@@ -16,8 +21,16 @@ type ApiError = {
 const LoginForm = () => {
   // Управление вводом пользователя
   const [credentials, setCredentials] = useState({ username: '', password: '' });
+
+
+
   // Индикатор загрузки
   const [loading, setLoading] = useState(false);
+  // Индикатор загрузки с указанием типа boolean
+  //const [loading, setLoading] = useState<boolean>(false);  🔥 добавили тип boolean
+
+
+
   // Хранение сообщения об ошибке
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -47,16 +60,6 @@ const LoginForm = () => {
     } catch (error: any & ApiError) {
 
       console.error('frontend/nextjs-dashboard/app/dashboard/login.tsx (49): Ошибка:', error);
-
-      // Начало логирования
-      // console.log('frontend/nextjs-dashboard/app/dashboard/login.tsx (50): Получил ответ:', error.response);
-      // console.log('frontend/nextjs-dashboard/app/dashboard/login.tsx (52): Сообщение об ошибке:', error.response.data.detail);
-
-      // if (error.response && error.response.data.detail === 'object') {      //
-      //   // Показываем детальное сообщение от сервера
-      //   setErrorMessage(error.response.data.detail || 'Ошибка входа.');     //
-      // } else if (typeof error.response === 'string') {                      //
-      //   setErrorMessage(error.response);                                    //
 
       if (error.response?.data.detail) {                                       //
         setErrorMessage(error.response.data.detail);                           //
@@ -127,7 +130,7 @@ const LoginForm = () => {
 
             <button
               type="button"
-              onClick={() => redirect('/register')}
+              onClick={() => redirect('/auth/register')}
               disabled={loading}
               className={`bg-slate-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
