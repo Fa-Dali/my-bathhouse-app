@@ -1,13 +1,12 @@
 // frontend/nextjs-dashboard/app/auth/register/RegisterForm.tsx
+
 'use client';
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline"; // Подключение нужных иконок
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useState } from 'react';
 import axios from 'axios';
-import { usePathname, useSearchParams, redirect } from 'next/navigation';  // Импорт необходимых хуков
+import { usePathname, useSearchParams, redirect } from 'next/navigation';
 import LoadingPage from '@/app/auth/login/loading';
 import { useForm } from 'react-hook-form';
-// import styles from './RegisterForm.module.css';
-
 
 type RegisterFormInputs = {
 	username: string;
@@ -21,13 +20,10 @@ type RegisterFormInputs = {
 	avatar?: File | null; // Поле avatar может быть файлом или null
 };
 
-// Вспомогательная функция для проверки типа (для const 64)
 function isFileOrBlob(value: unknown): value is Blob | File {
 	return value instanceof Blob || value instanceof File;
 }
 
-
-// Состояние формы:
 const RegisterForm = () => {
 	const {
 		register,
@@ -36,88 +32,87 @@ const RegisterForm = () => {
 		formState: { errors },
 	} = useForm<RegisterFormInputs>();
 
-	// Состояние для управления видимостью пароля:
 	const [showPassword, setShowPassword] = useState(false);
+	const togglePasswordVisibility = () => setShowPassword(prevState => !prevState);
 
-	// Переключение видимости пароля
-	const togglePasswordVisibility = () => {
-		setShowPassword((prevState) => !prevState);
-	};
-
-	// Состояние для хранения ссылки на превью изображения
 	const [previewImageUrl, setPreviewImageUrl] = useState<string | undefined>(undefined);
-
+	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
 	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		if (event.target.files && event.target.files.length > 0) {
 			const file = event.target.files[0];
+			setSelectedFile(file); // Сохраняем файл в стейт
+
 			const reader = new FileReader();
 			reader.onload = e => {
 				if (typeof e.target?.result === 'string') {
-					setPreviewImageUrl(e.target.result);
+					setPreviewImageUrl(e.target.result); // Обновляем превью
 				}
 			};
-			reader.readAsDataURL(file);
+			reader.readAsDataURL(file); // Читаем файл для превью
 		}
 	};
+
 
 	const onSubmit = async (data: RegisterFormInputs) => {
 		try {
 			const formData = new FormData();
 
-			// Проходим по каждому полю формы
-			Object.keys(data).forEach(key => {
-				const value = data[key as keyof RegisterFormInputs]; // Язык точно понял тип ключа
+			// Используем только сохранённый файл из стейта:
+			if (selectedFile !== null) {
+				formData.append('avatar', selectedFile); // Используем сохранённый файл
+			}
 
-				// // Проверяем тип данных перед добавлением в FormData
-				// if (value instanceof Blob || value instanceof File) {
-				// 	// Если это файл или blob, передаем как файл
-				// 	formData.append(key, value);
-				// } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-				// 	// Простые типы данных превращаем в строки
-				// 	formData.append(key, `${value}`); // Преобразуем в строку
-				// } else {
-				// 	throw new Error(`Недопустимый тип данных для поля "${key}"`);
-				// }
+			// Добавляем остальные поля формы:
+			Object.keys(data).forEach(key => {
+				const value = data[key as keyof RegisterFormInputs];
+
+				// Исключаем поле "avatar" из общего цикла
+				if (key === 'avatar') return;
 
 				if (isFileOrBlob(value)) {
 					formData.append(key, value);
 				} else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
 					formData.append(key, `${value}`);
+				} else if (value === null || value === undefined) {
+					console.warn(`Игнорируется поле ${key}: значение отсутствует.`);
 				} else {
-					throw new Error(`Недопустимый тип данных для поля "${key}"`);
+					throw new Error(`Недопустимый тип данных для поля "${key}". Тип: ${typeof value}. Значение: ${JSON.stringify(value)}.`);
 				}
 			});
 
-			// Добавляем отдельное поле "avatar", если файл выбран
-			if ('avatar' in data && data.avatar) {
-				formData.append('avatar', data.avatar);
-			}
-
-			// const res = await fetch('/api/register/', {     //
-			// 	method: 'POST',                                //
-			// 	headers: {                                     //
-			// 		'Content-Type': 'application/json',        //
-			// 	},                                             //
-			// 	body: JSON.stringify(data),                    //
-			// });                                             //
-
-			const res = await fetch('/api/register/', {        //
-				method: 'POST',                                //
-				body: formData,                                //
-			});                                                //
+			// Отправляем форму...
+			const res = await fetch('/api/register/', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'multipart/form-data', // Некоторые серверы требуют явного указания
+				},
+				body: formData,
+			});
 
 			if (res.ok) {
 				alert('Вы успешно зарегистрировались');
+			// } else {
+			// 	const result = await res.json();
+			// 	alert(result.detail || 'Ошибка регистрации');
+			// }
 			} else {
-				const result = await res.json();
-				alert(result.detail || 'Ошибка регистрации');
-			}
+            let errorMessage = '';
+            try {
+                const responseText = await res.text(); // Читай тело ответа как текст
+                errorMessage = responseText.includes('<') ? 'Ошибка на сервере!' : responseText;
+            } catch (err) {
+                errorMessage = 'Не удалось расшифровать ответ сервера.';
+            }
+            alert(errorMessage || 'Ошибка регистрации');
+        }
 		} catch (err) {
 			console.error(err);
 			alert('Возникла ошибка при регистрации.');
 		}
 	};
+
+	// ==================================================================================================
 
 	return (
 
