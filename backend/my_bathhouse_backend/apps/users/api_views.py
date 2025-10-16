@@ -16,14 +16,42 @@ from .serializers import LoginSerializer, UserSerializer
 class RegisterAPI(APIView):
     """Обрабатывает регистрацию новых пользователей."""
     def post(self, request, *args, **kwargs):
+
+        print(request.data)  # Для вывода полученных данных в консоль
+        print(type(request.data.get('avatar')))  # проверка наличия файла
+
         serializer = UserSerializer(data=request.data)
+
+        # if serializer.is_valid():
+        #
+        #     try:
+        #         serializer.save()
+        #     except Exception as e:
+        #         print(
+        #             f"Ошибка при сохранении: {e}")  # Выведет исключение в терминал
+        #
+        #     return Response({"my_bathhouse_backend/apps/users/api_views.py ("
+        #                      "22): "
+        #                      "message": "Регистрация успешна"},
+        #                     status=status.HTTP_201_CREATED)
+        #
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         if serializer.is_valid():
-            serializer.save()
-            return Response({"my_bathhouse_backend/apps/users/api_views.py ("
-                             "22): "
-                             "message": "Регистрация успешна"},
-                            status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                user = serializer.save()
+
+                # Вернём ответ клиенту
+                return Response({"message": "Регистрация прошла успешно."},
+                                status=status.HTTP_201_CREATED)
+
+            except Exception as e:
+                return Response({"error": f"Произошла ошибка: {str(e)}"},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginAPI(APIView):

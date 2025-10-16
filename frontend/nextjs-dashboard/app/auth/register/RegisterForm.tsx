@@ -54,58 +54,110 @@ const RegisterForm = () => {
 	};
 
 
+	// const onSubmit = async (data: RegisterFormInputs) => {
+	// 	try {
+	// 		const formData = new FormData();
+
+	// 		// Используем только сохранённый файл из стейта:
+	// 		if (selectedFile !== null) {
+	// 			formData.append('avatar', selectedFile); // Используем сохранённый файл
+	// 		}
+
+	// 		// Добавляем остальные поля формы:
+	// 		Object.keys(data).forEach(key => {
+	// 			const value = data[key as keyof RegisterFormInputs];
+
+	// 			// Исключаем поле "avatar" из общего цикла
+	// 			if (key === 'avatar') return;
+
+	// 			if (isFileOrBlob(value)) {
+	// 				formData.append(key, value);
+	// 			} else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+	// 				formData.append(key, `${value}`);
+	// 			} else if (value === null || value === undefined) {
+	// 				console.warn(`Игнорируется поле ${key}: значение отсутствует.`);
+	// 			} else {
+	// 				throw new Error(`Недопустимый тип данных для поля "${key}". Тип: ${typeof value}. Значение: ${JSON.stringify(value)}.`);
+	// 			}
+	// 		});
+
+	// 		// Отправляем форму...
+	// 		const res = await fetch('/api/register/', {
+	// 			method: 'POST',
+	// 			headers: {
+	// 				'Content-Type': 'multipart/form-data', // Некоторые серверы требуют явного указания
+	// 			},
+	// 			body: formData,
+	// 		});
+
+	// 		if (res.ok) {
+	// 			alert('Вы успешно зарегистрировались');
+	// 			// } else {
+	// 			// 	const result = await res.json();
+	// 			// 	alert(result.detail || 'Ошибка регистрации');
+	// 			// }
+	// 		} else {
+	// 			let errorMessage = '';
+	// 			try {
+	// 				const responseText = await res.text(); // Читай тело ответа как текст
+	// 				errorMessage = responseText.includes('<') ? 'Ошибка на сервере!' : responseText;
+	// 			} catch (err) {
+	// 				errorMessage = 'Не удалось расшифровать ответ сервера.';
+	// 			}
+	// 			alert(errorMessage || 'Ошибка регистрации');
+	// 		}
+	// 	} catch (err) {
+	// 		console.error(err);
+	// 		alert('Возникла ошибка при регистрации.');
+	// 	}
+	// };
+
 	const onSubmit = async (data: RegisterFormInputs) => {
 		try {
 			const formData = new FormData();
 
-			// Используем только сохранённый файл из стейта:
+			// ⭐️ Используем сохранённый файл из стейта:
 			if (selectedFile !== null) {
-				formData.append('avatar', selectedFile); // Используем сохранённый файл
+				formData.append('avatar', selectedFile); // Прикрепляем файл, если он существует
 			}
 
-			// Добавляем остальные поля формы:
-			Object.keys(data).forEach(key => {
+			// ⭐️ Проходим по остальным полям формы:
+			Object.keys(data).forEach((key) => {
 				const value = data[key as keyof RegisterFormInputs];
 
-				// Исключаем поле "avatar" из общего цикла
+				// ⭐️ Исключаем поле "avatar" из общего цикла:
 				if (key === 'avatar') return;
 
+				// ⭐️ Проверяем типы значений и добавляем их в FormData:
 				if (isFileOrBlob(value)) {
 					formData.append(key, value);
 				} else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-					formData.append(key, `${value}`);
+					formData.append(key, `${value}`); // Преобразование простых типов в строки
 				} else if (value === null || value === undefined) {
-					console.warn(`Игнорируется поле ${key}: значение отсутствует.`);
+					console.warn(`Игнорируем поле ${key}: значение отсутствует.`);
 				} else {
 					throw new Error(`Недопустимый тип данных для поля "${key}". Тип: ${typeof value}. Значение: ${JSON.stringify(value)}.`);
 				}
 			});
 
-			// Отправляем форму...
+			// ⭐️ Отправляем форму на сервер:
 			const res = await fetch('/api/register/', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'multipart/form-data', // Некоторые серверы требуют явного указания
-				},
 				body: formData,
 			});
 
 			if (res.ok) {
-				alert('Вы успешно зарегистрировались');
-			// } else {
-			// 	const result = await res.json();
-			// 	alert(result.detail || 'Ошибка регистрации');
-			// }
+				alert('Вы успешно зарегистрировались!');
 			} else {
-            let errorMessage = '';
-            try {
-                const responseText = await res.text(); // Читай тело ответа как текст
-                errorMessage = responseText.includes('<') ? 'Ошибка на сервере!' : responseText;
-            } catch (err) {
-                errorMessage = 'Не удалось расшифровать ответ сервера.';
-            }
-            alert(errorMessage || 'Ошибка регистрации');
-        }
+				let errorMessage = '';
+				try {
+					const responseText = await res.text(); // Получаем тело ответа как текст
+					errorMessage = responseText.includes('<') ? 'Ошибка на сервере!' : responseText;
+				} catch (err) {
+					errorMessage = 'Не удалось расшифровать ответ сервера.';
+				}
+				alert(errorMessage || 'Ошибка регистрации');
+			}
 		} catch (err) {
 			console.error(err);
 			alert('Возникла ошибка при регистрации.');

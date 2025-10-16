@@ -11,7 +11,7 @@ from django.contrib.auth import authenticate
 class UserSerializer(serializers.ModelSerializer):
 
     # Сделаем поле аватара необязательным
-    avatar = serializers.ImageField(required=False)
+    avatar = serializers.ImageField(use_url=True, required=False)
 
     class Meta:
         model = CustomUser
@@ -27,7 +27,10 @@ class UserSerializer(serializers.ModelSerializer):
             'avatar'
         ]
         # Пароль доступен только для записи
-        extra_kwargs = {'password': {'write_only': True}, 'avatar': {'required': False}}
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'avatar': {'required': True}
+        }
 
     # ========================
     def validate_first_name(self, value):

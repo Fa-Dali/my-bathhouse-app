@@ -25,6 +25,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')  # Папка для хранен�
 # URL для обслуживания медиа файлов
 MEDIA_URL = '/media/'  # URL для обращений к загруженным данным
 
+# Отключаем автоматическое добавление слэша к URL
+APPEND_SLASH = False
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -131,8 +133,19 @@ LOGGING = {
             'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
         },
+    # 'handlers': {
+    #     'console': {
+    #         'level': 'DEBUG',  # Изменили уровень на DEBUG
+    #         'filters': ['require_debug_true'],  # Только при включённом режиме DEBUG
+    #         'class': 'logging.StreamHandler',
+    #     },
     },
     'loggers': {
+        # 'django': {
+        #     'handlers': ['console'],
+        #     'level': 'DEBUG',  # Уровень DEBUG для всего фреймворка Django
+        #     'propagate': True,
+        # },
         'django.db.backends': {
             'level': 'DEBUG',
             'handlers': ['console'],
