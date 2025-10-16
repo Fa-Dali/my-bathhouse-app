@@ -33,6 +33,8 @@ urlpatterns = [
     path('', home, name='home'), # ( !? откинул из кода : убрал эту строку)
 ]
 
-# Добавляем маршрут для обслуживания медиа файлов
+# Добавляем маршрут для обслуживания медиа файлов.
+# В режиме разработки файлы будут доступны по адресам вида
+# http://yoursite/media/avatars/your_avatar.jpg.
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

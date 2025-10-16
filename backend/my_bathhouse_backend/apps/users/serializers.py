@@ -33,12 +33,14 @@ class UserSerializer(serializers.ModelSerializer):
     def validate_first_name(self, value):
         if not value.strip():  # Убедись, что имя не пустое
             raise serializers.ValidationError("# "
-                                              "my_bathhouse_backend/apps/users/serializers.py: Имя не может быть пустым.")
+                                              "my_bathhouse_backend/apps/users/serializers.py (36): Имя не может быть пустым.")
         return value
 
     def validate_last_name(self, value):
         if not value.strip():  # То же для фамилии
-            raise serializers.ValidationError("my_bathhouse_backend/apps/users/serializers.py: Фамилия не может быть пустой.")
+            raise serializers.ValidationError(
+                "my_bathhouse_backend/apps/users/serializers.py (42) : "
+                "Фамилия не может быть пустой.")
         return value
     # =========================
 

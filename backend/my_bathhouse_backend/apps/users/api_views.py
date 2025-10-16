@@ -19,7 +19,8 @@ class RegisterAPI(APIView):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"my_bathhouse_backend/apps/users/api_views.py: "
+            return Response({"my_bathhouse_backend/apps/users/api_views.py ("
+                             "22): "
                              "message": "Регистрация успешна"},
                             status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -44,7 +45,7 @@ class LoginAPI(APIView):
 
             # Формируем подходящее сообщение для пользователя
             if 'non_field_errors' in errors:
-                # Преобразовываем список ошибок в строку
+                # Преобразуем список ошибок в строку
                 message = ', '.join(errors['non_field_errors'])
             elif 'username' in errors or 'password' in errors:
                 message = 'Неправильно указаны имя пользователя или пароль.'

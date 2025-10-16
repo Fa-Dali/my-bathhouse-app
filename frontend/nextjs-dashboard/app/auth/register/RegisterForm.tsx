@@ -5,8 +5,9 @@ import { useState } from 'react';
 import axios from 'axios';
 import { usePathname, useSearchParams, redirect } from 'next/navigation';  // Импорт необходимых хуков
 import LoadingPage from '@/app/auth/login/loading';
-
 import { useForm } from 'react-hook-form';
+// import styles from './RegisterForm.module.css';
+
 
 type RegisterFormInputs = {
 	username: string;
@@ -17,8 +18,16 @@ type RegisterFormInputs = {
 	password: string;
 	confirm_password: string;
 	pin_code: string;
+	avatar?: File | null; // Поле avatar может быть файлом или null
 };
 
+// Вспомогательная функция для проверки типа (для const 64)
+function isFileOrBlob(value: unknown): value is Blob | File {
+	return value instanceof Blob || value instanceof File;
+}
+
+
+// Состояние формы:
 const RegisterForm = () => {
 	const {
 		register,
@@ -27,21 +36,76 @@ const RegisterForm = () => {
 		formState: { errors },
 	} = useForm<RegisterFormInputs>();
 
-	const [showPassword, setShowPassword] = useState(false); // Новое состояние для контроля видимости пароля
+	// Состояние для управления видимостью пароля:
+	const [showPassword, setShowPassword] = useState(false);
 
+	// Переключение видимости пароля
 	const togglePasswordVisibility = () => {
-		setShowPassword((prevState) => !prevState); // Переключатель состояния
+		setShowPassword((prevState) => !prevState);
+	};
+
+	// Состояние для хранения ссылки на превью изображения
+	const [previewImageUrl, setPreviewImageUrl] = useState<string | undefined>(undefined);
+
+
+	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		if (event.target.files && event.target.files.length > 0) {
+			const file = event.target.files[0];
+			const reader = new FileReader();
+			reader.onload = e => {
+				if (typeof e.target?.result === 'string') {
+					setPreviewImageUrl(e.target.result);
+				}
+			};
+			reader.readAsDataURL(file);
+		}
 	};
 
 	const onSubmit = async (data: RegisterFormInputs) => {
 		try {
-			const res = await fetch('/api/register/', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(data),
+			const formData = new FormData();
+
+			// Проходим по каждому полю формы
+			Object.keys(data).forEach(key => {
+				const value = data[key as keyof RegisterFormInputs]; // Язык точно понял тип ключа
+
+				// // Проверяем тип данных перед добавлением в FormData
+				// if (value instanceof Blob || value instanceof File) {
+				// 	// Если это файл или blob, передаем как файл
+				// 	formData.append(key, value);
+				// } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+				// 	// Простые типы данных превращаем в строки
+				// 	formData.append(key, `${value}`); // Преобразуем в строку
+				// } else {
+				// 	throw new Error(`Недопустимый тип данных для поля "${key}"`);
+				// }
+
+				if (isFileOrBlob(value)) {
+					formData.append(key, value);
+				} else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+					formData.append(key, `${value}`);
+				} else {
+					throw new Error(`Недопустимый тип данных для поля "${key}"`);
+				}
 			});
+
+			// Добавляем отдельное поле "avatar", если файл выбран
+			if ('avatar' in data && data.avatar) {
+				formData.append('avatar', data.avatar);
+			}
+
+			// const res = await fetch('/api/register/', {     //
+			// 	method: 'POST',                                //
+			// 	headers: {                                     //
+			// 		'Content-Type': 'application/json',        //
+			// 	},                                             //
+			// 	body: JSON.stringify(data),                    //
+			// });                                             //
+
+			const res = await fetch('/api/register/', {        //
+				method: 'POST',                                //
+				body: formData,                                //
+			});                                                //
 
 			if (res.ok) {
 				alert('Вы успешно зарегистрировались');
@@ -54,13 +118,14 @@ const RegisterForm = () => {
 			alert('Возникла ошибка при регистрации.');
 		}
 	};
-	// h-48 max-h-full md:max-h-screen
+
 	return (
 
 		<form onSubmit={handleSubmit(onSubmit)} className="max-w-md mx-auto p-6 bg-amber-50 shadow-2xl rounded-xl">
 			<div className="w-md h-[500px] overflow-y-auto beautiful-scroll">
 				<h2 className="text-2xl font-semibold mb-6 text-center text-cyan-950">Регистрация</h2>
 
+				{/* Логин: */}
 				<div className="mb-4">
 					<label
 						htmlFor="username"
@@ -82,6 +147,7 @@ const RegisterForm = () => {
 					{errors.username && <span className="text-red-900 mt-1 block">{errors.username.message}</span>}
 				</div>
 
+				{/* Имя: */}
 				<div className="mb-4">
 					<label
 						htmlFor="first_name"
@@ -102,6 +168,7 @@ const RegisterForm = () => {
 					{errors.first_name && <span className="text-red-900 mt-1 block">{errors.first_name.message}</span>}
 				</div>
 
+				{/* Фамилия: */}
 				<div className="mb-4">
 					<label
 						htmlFor="last_name"
@@ -122,6 +189,7 @@ const RegisterForm = () => {
 					{errors.last_name && <span className="text-red-900 mt-1 block">{errors.last_name.message}</span>}
 				</div>
 
+				{/* Телефон: */}
 				<div className="mb-4">
 					<label
 						htmlFor="phone_number"
@@ -145,6 +213,7 @@ const RegisterForm = () => {
 					{errors.phone_number && <span className="text-red-900 mt-1 block">{errors.phone_number.message}</span>}
 				</div>
 
+				{/* Email: */}
 				<div className="mb-4">
 					<label
 						htmlFor="email"
@@ -168,6 +237,7 @@ const RegisterForm = () => {
 					{errors.email && <span className="text-red-900 mt-1 block">{errors.email.message}</span>}
 				</div>
 
+				{/* Ввод пароля: */}
 				<div className="mb-4 relative">
 					<label
 						htmlFor="password"
@@ -201,6 +271,7 @@ const RegisterForm = () => {
 					{errors.password && <span className="text-red-900 mt-1 block">{errors.password.message}</span>}
 				</div>
 
+				{/* Подтверждение пароля: */}
 				<div className="mb-4 relative">
 					<label
 						htmlFor="confirm_password"
@@ -234,6 +305,7 @@ const RegisterForm = () => {
 					{errors.confirm_password && <span className="text-red-900 mt-1 block">{errors.confirm_password.message}</span>}
 				</div>
 
+				{/* PIN-код (5 цифр) */}
 				<div className="mb-4">
 					<label
 						htmlFor="pin_code"
@@ -257,6 +329,36 @@ const RegisterForm = () => {
 					{errors.pin_code && <span className="text-red-900 mt-1 block">{errors.pin_code.message}</span>}
 				</div>
 
+				{/* Выбор аватара */}
+				<div className="mb-4">
+					<label htmlFor="avatar" className="block text-gray-700 text-sm font-bold mb-2">
+						Аватар:
+					</label>
+					<input
+						{...register('avatar')}
+						id="avatar"
+						type="file"
+						accept="image/*"
+						onChange={handleChange}
+						className="hidden"
+					/>
+					<button
+						type="button"
+						onClick={() => (document.querySelector('#avatar') as HTMLInputElement)?.click()} // Утверждаем тип
+						className="cursor-pointer text-blue-500 underline"
+					>
+						Выберите фотографию
+					</button>
+				</div>
+
+				{/* Превью фотографии */}
+				{previewImageUrl && (
+					<div className="flex justify-center mb-4">
+						<img src={previewImageUrl} alt="Selected Avatar Preview" className="rounded-lg object-contain w-32 h-32" />
+					</div>
+				)}
+
+				{/* Кнопка регистрации */}
 				<button
 					type="submit"
 					className="w-full bg-sky-500 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded"

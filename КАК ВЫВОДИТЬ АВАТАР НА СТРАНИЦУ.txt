@@ -1,0 +1,118 @@
+Давай разберём пошагово, как реализовать хранение и последующее использование аватара пользователя в вашем проекте с бэкендом на Django и фронтендом на Next.js.
+
+### Шаг 1: Настройка моделей и миграции в Django
+
+В твоих исходниках уже имеется модель пользователя с полем `avatar`:
+
+```python
+class CustomUser(AbstractUser):
+    # Поля...
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+```
+
+Это означает, что поле аватара автоматически создаётся в базе данных и хранит ссылку на файл изображения, который будет находиться в директории `media/avatars/`.
+
+### Шаг 2: Реализация загрузки файла в API
+
+#### 2.1 Изменения в сериалайзере
+
+В вашем файле `serializers.py` у тебя уже прописана логика работы с аватаром:
+
+```python
+class UserSerializer(serializers.ModelSerializer):
+    avatar = serializers.ImageField(required=False)
+    
+    def create(self, validated_data):
+        avatar = validated_data.pop('avatar', None)
+        
+        user = CustomUser.objects.create_user(**validated_data)
+        
+        if avatar:
+            user.avatar = avatar
+            user.save(update_fields=['avatar'])
+            
+        return user
+```
+
+Всё верно сделано: при создании нового пользователя проверяется наличие аватара, и если он передан, то присваивается соответствующему полю и сохраняется.
+
+#### 2.2 Обновление API View
+
+Убедимся, что API endpoint принимает multipart/form-data для загрузки файла. Уже сделанное тобой правильно работает, так как используется `request.data`, которое поддерживает форму отправки с файлами.
+
+### Шаг 3: Передача аватара в POST-запросе с фронта
+
+Поскольку ты используешь Next.js, важно убедиться, что форма отправляет файл в правильном формате. Судя по предыдущему фрагменту кода, у тебя уже есть правильный способ отправить файл через AJAX:
+
+```javascript
+Object.keys(data).forEach(key => {
+    const value = data[key as keyof RegisterFormInputs];
+
+    if (isFileOrBlob(value)) {
+        formData.append(key, value);
+    } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        formData.append(key, `${value}`);
+    } else {
+        throw new Error(`Недопустимый тип данных для поля "${key}"`);
+    }
+});
+```
+
+Это правильная практика для передачи файлов.
+
+### Шаг 4: Настройки статики и медиа-файлов в Django
+
+В настройках Django у тебя уже настроены пути для медиа-данных:
+
+```python
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+MEDIA_URL = '/media/'
+```
+
+И URL маршрутизация для среды разработки тоже указана:
+
+```python
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+```
+
+Это гарантирует, что в режиме разработки файлы будут доступны по адресам вида `http://yoursite/media/avatars/your_avatar.jpg`.
+
+### Шаг 5: Использование аватара на фронте
+
+Теперь, когда аватар сохранился на сервере, нужно вывести его на сайте. Предположим, у тебя есть REST API endpoint для получения данных пользователя, включая его аватар. Тогда, получив токен JWT, ты можешь запрашивать профиль текущего пользователя:
+
+```bash
+GET /api/profile/
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+Предполагая, что твой сериалайзер включает полные данные пользователя:
+
+```python
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'avatar']
+```
+
+Получив данные, ты сможешь показать аватар в браузере, зная полный URL до файла:
+
+```javascript
+// В компоненте React/Next.js
+return (
+    <>
+        <img src={user.avatar.url} alt="User Avatar" />
+    </>
+);
+```
+
+### Итоговая схема действий:
+
+1. Файл отправляется с фронта в форме multipart/form-data →
+2. Сервер получает файл и сохраняет его в папке `media/avatars/` →
+3. Путь к файлу записывается в поле `avatar` пользователя →
+4. Ты запрашиваешь профиль пользователя через API →
+5. Используешь полученный URL в своём компоненте для показа изображения.
+
+Эта цепочка обеспечит корректную работу с аватарами пользователей в твоём приложении.
