@@ -23,10 +23,8 @@ const LoginForm = () => {
   // Хранит введённые пользователем имя пользователя и пароль. Изначально оба поля пусты.
   const [credentials, setCredentials] = useState({ username: '', password: '' });
 
-
   // Индикатор загрузки
   const [loading, setLoading] = useState(false);
-
 
   // Сообщение об ошибке: если возникла проблема при авторизации.
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -49,7 +47,10 @@ const LoginForm = () => {
       const response = await axios.post('/api/login/', credentials);
       console.log(response); // Полный ответ сервера
 
+      // Сохраняем токен
       localStorage.setItem('authToken', response.data.access_token);
+      
+      // 🔥 Используем глобальный хук для навигации
       redirect('/dashboard');
 
     } catch (error: any & ApiError) {
