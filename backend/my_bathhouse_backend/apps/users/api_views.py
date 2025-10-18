@@ -17,6 +17,7 @@ class RegisterAPI(APIView):
     """Обрабатывает регистрацию новых пользователей."""
     def post(self, request, *args, **kwargs):
 
+        print(request.body.decode())
         print(request.data)  # Для вывода полученных данных в консоль
         print(type(request.data.get('avatar')))  # проверка наличия файла
 
@@ -58,26 +59,40 @@ class LoginAPI(APIView):
     """Авторизует пользователя и выдаёт токены."""
     permission_classes = [AllowAny]  # Доступ открыт без предварительного входа
 
-    def post(self, request, format=None):
+    def post(self, request):
         serializer = LoginSerializer(data=request.data)
 
         if serializer.is_valid():  # Если данные валидные
             token = RefreshToken.for_user(serializer.validated_data['user'])
+
+            print("token 71: ", token),
+            print("Response 72: ", Response)
+
             return Response({
                 'access_token': str(token.access_token),
                 'refresh_token': str(token)
             }, status=status.HTTP_200_OK)
+
+
         else:
             # Если произошла ошибка, формируем детальное сообщение
             errors = serializer.errors
+            print("errors (78): ", errors)
 
             # Формируем подходящее сообщение для пользователя
             if 'non_field_errors' in errors:
                 # Преобразуем список ошибок в строку
                 message = ', '.join(errors['non_field_errors'])
+                print("message (84): ", message)
+
             elif 'username' in errors or 'password' in errors:
                 message = 'Неправильно указаны имя пользователя или пароль.'
+                print("message (88): ", message)
+
             else:
                 message = 'Ошибка входа.'
+                print("message (92): ", message)
+
 
             return Response({'detail': message}, status=status.HTTP_400_BAD_REQUEST)
+

@@ -77,12 +77,18 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
+        print(f"Получено: {attrs}")
+
         username = attrs.get('username')
         password = attrs.get('password')
 
         user = authenticate(username=username, password=password)
 
-        if not user or not user.is_active:
-            raise serializers.ValidationError("my_bathhouse_backend/apps/users/serializers.py: Невалидные учетные данные")
+        if not user:
+            raise serializers.ValidationError(
+                "Неверное имя пользователя или пароль.")
+
+        if not user.is_active:
+            raise serializers.ValidationError("Аккаунт неактивен.")
 
         return {'user': user}
