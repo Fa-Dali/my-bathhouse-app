@@ -11,32 +11,38 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import LoginSerializer, UserSerializer
+# ==========================
+# ЧТЕНИЕ ТАБЛИЦЫ ПОЛЬЗОВАТЕЛЕЙ ИЗ БД
+from rest_framework.generics import ListAPIView
+from .models import CustomUser
+# from .serializers import UserSerializer
+# ===========================
+# УДАЛЕНИЕ ПОЛЬЗОВАТЕЛЕЙ ИЗ БД
+from rest_framework.generics import DestroyAPIView
+# from .models import CustomUser
+# from .serializers import UserSerializer
+# ===========================
+# ЗАМЕНА АВАТАР ПОЛЬЗОВАТЕЛЯ В БД
+from rest_framework.generics import UpdateAPIView
+from rest_framework.parsers import MultiPartParser, FormParser
+# from .models import CustomUser
+# from .serializers import UserSerializer
+from datetime import datetime
+import os
+from django.conf import settings  # Для доступа к MEDIA_ROOT
+# ===========================
 
+# ===========================
 
+# ДЛЯ РЕГИСТРАЦИИ ПОЛЬЗОВАТЕЛЯ
 class RegisterAPI(APIView):
     """Обрабатывает регистрацию новых пользователей."""
     def post(self, request, *args, **kwargs):
-
         print(request.body.decode())
         print(request.data)  # Для вывода полученных данных в консоль
         print(type(request.data.get('avatar')))  # проверка наличия файла
 
         serializer = UserSerializer(data=request.data)
-
-        # if serializer.is_valid():
-        #
-        #     try:
-        #         serializer.save()
-        #     except Exception as e:
-        #         print(
-        #             f"Ошибка при сохранении: {e}")  # Выведет исключение в терминал
-        #
-        #     return Response({"my_bathhouse_backend/apps/users/api_views.py ("
-        #                      "22): "
-        #                      "message": "Регистрация успешна"},
-        #                     status=status.HTTP_201_CREATED)
-        #
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         if serializer.is_valid():
             try:
@@ -54,25 +60,27 @@ class RegisterAPI(APIView):
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
 
+# =================================================
 
+# ДЛЯ ЛОГИРОВАНИЯ ПОЛЬЗОВАТЕЛЯ
 class LoginAPI(APIView):
     """Авторизует пользователя и выдаёт токены."""
     permission_classes = [AllowAny]  # Доступ открыт без предварительного входа
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         serializer = LoginSerializer(data=request.data)
 
         if serializer.is_valid():  # Если данные валидные
-            token = RefreshToken.for_user(serializer.validated_data['user'])
+            user = serializer.validated_data['user']
+            refresh = RefreshToken.for_user(user)
 
-            print("token 71: ", token),
-            print("Response 72: ", Response)
+            print("Access token:", str(refresh.access_token))
+            print("Refresh token:", str(refresh))
 
             return Response({
-                'access_token': str(token.access_token),
-                'refresh_token': str(token)
+                'access_token': str(refresh.access_token),
+                'refresh_token': str(refresh)
             }, status=status.HTTP_200_OK)
-
 
         else:
             # Если произошла ошибка, формируем детальное сообщение
@@ -93,6 +101,98 @@ class LoginAPI(APIView):
                 message = 'Ошибка входа.'
                 print("message (92): ", message)
 
-
             return Response({'detail': message}, status=status.HTTP_400_BAD_REQUEST)
 
+# =================================================
+
+# ДЛЯ CSRF ТОКЕНА
+from django.http import JsonResponse
+from django.middleware.csrf import get_token
+
+def get_csrf(request):
+    """
+    Возвращает CSRF-токен для текущего запроса.
+    """
+
+    return JsonResponse({'csrfToken': get_token(request)})
+
+# =================================================
+
+# ДЛЯ ОБНОВЛЕНИЯ ТОКЕНА JWT
+class RefreshTokenAPI(APIView):
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.data.get('refresh_token')
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                access_token = str(token.access_token)
+                return Response({'access_token': access_token}, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'error': 'Refresh token is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+# =================================================
+
+# ЧТЕНИЕ ТАБЛИЦЫ ПОЛЬЗОВАТЕЛЕЙ ИЗ БД
+class UserListAPI(ListAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+
+# =================================================
+
+# УДАЛЕНИЕ ПОЛЬЗОВАТЕЛЯ ИЗ БД
+class DeleteUserAPI(DestroyAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+    lookup_field = 'pk'  # Идентификатором будет первичный ключ пользователя
+
+# =================================================
+
+# ЗАМЕНА АВАТАР В БД
+class UpdateAvatarAPI(UpdateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+    parser_classes = [MultiPartParser,
+                      FormParser]  # Необходимо для обработки файлов
+    lookup_field = 'pk'
+
+    def update(self, request, *args, **kwargs):
+        '''
+        Решение готово к работе и поддержит работу с любыми изображениями
+        независимо от расширения (.jpg/.png и т.д.).
+        '''
+        user = self.get_object()
+        avatar = request.FILES.get('avatar')
+
+        if avatar:
+            # Удаляем старое изображение, если оно существовало
+            old_avatar_path = os.path.join(settings.MEDIA_ROOT,
+                                           user.avatar.name)
+            if os.path.exists(old_avatar_path):
+                os.remove(old_avatar_path)
+
+            # Определим расширение файла
+            extension = avatar.name.split('.')[-1].lower()
+            filename = f'{user.id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}_avatar.{extension}'
+
+            # Изменяем размер аватара до 250x250
+            resized_avatar = resize_image(avatar, size=(250, 250))
+
+            # Сохраняем измененный аватар
+            save_path = os.path.join(settings.MEDIA_ROOT, 'avatars', filename)
+            resized_avatar.save(save_path)
+
+            # Обновляем запись пользователя
+            user.avatar = os.path.join('avatars', filename)
+            user.save()
+
+        return super().update(request, *args, **kwargs)
+
+
+# Функционал для изменения размера изображения
+def resize_image(image, size):
+    from PIL import Image
+    img = Image.open(image)
+    img.thumbnail(size, Image.Resampling.LANCZOS)
+    return img

@@ -68,6 +68,9 @@ my-bathhouse-app/
 │   │   ├── Scripts/                    # Скрипты активации виртуального окружения
 │   │   └── pyvenv.cfg                  # Конфигурационный файл виртуального окружения
 │   │
+│   ├── media/
+│   │   └── avatars/
+│   │
 │   ├── my-bathhouse-backend/           # Основной каталог Django-приложения
 │   │   ├── apps/                       # Приложения Django
 │   │   │   ├── users/                  # Модели пользователей
@@ -95,6 +98,8 @@ my-bathhouse-app/
 │       ├── .next                      # Кэш и временные файлы Next.js
 │       ├── app/                       # Исходники клиентской части приложения
 │       │   ├── auth/                  # Аутентификация
+│       │   │   ├── context/
+│       │   │   │   └── auth-provider.tsx
 │       │   │   ├── login/            # Страница входа
 │       │   │   │   ├── LoginForm.tsx
 │       │   │   │   ├── page.tsx
@@ -106,9 +111,9 @@ my-bathhouse-app/
 │       │   │   ├── recover/        # Страница восстановления пароля
 │       │   │   │   ├── page.tsx
 │       │   │   │   └── loading.tsx
-│       │   │   ├── logout/        # Страница выхода
-│       │   │   │   ├── page.tsx
-│       │   │   │   └── loading.tsx
+│       │   │   └── logout/        # Страница выхода
+│       │   │       ├── page.tsx
+│       │   │       └── loading.tsx
 │       │   ├── dashboard/             # Панель инструментов
 │       │   │   ├── timetable-guest/   # Табель для незарегистрированных пользователей
 │       │   │   │   ├── page.tsx
@@ -187,8 +192,9 @@ my-bathhouse-app/
 │       │   │   │   ├── calculator/    # Калькулятор расчёта разных ячеек таблицы
 │       │   │   │   │   ├── page.tsx
 │       │   │   │   │   └── loading.tsx
-│       │   │   │   ├── page.tsx
-│       │   │   │   └── loading.tsx
+│       │   │   │   └── staff-page/
+│       │   │   │       ├── page.tsx
+│       │   │   │       └── loading.tsx
 │       │   │   |
 │       │   │   ├── salary-staff-table/ # Таблица коллективных зарплат администратору
 │       │   │   │   ├── page.tsx

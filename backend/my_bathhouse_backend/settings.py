@@ -26,7 +26,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')  # Папка для хранен�
 MEDIA_URL = '/media/'  # URL для обращений к загруженным данным
 
 # Отключаем автоматическое добавление слэша к URL
-APPEND_SLASH = False
+APPEND_SLASH = True
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -58,10 +58,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',
+
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'my_bathhouse_backend.apps.users',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -77,6 +78,24 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',  # фронтенд на localhost:3000
+]
+
+# CORS_ALLOWED_ORIGIN_REGEXES = [
+#     r'^http://localhost:3000.*$',
+#     # 'http://192.168.1.169:3000',
+#     # '*'
+# ]
+
+# Опционально: разрешить куки/авторизацию (если нужны)
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
 ]
 
 ROOT_URLCONF = 'my_bathhouse_backend.urls'
@@ -149,6 +168,7 @@ LOGGING = {
         'django.db.backends': {
             'level': 'DEBUG',
             'handlers': ['console'],
+            'propagate': True, ##
         },
     },
 }
@@ -209,6 +229,7 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Время жизни токена
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  # Время жизни refresh-токена
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  # Время жизни
+    # refresh-токена
 }
 # ===================================

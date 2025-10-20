@@ -16,22 +16,6 @@ export default function SideNav() {
   const [loading, setLoading] = useState(false);
   const pathname = usePathname();  // Хук для получения текущего пути
 
-  // 🔥 Закомментировали устаревшую версию проверки токена и переадресации
-  // useEffect(() => {
-  //   const checkTokenAndRedirect = async () => {
-  //     const token = localStorage.getItem('token');
-
-  //     // Исключаем страницы "/auth/register" и "/auth/login" из проверки токенов
-  //     if (pathname !== '/auth/register' && !token) {
-  //       redirect('/auth/login');  // Если токен отсутствует и путь не относится к регистрации, направляем на страницу логина
-  //     }
-  //   };
-
-  //   checkTokenAndRedirect();
-  // }, [pathname]); // Теперь эффект запускается каждый раз при изменении пути
-
-
-
   const handleLoginClick = async () => {
     setLoading(true);
 

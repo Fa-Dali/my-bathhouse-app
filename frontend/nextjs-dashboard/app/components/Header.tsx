@@ -16,13 +16,25 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
   return (
     <header className={`rounded-md flex items-center justify-between p-4 bg-sky-900 text-white ${className || ''}`}>
       <Link href="/">
-        <Image src={logoPath} alt="Logo" width={50} height={50} className="mr-4 shadow-inner"/>
+        <Image src={logoPath} alt="Logo" width={50} height={50} className="mr-4 shadow-inner" />
       </Link>
       <nav className="flex items-center">
         <ul className="flex gap-4">
-          <li><Link href="/account" className="hover:text-blue-500 transition-colors duration-300">Account</Link></li>
-          <li><Link href="/login" className="hover:text-blue-500 transition-colors duration-300">Login</Link></li>
+
+          <li>
+            <Link href="/account" className="hover:text-blue-500 transition-colors duration-300">
+              Account
+            </Link>
+          </li>
+
+          <li>
+            <Link href="/login" className="hover:text-blue-500 transition-colors duration-300">
+              Login
+            </Link>
+          </li>
+
         </ul>
+
       </nav>
     </header>
 
