@@ -20,7 +20,12 @@ export default function DeleteModal({ show, handleClose, userId }: Props) {
     if (!userId) return;
     await deleteUser(userId); // Удаление пользователя
     handleClose(); // Закрытие модала после удаления
+
+    // Перезагружаем страницу после успешного удаления
+    window.location.reload(); // Перезагрузка страницы
   }, [userId, handleClose]);
+
+
 
   return (
     <>

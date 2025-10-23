@@ -19,6 +19,25 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
   const { users } = useUsers(); // Используем хук для получения списка пользователей
   const fileInputRef = useRef<HTMLInputElement | null>(null); // Реф для выбора файла
 
+  // // Функция для удаления пользователя
+  // const handleDeleteUser = async (userId: number) => {
+  //   try {
+  //     const response = await fetch(`/api/delete-user/${userId}/`, {
+  //       method: 'DELETE',
+  //     });
+
+  //     if (response.ok) {
+  //       // Перезагружаем страницу после успешного удаления
+  //       window.location.reload(); // Стандартная JS-функция, типизация не требуется
+  //     } else {
+  //       alert('Ошибка при удалении пользователя.');
+  //     }
+  //   } catch (error) {
+  //     console.error('Ошибка при удалении пользователя:', error);
+  //     alert('Ошибка при удалении пользователя.');
+  //   }
+  // };
+
 
   return (
     <table className="min-w-full divide-y divide-gray-200">
@@ -69,8 +88,8 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
             </td>
             <td className="px-6 py-4 whitespace-no-wrap">
               {user.first_name}
-			  <br />
-			  {user.last_name}
+              <br />
+              {user.last_name}
             </td>
             <td className="px-6 py-4 whitespace-no-wrap">{user.phone_number}</td>
             <td className="px-6 py-4 whitespace-pre-line break-words max-w-[100px]">{user.email}</td>
@@ -87,6 +106,12 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
                 >
                   Удалить
                 </button>
+                {/* <button
+                  onClick={() => handleDeleteUser(user.id)}
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                >
+                  Удалить
+                </button> */}
               </td>
             )}
           </tr>
