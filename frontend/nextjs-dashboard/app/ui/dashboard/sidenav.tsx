@@ -16,24 +16,10 @@ export default function SideNav() {
   const [loading, setLoading] = useState(false);
   const pathname = usePathname();  // Хук для получения текущего пути
 
-  const handleLoginClick = async () => {
+  const handleLoginClick = () => {
     setLoading(true);
-
-    try {
-      const token = localStorage.getItem('token');
-
-      if (!token) {
-        alert('Токен отсутствует. Пожалуйста, войдите в систему.');
-        redirect('/login');  // Перемещаемся на страницу входа, если токен отсутствует
-        return;
-      }
-
-
-    } catch (error) {
-      console.error("frontend/nextjs-dashboard/app/ui/dashboard/sidenav.tsx (49): Ошибка входа:", error);
-    } finally {
-      setLoading(false);
-    }
+    redirect('/auth/login');  // Прямо переадресовываем на страницу входа
+    setTimeout(() => setLoading(false), 100); // Небольшая задержка для анимации
   };
 
   return (

@@ -5,7 +5,7 @@ import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useState } from 'react';
 import axios from 'axios';
 import { usePathname, useSearchParams, redirect } from 'next/navigation';
-import LoadingPage from '@/app/auth/login/loading';
+import LoadingPage from '@/app/auth/register/loading';
 import { useForm } from 'react-hook-form';
 
 type RegisterFormInputs = {
@@ -37,6 +37,8 @@ const RegisterForm = () => {
 
 	const [previewImageUrl, setPreviewImageUrl] = useState<string | undefined>(undefined);
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+	const [loading, setLoading] = useState(false); // ☑️ Новое состояние загрузки
 
 	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		if (event.target.files && event.target.files.length > 0) {
@@ -147,7 +149,14 @@ const RegisterForm = () => {
 			});
 
 			if (res.ok) {
-				alert('Вы успешно зарегистрировались!');
+				const json = await res.json(); // Получаем ответ сервера
+				alert(json.message); // Сообщение о регистрации
+
+				// Переключаем на загрузочную страницу и ждем секунду перед переадресацией
+				setTimeout(() => {
+					window.location.href = json.redirect_url; // Переадресация на страницу timetable-guest
+				}, 1000); // Пауза в 1 секунду
+				
 			} else {
 				let errorMessage = '';
 				try {
@@ -161,6 +170,8 @@ const RegisterForm = () => {
 		} catch (err) {
 			console.error(err);
 			alert('Возникла ошибка при регистрации.');
+		} finally {
+			setLoading(false); // Завершили регистрацию, отключаем загрузку
 		}
 	};
 

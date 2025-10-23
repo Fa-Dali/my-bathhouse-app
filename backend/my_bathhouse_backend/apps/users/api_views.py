@@ -37,8 +37,10 @@ from django.conf import settings  # Для доступа к MEDIA_ROOT
 # ДЛЯ РЕГИСТРАЦИИ ПОЛЬЗОВАТЕЛЯ
 class RegisterAPI(APIView):
     """Обрабатывает регистрацию новых пользователей."""
+    permission_classes = [AllowAny] # *** ? ***
+
     def post(self, request, *args, **kwargs):
-        print(request.body.decode())
+        # print(request.body.decode())
         print(request.data)  # Для вывода полученных данных в консоль
         print(type(request.data.get('avatar')))  # проверка наличия файла
 
@@ -49,7 +51,7 @@ class RegisterAPI(APIView):
                 user = serializer.save()
 
                 # Вернём ответ клиенту
-                return Response({"message": "Регистрация прошла успешно."},
+                return Response({"message": "Регистрация прошла успешно.", "redirect_url": "/dashboard/timetable-guest"},
                                 status=status.HTTP_201_CREATED)
 
             except Exception as e:
@@ -167,10 +169,11 @@ class UpdateAvatarAPI(UpdateAPIView):
 
         if avatar:
             # Удаляем старое изображение, если оно существовало
-            old_avatar_path = os.path.join(settings.MEDIA_ROOT,
-                                           user.avatar.name)
-            if os.path.exists(old_avatar_path):
-                os.remove(old_avatar_path)
+            if user.avatar:
+                old_avatar_path = os.path.join(settings.MEDIA_ROOT,
+                                               user.avatar.name)
+                if os.path.exists(old_avatar_path):
+                    os.remove(old_avatar_path)
 
             # Определим расширение файла
             extension = avatar.name.split('.')[-1].lower()
