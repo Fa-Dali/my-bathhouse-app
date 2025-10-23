@@ -13,12 +13,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import LoginSerializer, UserSerializer
 # ==========================
 # ЧТЕНИЕ ТАБЛИЦЫ ПОЛЬЗОВАТЕЛЕЙ ИЗ БД
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, DestroyAPIView
 from .models import CustomUser
 # from .serializers import UserSerializer
 # ===========================
 # УДАЛЕНИЕ ПОЛЬЗОВАТЕЛЕЙ ИЗ БД
-from rest_framework.generics import DestroyAPIView
+# from rest_framework.generics import DestroyAPIView
 # from .models import CustomUser
 # from .serializers import UserSerializer
 # ===========================
@@ -31,7 +31,12 @@ from datetime import datetime
 import os
 from django.conf import settings  # Для доступа к MEDIA_ROOT
 # ===========================
-
+# ДЛЯ CSRF ТОКЕНА
+from django.http import JsonResponse
+from django.middleware.csrf import get_token
+# ===========================
+# ДЛЯ УДАЛЕНИЯ АВАТАРА ИЗ БД
+from django.core.exceptions import SuspiciousOperation
 # ===========================
 
 # ДЛЯ РЕГИСТРАЦИИ ПОЛЬЗОВАТЕЛЯ
@@ -107,10 +112,6 @@ class LoginAPI(APIView):
 
 # =================================================
 
-# ДЛЯ CSRF ТОКЕНА
-from django.http import JsonResponse
-from django.middleware.csrf import get_token
-
 def get_csrf(request):
     """
     Возвращает CSRF-токен для текущего запроса.
@@ -143,11 +144,29 @@ class UserListAPI(ListAPIView):
 
 # =================================================
 
-# УДАЛЕНИЕ ПОЛЬЗОВАТЕЛЯ ИЗ БД
+# УДАЛЕНИЕ ПОЛЬЗОВАТЕЛЯ ИЗ БД И АВАТАР ИЗ ПАПКИ avatars/
 class DeleteUserAPI(DestroyAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'pk'  # Идентификатором будет первичный ключ пользователя
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()  # Получаем экземпляр пользователя
+
+        # Удаляем аватар из папки avatars/, если он существует
+        if instance.avatar:
+            try:
+                avatar_path = os.path.join(settings.MEDIA_ROOT,
+                                           instance.avatar.name)
+                if os.path.exists(avatar_path):
+                    os.remove(avatar_path)
+            except OSError as e:
+                # Обрабатываем возможную ошибку при удалении файла
+                pass
+
+        # Удаляем пользователя
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 # =================================================
 
