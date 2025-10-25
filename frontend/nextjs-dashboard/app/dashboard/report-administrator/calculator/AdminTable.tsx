@@ -24,12 +24,20 @@ export default function Page({ }: PageProps) {
 
   // Функция для пересчета итоговой суммы
   const calculateTotal = () => {
-    const total =
-      parseInt(rentAmount.rawValue) +
-      parseInt(saleAmount.rawValue) +
-      parseInt(spaAmount.rawValue);
-    setTotalSum(total);
+  const cleanNumber = (value: string | number) => {
+    if (typeof value === 'string') {
+      return Number(value.replace(/[^-\d.,]+/g, '').replace(',', '.')) || 0;
+    }
+    return typeof value === 'number' && !isNaN(value) ? value : 0;
   };
+
+  const total =
+    cleanNumber(rentAmount.rawValue) +
+    cleanNumber(saleAmount.rawValue) +
+    cleanNumber(spaAmount.rawValue);
+
+  setTotalSum(total);
+};
 
   // Обновляем итог при изменении одной из ячеек
   React.useEffect(() => {
@@ -209,7 +217,7 @@ export default function Page({ }: PageProps) {
 
                 {/* ИТОГ */}
                 <td className="border px-0">
-                  <strong>{totalSum.toLocaleString('ru-RU')}</strong> {/* Итоговая сумма */}
+                  <strong>{!isNaN(totalSum) ? totalSum.toLocaleString('ru-RU') : '0'}</strong> {/* Итоговая сумма */}
                 </td>
 
                 {/* СПОСОБ ОПЛАТЫ */}
