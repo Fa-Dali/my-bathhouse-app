@@ -1,3 +1,5 @@
+// frontend/nextjs-dashboard/app/dashboard/report-administrator/calculator/AdminTable.tsx
+
 'use client';
 
 import React from 'react';
@@ -11,7 +13,28 @@ import { NumberInput } from './scripts/InputField';
 export interface PageProps { }
 
 export default function Page({ }: PageProps) {
-  const rentAmount = useFormattedNumber(); // Используем хук для форматирования
+  // const rentAmount = useFormattedNumber();  Используем хук для форматирования
+
+  const rentAmount = useFormattedNumber(); // Аренда
+  const saleAmount = useFormattedNumber(); // Продажа
+  const spaAmount = useFormattedNumber(); // Способы оплаты (спа)
+
+  // Состояние итоговой суммы
+  const [totalSum, setTotalSum] = React.useState(0);
+
+  // Функция для пересчета итоговой суммы
+  const calculateTotal = () => {
+    const total =
+      parseInt(rentAmount.rawValue) +
+      parseInt(saleAmount.rawValue) +
+      parseInt(spaAmount.rawValue);
+    setTotalSum(total);
+  };
+
+  // Обновляем итог при изменении одной из ячеек
+  React.useEffect(() => {
+    calculateTotal();
+  }, [rentAmount.rawValue, saleAmount.rawValue, spaAmount.rawValue]);
 
   return (
     <div className="container mx-auto">
@@ -157,12 +180,26 @@ export default function Page({ }: PageProps) {
 
                 {/* ОПЛАТА */}
                 <td className="border px-0">
-                  <input type="number" step="10" placeholder=" " className="text-right w-full border-none focus:ring-transparent focus:outline-none" />
+                  <NumberInput
+                    type="text"
+                    step="10"
+                    placeholder=" "
+                    className="text-right w-full border-none focus:ring-transparent focus:outline-none"
+                    value={saleAmount.value}
+                    onChange={saleAmount.onChange}
+                  />
                 </td>
 
                 {/* СПОСОБ ОПЛАТЫ */}
                 <td className="border px-0">
-                  <input type="number" step="10" placeholder=" " className="text-right w-full border-none focus:ring-transparent focus:outline-none" />
+                  <NumberInput
+                    type="text"
+                    step="10"
+                    placeholder=" "
+                    className="text-right w-full border-none focus:ring-transparent focus:outline-none"
+                    value={spaAmount.value}
+                    onChange={spaAmount.onChange}
+                  />
                 </td>
 
                 {/* СЕРТИФИКАТ */}
@@ -172,7 +209,7 @@ export default function Page({ }: PageProps) {
 
                 {/* ИТОГ */}
                 <td className="border px-0">
-                  <span className="total">-</span>
+                  <strong>{totalSum.toLocaleString('ru-RU')}</strong> {/* Итоговая сумма */}
                 </td>
 
                 {/* СПОСОБ ОПЛАТЫ */}
