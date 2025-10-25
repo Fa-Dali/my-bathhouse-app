@@ -1,0 +1,43 @@
+/* _app.tsx */
+
+
+body {
+  @apply font-sans leading-normal m-5;
+}
+
+table {
+  @apply w-full border-collapse my-0;
+}
+
+th, td {
+  @apply h-5 w-1/10 p-1 text-center border-b border-gray-300;
+}
+
+button {
+  @apply inline-block px-2 py-1 bg-green-500 text-white rounded-md cursor-pointer transition duration-300 ease-in-out;
+}
+
+button:hover {
+  @apply bg-green-700;
+}
+
+.center {
+  @apply text-center;
+}
+
+.div1 {
+  @apply w-3/4;
+}
+
+.div2 {
+  @apply w-1/4;
+}
+
+.div-container {
+  @apply flex;
+}
+
+/* Select.module.css */
+.no-arrow-select {
+  appearance: none; /* Убрать стрелку */
+}

@@ -165,3 +165,9 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 /* *** END *** ЗАСТАВКА ЗАГРУЗКИ loading.tsx */
+
+
+/* global.css */
+input[type='time']::-webkit-calendar-picker-indicator {
+  display: none;
+}

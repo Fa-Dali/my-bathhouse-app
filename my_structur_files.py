@@ -182,7 +182,10 @@ my-bathhouse-app/
 │       │   │   |
 │       │   │   ├── report-administrator/ # Отчёт администратора с калькулятором таблиц
 │       │   │   │   ├── calculator/    # Калькулятор расчёта разных ячеек таблицы
+│       │   │   │   │   ├── AdminTable.tsx
+│       │   │   │   │   ├── CustomCheck.tsx
 │       │   │   │   │   ├── page.tsx
+│       │   │   │   │   ├── TableCSS.module.css
 │       │   │   │   │   └── loading.tsx
 │       │   │   │   |
 │       │   │   │   ├── page.tsx       # Основная страница отчёта администратора
