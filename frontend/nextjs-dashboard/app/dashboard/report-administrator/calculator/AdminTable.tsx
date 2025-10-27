@@ -7,8 +7,10 @@ import CustomCheckbox from './CustomCheckbox';
 import '../../../../app/ui/global.css';
 import './style/TimeInput.module.css';
 import './style/Select.module.css';
+import './style/Cell.module.css';
 import useFormattedNumber from './scripts/useFormattedNumber';
 import { NumberInput } from './scripts/InputField';
+
 
 export interface PageProps { }
 
@@ -48,27 +50,34 @@ export default function Page({ }: PageProps) {
     <div className="container mx-auto">
 
 
-      <div className="head mb-4">
+      <div className="head">
         <h1 className="text-2xl font-bold text-center">Ежедневный отчет бани</h1>
         <table className="w-full border border-gray-800">
+
+          {/* КАЛЕНДАРЬ : АДМИН ФИО */}
           <thead>
             <tr className="bg-white text-black">
+
               {/* КАЛЕНДАРЬ */}
               <td className="w-1/12 border border-gray-300">
                 <input type="date" className="w-full h-8 border-none focus:ring-transparent focus:outline-none" />
               </td>
 
+              {/* АДМИН */}
               <td className="w-1/12 border text-center bg-white border-gray-300">
                 Админ:
               </td>
 
               {/* ФИО */}
               <td className="border border-gray-300">
-                <input
-                  type="text"
-                  className="w-full border-none focus:ring-transparent focus:outline-none"
-                  placeholder="ФИО"
-                />
+                <div>
+                  <input type="text" list="fio-list" placeholder="Фамилия Имя Отчество" className='w-full border-transparent'/>
+                  <datalist id="fio-list">
+                    <option value="Кирсанова О."></option>
+                    <option value="Менделеева О."></option>
+                    <option value="Фадеев С.В."></option>
+                  </datalist>
+                </div>
               </td>
             </tr>
           </thead>
@@ -78,14 +87,14 @@ export default function Page({ }: PageProps) {
         </table>
       </div>
 
-
+      {/* ТАБЛИЦА ОТЧЕТА */}
       <div className="div-container flex justify-between gap-1 bg-slate-400">
         <div>
 
           {/* ТАБЛИЦА */}
           <table className="w-full min-w-full border bg-white border-gray-300">
 
-            {/* ЗАГОЛОВОК */}
+            {/* ШАПКА */}
             <thead>
               <tr className="bg-white text-black">
                 <th className="border px-0 py-0"></th>
@@ -99,15 +108,15 @@ export default function Page({ }: PageProps) {
                 {/* <th className="border px-4">Сертификат</th> */}
                 <th className="w-1/12 border px-0">СУММА</th>
                 <th className="w-1/12 border px-0 bg-white">ОПЛАТА</th>
-                <th className="w-2/12 border px-0 bg-white">способ</th>
-                <th colSpan={2} className="w-1/5 border px-0">Зарплата</th>
+                <th className="w-1/12 border px-0 bg-white">способ</th>
+                <th colSpan={2} className="w-1/3 border px-0">Зарплата</th>
                 {/* <th className="w-1/12 border px-4">способ</th> */}
               </tr>
             </thead>
 
-            {/* ТАБЛИЦА */}
-            <tbody className=" text-center">
-              <tr className="hover:bg-yellow-100">
+            {/* СТРОКА КАЛЬКУЛЯТОР ТАБЛИЦЫ */}
+            <tbody className="text-center">
+              <tr className="hover:bg-slate-50 border-b-2 border-gray-300/75">
 
                 {/* ЧЕКБОКС */}
                 <td className="border px-0 relative">
@@ -120,13 +129,8 @@ export default function Page({ }: PageProps) {
                     type="time"
                     className="
                       `${styles['time-input']}
-                      w-full CSS h-7
-                      rounded-md
-                      border border-transparent
-                      focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white
-                      focus:border-indigo-500
-                      disabled:opacity-50
-                    "
+                      w-full CSS h-24
+                      border border-transparent"
                   />
                 </td>
 
@@ -136,75 +140,58 @@ export default function Page({ }: PageProps) {
                     type="time"
                     className="
                       `${styles['time-input']}
-                      w-full CSS h-7
-                      rounded-md
-                      border border-transparent
-                      focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white
-                      focus:border-indigo-500
-                      disabled:opacity-50
-                    "
+                      w-full CSS h-24
+                      border border-transparent"
                   />
                 </td>
 
-                {/* АУДИТОРИЯ */}
-                <td className="border px-0.5 relative">
-                  <select
-                    className="
-                      `${styles['no-arrow-select']} w-full h-10
-                      border border-transparent
-                      focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white
-                      focus:border-indigo-500
-                      disabled:opacity-50
-                      cursor-pointer
-                      bg-white
-                      text-gray-700
-                      placeholder:text-gray-400
-                      pr-10`
-                    "
-                  >
-                    <option value="" hidden>Выбор аудитории</option>
-                    <option value="терминал">Муромец</option>
-                    <option value="НАЛИЧНЫЕ">Никитич</option>
-                    <option value="Сайт">Попович</option>
-                    <option value="ресепшн">Массаж</option>
-                  </select>
-
-                  {/* Стрелка выбора */}
-                  {/* <BarsArrowDownIcon className="absolute inset-y-0 right-0 mr-3 my-auto text-gray-500 pointer-events-none" /> */}
+                {/* ВЫБОР АУДИТОРИИ */}
+                <td className="border px-0 relative">
+                  <div>
+                    <input type="text" list="audience-list"
+                            placeholder="Выбор аудитории"
+                            className="w-full border-transparent h-24"/>
+                    <datalist id="audience-list">
+                      <option value="Муромец"></option>
+                      <option value="Никитич"></option>
+                      <option value="Попович"></option>
+                      <option value="Массаж"></option>
+                    </datalist>
+                  </div>
                 </td>
 
-                {/* СУММА */}
+                {/* АРЕНДА */}
                 <td className="border px-0">
                   <NumberInput
                     type="text"
                     step="10"
                     placeholder=" "
-                    className="text-right w-full border-none focus:ring-transparent focus:outline-none"
+                    className="h-24 text-right w-full border-none focus:ring-transparent focus:outline-none"
                     value={rentAmount.value}
                     onChange={rentAmount.onChange}
                   />
 
                 </td>
 
-                {/* ОПЛАТА */}
+                {/* ПРОДАЖА */}
                 <td className="border px-0">
                   <NumberInput
                     type="text"
                     step="10"
                     placeholder=" "
-                    className="text-right w-full border-none focus:ring-transparent focus:outline-none"
+                    className="h-24 text-right w-full border-none focus:ring-transparent focus:outline-none"
                     value={saleAmount.value}
                     onChange={saleAmount.onChange}
                   />
                 </td>
 
-                {/* СПОСОБ ОПЛАТЫ */}
+                {/* СПА */}
                 <td className="border px-0">
                   <NumberInput
                     type="text"
                     step="10"
                     placeholder=" "
-                    className="text-right w-full border-none focus:ring-transparent focus:outline-none"
+                    className="h-24 text-right w-full border-none focus:ring-transparent focus:outline-none"
                     value={spaAmount.value}
                     onChange={spaAmount.onChange}
                   />
@@ -220,30 +207,147 @@ export default function Page({ }: PageProps) {
                   <strong>{!isNaN(totalSum) ? totalSum.toLocaleString('ru-RU') : '0'}</strong> {/* Итоговая сумма */}
                 </td>
 
-                {/* СПОСОБ ОПЛАТЫ */}
-                <td className="border px-0">
-                  <input type="number" step="10" placeholder=" " className="text-right w-full border-none focus:ring-transparent focus:outline-none" />
+                {/* ОПЛАТА */}
+                <td className="px-0">
+                  <div className="border-1 border-gray-200">
+                    <input type="number"
+                        step="10"
+                        placeholder=" "
+                        className="w-full
+                                  border-transparent
+                                  h-6
+                                  border
+                                  border-b-gray-200"
+                    />
+                  </div>
+                  <div className="border-1 border-gray-200">
+                    <input type="number"
+                        step="10"
+                        placeholder=" "
+                        className="w-full
+                                  border-transparent
+                                  h-6
+                                  border
+                                  border-b-gray-200"
+                    />
+                  </div>
+                  <div className="border-1 border-gray-200">
+                    <input type="number"
+                        step="10"
+                        placeholder=" "
+                        className="w-full
+                                  border-transparent
+                                  h-6
+                                  border
+                                  border-b-gray-200"
+                    />
+                  </div>
+                  <div className="border-1 border-gray-200">
+                    <input type="number"
+                        step="10"
+                        placeholder=" "
+                        className="w-full
+                                  border-transparent
+                                  h-6
+                                  border"
+                    />
+                  </div>
                 </td>
 
                 {/* СПОСОБ ОПЛАТЫ */}
                 <td className="border px-0">
-                  <select className="w-full border-none focus:ring-transparent focus:outline-none">
-                    <option value="">Тип оплаты</option>
-                    <option value="терминал">Тер</option>
-                    <option value="НАЛИЧНЫЕ">НАЛ</option>
-                    <option value="Сайт">Сайт</option>
-                    <option value="ресепшн">Ресеп</option>
-                  </select>
+                  <div className="border-1 border-gray-200">
+                    <input type="text" list="payment-type-list"
+                            placeholder=""
+                            className="w-full border-transparent h-6 border border-b-gray-200"/>
+                    <datalist id="payment-type-list">
+                      <option value="Тер"></option>
+                      <option value="НАЛ"></option>
+                      <option value="Сайт"></option>
+                      <option value="Ресеп"></option>
+                    </datalist>
+                  </div>
+                  <div className="border-1 border-gray-200">
+                    <input type="text" list="payment-type-list"
+                            placeholder=""
+                            className="w-full border-transparent h-6 border border-b-gray-200"/>
+                    <datalist id="payment-type-list">
+                      <option value="Тер"></option>
+                      <option value="НАЛ"></option>
+                      <option value="Сайт"></option>
+                      <option value="Ресеп"></option>
+                    </datalist>
+                  </div>
+                  <div className="border-1 border-gray-200">
+                    <input type="text" list="payment-type-list"
+                            placeholder=""
+                            className="w-full border-transparent h-6 border border-b-gray-200"/>
+                    <datalist id="payment-type-list">
+                      <option value="Тер"></option>
+                      <option value="НАЛ"></option>
+                      <option value="Сайт"></option>
+                      <option value="Ресеп"></option>
+                    </datalist>
+                  </div>
+                  <div className="border-1 border-gray-200">
+                    <input type="text" list="payment-type-list"
+                            placeholder=""
+                            className="w-full border-transparent h-6"/>
+                    <datalist id="payment-type-list">
+                      <option value="Тер"></option>
+                      <option value="НАЛ"></option>
+                      <option value="Сайт"></option>
+                      <option value="Ресеп"></option>
+                    </datalist>
+                  </div>
                 </td>
 
-                {/* СПОСОБ ОПЛАТЫ */}
-                <td className="border px-0">
-                  <input type="text" step="10" placeholder=" " className="text-left w-full border-none focus:ring-transparent focus:outline-none" />
+                {/* КОМУ ОПЛАТА - МАСТЕРУ */}
+                <td className="border px-0 relative">
+                  <div className="border-1 border-gray-200">
+                    <input type="text" list="master-name"
+                            placeholder=""
+                            className="w-full border-transparent h-6 border border-b-gray-200"/>
+                  </div>
+                  <div className="border-1 border-gray-200">
+                    <input type="text" list="master-name"
+                            placeholder=""
+                            className="w-full border-transparent h-6 border border-b-gray-200"/>
+                  </div>
+                  <div className="border-1 border-gray-200">
+                    <input type="text" list="master-name"
+                            placeholder=""
+                            className="w-full border-transparent h-6 border border-b-gray-200"/>
+                  </div>
+                  <div className="border-1 border-gray-200">
+                    <input type="text" list="master-name"
+                            placeholder=""
+                            className="w-full border-transparent h-6"/>
+                  </div>
                 </td>
 
-                {/* СПОСОБ ОПЛАТЫ */}
+                {/* СУММА ОПЛАТЫ - МАСТЕРУ */}
                 <td className="border px-0">
-                  <input type="number" step="10" placeholder=" " className="text-right w-full border-none focus:ring-transparent focus:outline-none" />
+                  <div className="border-1 border-gray-200">
+                    <input type="text" list="master-payment"
+                            placeholder=""
+                            className="w-full border-transparent h-6 border border-b-gray-200"/>
+                  </div>
+                  <div className="border-1 border-gray-200">
+                    <input type="text" list="master-payment"
+                            placeholder=""
+                            className="w-full border-transparent h-6 border border-b-gray-200"/>
+                  </div>
+                  <div className="border-1 border-gray-200">
+                    <input type="text" list="master-payment"
+                            placeholder=""
+                            className="w-full border-transparent h-6 border border-b-gray-200"/>
+                  </div>
+                  <div className="border-1 border-gray-200">
+                    <input type="text" list="master-payment"
+                            placeholder=""
+                            className="w-full border-transparent h-6"/>
+                  </div>
                 </td>
 
 

@@ -1,0 +1,19 @@
+.group > :not(:first-child)::before,
+.group > :not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--gap) / 2);
+  background-color: var(--color-border);
+  z-index: -1;
+}
+
+.group > :first-child::before {
+  display: none;
+}
+
+.group > :last-child::after {
+  display: none;
+}

@@ -183,11 +183,13 @@ my-bathhouse-app/
 │       │   │   ├── report-administrator/ # Отчёт администратора с калькулятором таблиц
 │       │   │   │   ├── calculator/    # Калькулятор расчёта разных ячеек таблицы
 │       │   │   │   │   ├── AdminTable.tsx
-│       │   │   │   │   ├── CustomCheck.tsx
+│       │   │   │   │   ├── CustomCheckbox.tsx
 │       │   │   │   │   ├── page.tsx
-│       │   │   │   │   ├── TableCSS.module.css
-│       │   │   │   │   └── loading.tsx
-│       │   │   │   |
+│       │   │   │   │   └── TableCSS.module.css
+│       │   │   │   ├── style/
+│       │   │   │   │   ├── Cell.module.css
+│       │   │   │   │   ├── Select.module.css
+│       │   │   │   │   └── TimeInput.module.css
 │       │   │   │   ├── page.tsx       # Основная страница отчёта администратора
 │       │   │   │   └── loading.tsx
 │       │   │   |
