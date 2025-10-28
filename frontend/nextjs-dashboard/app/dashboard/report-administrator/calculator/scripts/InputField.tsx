@@ -1,4 +1,4 @@
-// InputField.tsx
+// frontend/nextjs-dashboard/app/dashboard/report-administrator/calculator/scripts/InputField.tsx
 import * as React from 'react';
 import clsx from 'clsx';
 

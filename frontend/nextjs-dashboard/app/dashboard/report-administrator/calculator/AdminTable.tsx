@@ -10,22 +10,25 @@ import './style/Select.module.css';
 import './style/Cell.module.css';
 import useFormattedNumber from './scripts/useFormattedNumber';
 import { NumberInput } from './scripts/InputField';
+import jsPDF from 'jspdf'; // Библиотека для формирования PDF
+import autoTable from 'jspdf-autotable'; // Пакет для автоматического заполнения таблиц в jspdf
 
+// Шаблон пустой строки
+const emptyRowTemplate = {
+  startTime: '',
+  endTime: '',
+  audience: '',
+  rent: '',
+  sales: '',
+  spa: '',
+};
 
-export interface PageProps { }
+// Интерфейс пропсов компонента
+export interface PageProps {}
 
-export default function Page({ }: PageProps) {
-  // const rentAmount = useFormattedNumber();  Используем хук для форматирования
-
-  const rentAmount = useFormattedNumber(); // Аренда
-  const saleAmount = useFormattedNumber(); // Продажа
-  const spaAmount = useFormattedNumber(); // Способы оплаты (спа)
-
-  // Состояние итоговой суммы
-  const [totalSum, setTotalSum] = React.useState(0);
-
-  // Функция для пересчета итоговой суммы
-  const calculateTotal = () => {
+// Основной компонент
+export default function Page({}: PageProps) {
+  // Чистящая функция перемещается сюда, чтобы стать доступной всему компоненту
   const cleanNumber = (value: string | number) => {
     if (typeof value === 'string') {
       return Number(value.replace(/[^-\d.,]+/g, '').replace(',', '.')) || 0;
@@ -33,45 +36,133 @@ export default function Page({ }: PageProps) {
     return typeof value === 'number' && !isNaN(value) ? value : 0;
   };
 
-  const total =
-    cleanNumber(rentAmount.rawValue) +
-    cleanNumber(saleAmount.rawValue) +
-    cleanNumber(spaAmount.rawValue);
+  // Массив строк таблицы
+  const [rows, setRows] = React.useState([emptyRowTemplate]);
 
-  setTotalSum(total);
-};
+  // Проверка выбранных строк
+  const [selectedRows, setSelectedRows] = React.useState([]);
 
-  // Обновляем итог при изменении одной из ячеек
-  React.useEffect(() => {
-    calculateTotal();
-  }, [rentAmount.rawValue, saleAmount.rawValue, spaAmount.rawValue]);
+  // Метод для расчета суммы каждой строки
+  const calculateRowTotal = (row: typeof emptyRowTemplate) => {
+    return cleanNumber(row.rent) + cleanNumber(row.sales) + cleanNumber(row.spa);
+  };
+
+  // Метод для пересчета итоговой суммы
+  const calculateTotals = () => {
+    let totalRent = 0;
+    let totalSales = 0;
+    let totalSpa = 0;
+
+    for (let row of rows) {
+      totalRent += cleanNumber(row.rent);
+      totalSales += cleanNumber(row.sales);
+      totalSpa += cleanNumber(row.spa);
+    }
+
+    return {
+      totalRent,
+      totalSales,
+      totalSpa,
+      grandTotal: totalRent + totalSales + totalSpa,
+    };
+  };
+
+  // №3 - Функция для добавления новой строки
+  const handleAddRow = () => {
+    const newRow = {
+      startTime: '',
+      endTime: '',
+      audience: '',
+      rent: '',
+      sales: '',
+      spa: '',
+    };
+
+    setRows([...rows, newRow]);
+  };
+
+  // Функция для удаления выбранной строки
+  const handleDeleteRow = () => {
+    const filteredRows = rows.filter((_, idx) => !selectedRows.includes(idx));
+    setRows(filteredRows);
+    setSelectedRows([]); // Сбрасываем выбор
+  };
+
+  // Функция для обновления отдельного поля строки
+  const updateRow = (index: number, field: string, value: string) => {
+    const updatedRows = [...rows];
+    updatedRows[index][field as keyof typeof emptyRowTemplate] = value;
+    setRows(updatedRows);
+  };
+
+  // Функционал чекбокса
+  const toggleSelection = (idx: number) => {
+    if (selectedRows.includes(idx)) {
+      setSelectedRows(selectedRows.filter(i => i !== idx)); // удаляем из списка
+    } else {
+      setSelectedRows([...selectedRows, idx]); // добавляем в список
+    }
+  };
+
+  // Форматирование чисел с разделителями тысяч
+  const formatNumber = (num: string | number) => {
+    return num ? String(num).replace(/\B(?=(?:[\d]{3})+$)/g, ' ') : '';
+  };
+
+  // Вычислим итоговую сумму
+  const totals = calculateTotals();
+
+  // Экспорт таблицы в PDF
+  const exportToPdf = () => {
+    const doc = new jsPDF(); // Создание нового документа PDF
+    const columns = [
+      { title: 'Время начала', dataKey: 'startTime' },
+      { title: 'Время окончания', dataKey: 'endTime' },
+      { title: 'Аудитория', dataKey: 'audience' },
+      { title: 'Аренда', dataKey: 'rent' },
+      { title: 'Продажи', dataKey: 'sales' },
+      { title: 'SPA', dataKey: 'spa' },
+      { title: 'Сумма', dataKey: 'total' },
+    ];
+
+    const data = rows.map((row, index) => ({
+      startTime: row.startTime,
+      endTime: row.endTime,
+      audience: row.audience,
+      rent: formatNumber(cleanNumber(row.rent)),
+      sales: formatNumber(cleanNumber(row.sales)),
+      spa: formatNumber(cleanNumber(row.spa)),
+      total: formatNumber(calculateRowTotal(row)),
+    }));
+
+    autoTable(doc, { head: columns, body: data });
+    doc.save('bania-report.pdf');
+  };
 
   return (
     <div className="container mx-auto">
-
-
       <div className="head">
         <h1 className="text-2xl font-bold text-center">Ежедневный отчет бани</h1>
         <table className="w-full border border-gray-800">
-
-          {/* КАЛЕНДАРЬ : АДМИН ФИО */}
           <thead>
             <tr className="bg-white text-black">
-
-              {/* КАЛЕНДАРЬ */}
               <td className="w-1/12 border border-gray-300">
-                <input type="date" className="w-full h-8 border-none focus:ring-transparent focus:outline-none" />
+                <input
+                  type="date"
+                  className="w-full h-8 border-none focus:ring-transparent focus:outline-none"
+                />
               </td>
-
-              {/* АДМИН */}
               <td className="w-1/12 border text-center bg-white border-gray-300">
                 Админ:
               </td>
-
-              {/* ФИО */}
               <td className="border border-gray-300">
                 <div>
-                  <input type="text" list="fio-list" placeholder="Фамилия Имя Отчество" className='w-full border-transparent'/>
+                  <input
+                    type="text"
+                    list="fio-list"
+                    placeholder="Фамилия Имя Отчество"
+                    className="w-full border-transparent"
+                  />
                   <datalist id="fio-list">
                     <option value="Кирсанова О."></option>
                     <option value="Менделеева О."></option>
@@ -81,20 +172,14 @@ export default function Page({ }: PageProps) {
               </td>
             </tr>
           </thead>
-
           <tbody></tbody>
-
         </table>
       </div>
 
-      {/* ТАБЛИЦА ОТЧЕТА */}
+      {/* Таблица отчета */}
       <div className="div-container flex justify-between gap-1 bg-slate-400">
         <div>
-
-          {/* ТАБЛИЦА */}
           <table className="w-full min-w-full border bg-white border-gray-300">
-
-            {/* ШАПКА */}
             <thead>
               <tr className="bg-white text-black">
                 <th className="border px-0 py-0"></th>
@@ -105,275 +190,235 @@ export default function Page({ }: PageProps) {
                 <th className="w-1/12 border px-0">Аренда</th>
                 <th className="w-1/12 border px-0">Продажа</th>
                 <th className="w-1/12 border px-0">СПА</th>
-                {/* <th className="border px-4">Сертификат</th> */}
                 <th className="w-1/12 border px-0">СУММА</th>
                 <th className="w-1/12 border px-0 bg-white">ОПЛАТА</th>
-                <th className="w-1/12 border px-0 bg-white">способ</th>
+                <th className="w-1/12 border px-0 bg-white">Способ оплаты</th>
                 <th colSpan={2} className="w-1/3 border px-0">Зарплата</th>
-                {/* <th className="w-1/12 border px-4">способ</th> */}
               </tr>
             </thead>
-
-            {/* СТРОКА КАЛЬКУЛЯТОР ТАБЛИЦЫ */}
             <tbody className="text-center">
-              <tr className="hover:bg-slate-50 border-b-2 border-gray-300/75">
-
-                {/* ЧЕКБОКС */}
-                <td className="border px-0 relative">
-                  <CustomCheckbox />
-                </td>
-
-                {/* ВРЕМЯ СТАРТ */}
-                <td className="border px-0">
-                  <input
-                    type="time"
-                    className="
-                      `${styles['time-input']}
-                      w-full CSS h-24
-                      border border-transparent"
-                  />
-                </td>
-
-                {/* ВРЕМЯ ФИНИШ */}
-                <td className="border px-0">
-                  <input
-                    type="time"
-                    className="
-                      `${styles['time-input']}
-                      w-full CSS h-24
-                      border border-transparent"
-                  />
-                </td>
-
-                {/* ВЫБОР АУДИТОРИИ */}
-                <td className="border px-0 relative">
-                  <div>
-                    <input type="text" list="audience-list"
-                            placeholder="Выбор аудитории"
-                            className="w-full border-transparent h-24"/>
-                    <datalist id="audience-list">
-                      <option value="Муромец"></option>
-                      <option value="Никитич"></option>
-                      <option value="Попович"></option>
-                      <option value="Массаж"></option>
-                    </datalist>
-                  </div>
-                </td>
-
-                {/* АРЕНДА */}
-                <td className="border px-0">
-                  <NumberInput
-                    type="text"
-                    step="10"
-                    placeholder=" "
-                    className="h-24 text-right w-full border-none focus:ring-transparent focus:outline-none"
-                    value={rentAmount.value}
-                    onChange={rentAmount.onChange}
-                  />
-
-                </td>
-
-                {/* ПРОДАЖА */}
-                <td className="border px-0">
-                  <NumberInput
-                    type="text"
-                    step="10"
-                    placeholder=" "
-                    className="h-24 text-right w-full border-none focus:ring-transparent focus:outline-none"
-                    value={saleAmount.value}
-                    onChange={saleAmount.onChange}
-                  />
-                </td>
-
-                {/* СПА */}
-                <td className="border px-0">
-                  <NumberInput
-                    type="text"
-                    step="10"
-                    placeholder=" "
-                    className="h-24 text-right w-full border-none focus:ring-transparent focus:outline-none"
-                    value={spaAmount.value}
-                    onChange={spaAmount.onChange}
-                  />
-                </td>
-
-                {/* СЕРТИФИКАТ */}
-                {/* <td className="border px-0">
-                  <input type="number" step="10" placeholder=" " className="text-center w-full border-none focus:ring-transparent focus:outline-none" />
-                </td> */}
-
-                {/* ИТОГ */}
-                <td className="border px-0">
-                  <strong>{!isNaN(totalSum) ? totalSum.toLocaleString('ru-RU') : '0'}</strong> {/* Итоговая сумма */}
-                </td>
-
-                {/* ОПЛАТА */}
-                <td className="px-0">
-                  <div className="border-1 border-gray-200">
-                    <input type="number"
+              {rows.map((row, index) => (
+                <tr key={`row-${index}`}>
+                  <td className="border px-0 relative">
+                    <CustomCheckbox checked={selectedRows.includes(index)} onChange={() => toggleSelection(index)} />
+                  </td>
+                  <td className="border px-0">
+                    <input
+                      type="time"
+                      className="w-full h-24 border border-transparent"
+                      value={row.startTime}
+                      onChange={(event) => updateRow(index, 'startTime', event.target.value)}
+                    />
+                  </td>
+                  <td className="border px-0">
+                    <input
+                      type="time"
+                      className="w-full h-24 border border-transparent"
+                      value={row.endTime}
+                      onChange={(event) => updateRow(index, 'endTime', event.target.value)}
+                    />
+                  </td>
+                  <td className="border px-0 relative">
+                    <div>
+                      <input
+                        type="text"
+                        list="audience-list"
+                        placeholder="Выбор аудитории"
+                        className="w-full border-transparent h-24"
+                        value={row.audience}
+                        onChange={(event) => updateRow(index, 'audience', event.target.value)}
+                      />
+                      <datalist id="audience-list">
+                        <option value="Муромец"></option>
+                        <option value="Никитич"></option>
+                        <option value="Попович"></option>
+                        <option value="Массаж"></option>
+                      </datalist>
+                    </div>
+                  </td>
+                  <td className="border px-0">
+                    <NumberInput
+                      type="text"
+                      step="10"
+                      placeholder=" "
+                      className="h-24 text-right w-full border-none focus:ring-transparent focus:outline-none"
+                      value={row.rent}
+                      onChange={(event) => updateRow(index, 'rent', event.target.value)}
+                    />
+                  </td>
+                  <td className="border px-0">
+                    <NumberInput
+                      type="text"
+                      step="10"
+                      placeholder=" "
+                      className="h-24 text-right w-full border-none focus:ring-transparent focus:outline-none"
+                      value={row.sales}
+                      onChange={(event) => updateRow(index, 'sales', event.target.value)}
+                    />
+                  </td>
+                  <td className="border px-0">
+                    <NumberInput
+                      type="text"
+                      step="10"
+                      placeholder=" "
+                      className="h-24 text-right w-full border-none focus:ring-transparent focus:outline-none"
+                      value={row.spa}
+                      onChange={(event) => updateRow(index, 'spa', event.target.value)}
+                    />
+                  </td>
+                  <td className="border px-0">
+                    <strong>{calculateRowTotal(row).toLocaleString('ru-RU')}</strong>
+                  </td>
+                  <td className="px-0">
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="number"
                         step="10"
                         placeholder=" "
-                        className="w-full
-                                  border-transparent
-                                  h-6
-                                  border
-                                  border-b-gray-200"
-                    />
-                  </div>
-                  <div className="border-1 border-gray-200">
-                    <input type="number"
+                        className="w-full border-transparent h-6 border border-b-gray-200"
+                      />
+                    </div>
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="number"
                         step="10"
                         placeholder=" "
-                        className="w-full
-                                  border-transparent
-                                  h-6
-                                  border
-                                  border-b-gray-200"
-                    />
-                  </div>
-                  <div className="border-1 border-gray-200">
-                    <input type="number"
+                        className="w-full border-transparent h-6 border border-b-gray-200"
+                      />
+                    </div>
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="number"
                         step="10"
                         placeholder=" "
-                        className="w-full
-                                  border-transparent
-                                  h-6
-                                  border
-                                  border-b-gray-200"
-                    />
-                  </div>
-                  <div className="border-1 border-gray-200">
-                    <input type="number"
+                        className="w-full border-transparent h-6 border border-b-gray-200"
+                      />
+                    </div>
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="number"
                         step="10"
                         placeholder=" "
-                        className="w-full
-                                  border-transparent
-                                  h-6
-                                  border"
-                    />
-                  </div>
-                </td>
-
-                {/* СПОСОБ ОПЛАТЫ */}
-                <td className="border px-0">
-                  <div className="border-1 border-gray-200">
-                    <input type="text" list="payment-type-list"
-                            placeholder=""
-                            className="w-full border-transparent h-6 border border-b-gray-200"/>
-                    <datalist id="payment-type-list">
-                      <option value="Тер"></option>
-                      <option value="НАЛ"></option>
-                      <option value="Сайт"></option>
-                      <option value="Ресеп"></option>
-                    </datalist>
-                  </div>
-                  <div className="border-1 border-gray-200">
-                    <input type="text" list="payment-type-list"
-                            placeholder=""
-                            className="w-full border-transparent h-6 border border-b-gray-200"/>
-                    <datalist id="payment-type-list">
-                      <option value="Тер"></option>
-                      <option value="НАЛ"></option>
-                      <option value="Сайт"></option>
-                      <option value="Ресеп"></option>
-                    </datalist>
-                  </div>
-                  <div className="border-1 border-gray-200">
-                    <input type="text" list="payment-type-list"
-                            placeholder=""
-                            className="w-full border-transparent h-6 border border-b-gray-200"/>
-                    <datalist id="payment-type-list">
-                      <option value="Тер"></option>
-                      <option value="НАЛ"></option>
-                      <option value="Сайт"></option>
-                      <option value="Ресеп"></option>
-                    </datalist>
-                  </div>
-                  <div className="border-1 border-gray-200">
-                    <input type="text" list="payment-type-list"
-                            placeholder=""
-                            className="w-full border-transparent h-6"/>
-                    <datalist id="payment-type-list">
-                      <option value="Тер"></option>
-                      <option value="НАЛ"></option>
-                      <option value="Сайт"></option>
-                      <option value="Ресеп"></option>
-                    </datalist>
-                  </div>
-                </td>
-
-                {/* КОМУ ОПЛАТА - МАСТЕРУ */}
-                <td className="border px-0 relative">
-                  <div className="border-1 border-gray-200">
-                    <input type="text" list="master-name"
-                            placeholder=""
-                            className="w-full border-transparent h-6 border border-b-gray-200"/>
-                  </div>
-                  <div className="border-1 border-gray-200">
-                    <input type="text" list="master-name"
-                            placeholder=""
-                            className="w-full border-transparent h-6 border border-b-gray-200"/>
-                  </div>
-                  <div className="border-1 border-gray-200">
-                    <input type="text" list="master-name"
-                            placeholder=""
-                            className="w-full border-transparent h-6 border border-b-gray-200"/>
-                  </div>
-                  <div className="border-1 border-gray-200">
-                    <input type="text" list="master-name"
-                            placeholder=""
-                            className="w-full border-transparent h-6"/>
-                  </div>
-                </td>
-
-                {/* СУММА ОПЛАТЫ - МАСТЕРУ */}
-                <td className="border px-0">
-                  <div className="border-1 border-gray-200">
-                    <input type="text" list="master-payment"
-                            placeholder=""
-                            className="w-full border-transparent h-6 border border-b-gray-200"/>
-                  </div>
-                  <div className="border-1 border-gray-200">
-                    <input type="text" list="master-payment"
-                            placeholder=""
-                            className="w-full border-transparent h-6 border border-b-gray-200"/>
-                  </div>
-                  <div className="border-1 border-gray-200">
-                    <input type="text" list="master-payment"
-                            placeholder=""
-                            className="w-full border-transparent h-6 border border-b-gray-200"/>
-                  </div>
-                  <div className="border-1 border-gray-200">
-                    <input type="text" list="master-payment"
-                            placeholder=""
-                            className="w-full border-transparent h-6"/>
-                  </div>
-                </td>
-
-
-              </tr>
+                        className="w-full border-transparent h-6 border"
+                      />
+                    </div>
+                  </td>
+                  <td className="border px-0">
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="text"
+                        list="payment-type-list"
+                        placeholder=""
+                        className="w-full border-transparent h-6 border border-b-gray-200"
+                      />
+                    </div>
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="text"
+                        list="payment-type-list"
+                        placeholder=""
+                        className="w-full border-transparent h-6 border border-b-gray-200"
+                      />
+                    </div>
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="text"
+                        list="payment-type-list"
+                        placeholder=""
+                        className="w-full border-transparent h-6 border border-b-gray-200"
+                      />
+                    </div>
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="text"
+                        list="payment-type-list"
+                        placeholder=""
+                        className="w-full border-transparent h-6"
+                      />
+                    </div>
+                  </td>
+                  <td className="border px-0 relative">
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="text"
+                        list="master-name"
+                        placeholder=""
+                        className="w-full border-transparent h-6 border border-b-gray-200"
+                      />
+                    </div>
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="text"
+                        list="master-name"
+                        placeholder=""
+                        className="w-full border-transparent h-6 border border-b-gray-200"
+                      />
+                    </div>
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="text"
+                        list="master-name"
+                        placeholder=""
+                        className="w-full border-transparent h-6 border border-b-gray-200"
+                      />
+                    </div>
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="text"
+                        list="master-name"
+                        placeholder=""
+                        className="w-full border-transparent h-6"
+                      />
+                    </div>
+                  </td>
+                  <td className="border px-0">
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="text"
+                        list="master-payment"
+                        placeholder=""
+                        className="w-full border-transparent h-6 border border-b-gray-200"
+                      />
+                    </div>
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="text"
+                        list="master-payment"
+                        placeholder=""
+                        className="w-full border-transparent h-6 border border-b-gray-200"
+                      />
+                    </div>
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="text"
+                        list="master-payment"
+                        placeholder=""
+                        className="w-full border-transparent h-6 border border-b-gray-200"
+                      />
+                    </div>
+                    <div className="border-1 border-gray-200">
+                      <input
+                        type="text"
+                        list="master-payment"
+                        placeholder=""
+                        className="w-full border-transparent h-6"
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
-
             <tfoot>
               <tr className="bg-gray-100 text-black">
-                <td colSpan={3} className="font-bold border px-4 py-2">
+                <td colSpan={4} className="font-bold border px-4 py-2">
                   ИТОГ:
                 </td>
-                <td className="border px-4 py-2" id="total-rent">
-                  0
-                </td>
-                <td className="border px-4 py-2" id="total-sales">
-                  0
-                </td>
-                <td className="border px-4 py-2" id="total-spa">
-                  0
-                </td>
-                <td className="border px-4 py-2" id="total-certificates">
-                  0
-                </td>
-                <td className="border px-4 py-2" id="grand-total">
-                  0
-                </td>
+                <td className="border px-4 py-2">{totals.totalRent.toLocaleString('ru-RU')}</td>
+                <td className="border px-4 py-2">{totals.totalSales.toLocaleString('ru-RU')}</td>
+                <td className="border px-4 py-2">{totals.totalSpa.toLocaleString('ru-RU')}</td>
+                <td className="border px-4 py-2">{totals.grandTotal.toLocaleString('ru-RU')}</td>
+                <td className="border px-4 py-2">{"\u00A0"}</td>
+                <td className="border px-4 py-2">{"\u00A0"}</td>
                 <td className="border px-4 py-2">{"\u00A0"}</td>
                 <td className="border px-4 py-2">{"\u00A0"}</td>
               </tr>
@@ -382,52 +427,29 @@ export default function Page({ }: PageProps) {
 
           {/* Кнопки */}
           <div className="flex justify-evenly mt-4">
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={handleAddRow}
+            >
               Добавить строку
             </button>
-            <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+            <button
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              disabled={selectedRows.length === 0}
+              onClick={handleDeleteRow}
+            >
               Удалить выбранные строки
             </button>
-            <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            <button
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              onClick={exportToPdf}
+            >
               Сохранить в PDF
             </button>
           </div>
         </div>
 
-        {/* КОНТЕЙНЕР ДЛЯ ДВУХ ТАБЛИЦ */}
-        {/* <div className="div2 w-1/2">
-          <table className="w-full min-w-full border-separate border border-gray-300">
-            <thead>
-              <tr className="bg-gray-100 text-black">
-                <th colSpan={2} className="border px-4 py-2">
-                  ЗП Мастер
-                </th>
-                <th colSpan={2} className="border px-4 py-2">
-                  В кассе
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="hover:bg-gray-50">
-                <td className="border px-4 py-2">
-                  <input type="text" placeholder="Мастер" className="w-full border-none focus:ring-transparent focus:outline-none" />
-                </td>
-                <td className="border px-4 py-2">
-                  <input type="number" step="0.01" placeholder="Зарплата" className="w-full border-none focus:ring-transparent focus:outline-none" />
-                </td>
-                <td className="border px-4 py-2">
-                  <input type="text" placeholder="Источник платежа" className="w-full border-none focus:ring-transparent focus:outline-none" />
-                </td>
-                <td className="border px-4 py-2">
-                  <input type="number" step="0.01" placeholder="В кассе" className="w-full border-none focus:ring-transparent focus:outline-none" />
-                </td>
-                <td className="border px-4 py-2">
-                  <input type="number" step="0.01" placeholder="Административные расходы" className="w-full border-none focus:ring-transparent focus:outline-none" />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div> */}
+        {/* Дополнительные контейнеры и таблицы пока закомментированы */}
       </div>
 
       {/* Элемент для отображения пути к файлу */}
