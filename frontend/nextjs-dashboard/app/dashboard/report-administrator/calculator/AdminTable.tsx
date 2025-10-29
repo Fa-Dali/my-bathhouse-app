@@ -190,8 +190,11 @@ export default function Page({ }: PageProps) {
       </div>
 
       {/* Таблица отчета */}
-      <div className="div-container flex justify-between gap-1 bg-slate-400">
-        <div>
+      <div className="div-container flex justify-between gap-1">
+
+
+
+        <div className="beautiful-scroll overflow-y-auto h-[550px]">
           <table className="w-full min-w-full border bg-white border-gray-300">
             <thead>
               <tr className="bg-white text-black border-2">
@@ -252,8 +255,8 @@ export default function Page({ }: PageProps) {
                       <input
                         type="text"
                         list="audience-list"
-                        placeholder="Выбор аудитории"
-                        className="w-full border-transparent h-24"
+                        placeholder="Аудитория"
+                        className="w-full border-transparent h-24 text-center"
                         value={row.audience}
                         onChange={(event) => updateRow(index, 'audience', event.target.value)}
                       />
@@ -271,7 +274,7 @@ export default function Page({ }: PageProps) {
                     <NumberInput
                       type="text"
                       step="10"
-                      placeholder=" "
+                      placeholder=""
                       className="h-24 text-right w-full border-none focus:ring-transparent focus:outline-none"
                       value={row.rent}
                       onChange={(event) => updateRow(index, 'rent', event.target.value)}
@@ -283,7 +286,7 @@ export default function Page({ }: PageProps) {
                     <NumberInput
                       type="text"
                       step="10"
-                      placeholder=" "
+                      placeholder=""
                       className="h-24 text-right w-full border-none focus:ring-transparent focus:outline-none"
                       value={row.sales}
                       onChange={(event) => updateRow(index, 'sales', event.target.value)}
@@ -295,7 +298,7 @@ export default function Page({ }: PageProps) {
                     <NumberInput
                       type="text"
                       step="10"
-                      placeholder=" "
+                      placeholder=""
                       className="h-24 text-right w-full border-none focus:ring-transparent focus:outline-none"
                       value={row.spa}
                       onChange={(event) => updateRow(index, 'spa', event.target.value)}
@@ -313,7 +316,7 @@ export default function Page({ }: PageProps) {
                       <input
                         type="number"
                         step="10"
-                        placeholder="1"
+                        placeholder=""
                         className="w-full border-transparent h-6 border border-b-gray-200"
                       />
                     </div>
@@ -321,7 +324,7 @@ export default function Page({ }: PageProps) {
                       <input
                         type="number"
                         step="10"
-                        placeholder="2"
+                        placeholder=""
                         className="w-full border-transparent h-6 border border-b-gray-200"
                       />
                     </div>
@@ -329,7 +332,7 @@ export default function Page({ }: PageProps) {
                       <input
                         type="number"
                         step="10"
-                        placeholder="3"
+                        placeholder=""
                         className="w-full border-transparent h-6 border border-b-gray-200"
                       />
                     </div>
@@ -337,7 +340,7 @@ export default function Page({ }: PageProps) {
                       <input
                         type="number"
                         step="10"
-                        placeholder="4"
+                        placeholder=""
                         className="w-full border-transparent h-6 border"
                       />
                     </div>
@@ -460,7 +463,7 @@ export default function Page({ }: PageProps) {
 
 
             <tfoot>
-              <tr className="bg-gray-100 text-black">
+              <tr className="bg-yellow-50 text-black">
                 <td colSpan={4} className="font-bold border px-4 py-2">
                   ИТОГ:
                 </td>
@@ -477,49 +480,55 @@ export default function Page({ }: PageProps) {
           </table>
 
           {/* Кнопки */}
-          <div className="m-1">
+          <div className="flex flex-col min-h-screen justify-between"> {/* ****************** */}
+            <div className="p-2 fixed bottom-0 left-0 right-0 z-50 ml-[250px]">
+              <div className="p-1 bg-slate-200 shadow-lg shadow-slate-400/30">
 
-            {/* ДОБАВИТЬ СТРОКУ */}
-            <button
-              className="bg-green-400 hover:bg-green-500 py-1 px-4 mx-4 rounded"
-              onClick={handleAddRow}
-            >
-              <PlusIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
-            </button>
+                {/* ДОБАВИТЬ СТРОКУ */}
+                <button
+                  className="bg-green-400 hover:bg-green-500 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
+                  onClick={handleAddRow}
+                >
+                  <PlusIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
+                </button>
 
-            {/* УДАЛИТЬ СТРОКУ */}
-            <button
-              className="bg-red-400 hover:bg-red-500 text-white font-bold py-1 px-4 mx-4 rounded"
-              disabled={selectedRows.length === 0}
-              onClick={handleDeleteRow}
-            >
-              <TrashIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
-            </button>
+                {/* УДАЛИТЬ СТРОКУ */}
+                <button
+                  className="bg-red-400 hover:bg-red-500 text-white font-bold py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
+                  disabled={selectedRows.length === 0}
+                  onClick={handleDeleteRow}
+                >
+                  <TrashIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
+                </button>
 
-            {/* ЭКСПОРТ В PDF */}
-            <button
-              className="bg-sky-200 hover:bg-sky-300 py-1 px-4 mx-4 rounded"
-              onClick={exportToPdf}
-            >
-              PDF <ArrowTopRightOnSquareIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
-            </button>
+                {/* ЭКСПОРТ В PDF */}
+                <button
+                  className="bg-sky-200 hover:bg-sky-300 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
+                  onClick={exportToPdf}
+                >
+                  PDF <ArrowTopRightOnSquareIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
+                </button>
 
-            {/* ОТПРАВИТЬ ПИСЬМО */}
-            <button
-              className="bg-slate-100 hover:bg-yellow-200 py-1 px-4 mx-4 rounded"
-              onClick={exportToPdf}
-            >
-              <EnvelopeIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
-              {/* <ArrowRightIcon /> */}
-            </button>
+                {/* ОТПРАВИТЬ ПИСЬМО */}
+                <button
+                  className="bg-slate-100 hover:bg-yellow-200 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
+                  onClick={exportToPdf}
+                >
+                  <EnvelopeIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
+                  {/* <ArrowRightIcon /> */}
+                </button>
+              </div>
+            </div>
           </div>
+
         </div>
+
 
         {/* Дополнительные контейнеры и таблицы пока закомментированы */}
       </div>
 
       {/* Элемент для отображения пути к файлу */}
-      <div id="download-button"></div>
+      {/* <div id="download-button"></div> */}
     </div>
   );
 }

@@ -35,7 +35,7 @@ input[type='number']::-webkit-outer-spin-button {
   }
 }
 
-/* КРАСИВЫЙ СКРОЛЛБАР
+/* КРАСИВЫЙ СКРОЛЛБАР ВЕРТИКАЛЬНЫЙ
 <div className="beautiful-scroll overflow-y-auto h-[300px]">
   <!-- Ваш контент -->
 </div>*/
