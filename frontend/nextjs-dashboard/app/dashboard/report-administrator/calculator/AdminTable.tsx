@@ -12,6 +12,16 @@ import useFormattedNumber from './scripts/useFormattedNumber';
 import { NumberInput } from './scripts/InputField';
 import jsPDF from 'jspdf'; // Библиотека для формирования PDF
 import autoTable from 'jspdf-autotable'; // Пакет для автоматического заполнения таблиц в jspdf
+import {PlusIcon,
+        EllipsisVerticalIcon,
+        ArchiveBoxXMarkIcon,
+        MinusIcon,
+        TrashIcon,
+        EnvelopeOpenIcon,
+        EnvelopeIcon,
+        ArrowTopRightOnSquareIcon,
+        ArrowRightIcon
+      } from "@heroicons/react/24/outline";
 
 // Шаблон пустой строки
 const emptyRowTemplate = {
@@ -21,13 +31,14 @@ const emptyRowTemplate = {
   rent: '',
   sales: '',
   spa: '',
+  payment: '',
 };
 
 // Интерфейс пропсов компонента
-export interface PageProps {}
+export interface PageProps { }
 
 // Основной компонент
-export default function Page({}: PageProps) {
+export default function Page({ }: PageProps) {
   // Чистящая функция перемещается сюда, чтобы стать доступной всему компоненту
   const cleanNumber = (value: string | number) => {
     if (typeof value === 'string') {
@@ -40,7 +51,7 @@ export default function Page({}: PageProps) {
   const [rows, setRows] = React.useState([emptyRowTemplate]);
 
   // Проверка выбранных строк
-  const [selectedRows, setSelectedRows] = React.useState([]);
+  const [selectedRows, setSelectedRows] = React.useState<number[]>([]);
 
   // Метод для расчета суммы каждой строки
   const calculateRowTotal = (row: typeof emptyRowTemplate) => {
@@ -76,6 +87,7 @@ export default function Page({}: PageProps) {
       rent: '',
       sales: '',
       spa: '',
+      payment: '',
     };
 
     setRows([...rows, newRow]);
@@ -83,7 +95,7 @@ export default function Page({}: PageProps) {
 
   // Функция для удаления выбранной строки
   const handleDeleteRow = () => {
-    const filteredRows = rows.filter((_, idx) => !selectedRows.includes(idx));
+    const filteredRows = rows.filter((_, index: number) => !selectedRows.includes(index));
     setRows(filteredRows);
     setSelectedRows([]); // Сбрасываем выбор
   };
@@ -96,11 +108,11 @@ export default function Page({}: PageProps) {
   };
 
   // Функционал чекбокса
-  const toggleSelection = (idx: number) => {
-    if (selectedRows.includes(idx)) {
-      setSelectedRows(selectedRows.filter(i => i !== idx)); // удаляем из списка
+  const toggleSelection = (index: number) => {
+    if (selectedRows.includes(index)) {
+      setSelectedRows(selectedRows.filter(i => i !== index)); // удаляем из списка
     } else {
-      setSelectedRows([...selectedRows, idx]); // добавляем в список
+      setSelectedRows([...selectedRows, index]); // добавляем в список
     }
   };
 
@@ -141,11 +153,12 @@ export default function Page({}: PageProps) {
 
   return (
     <div className="container mx-auto">
+
       <div className="head">
         <h1 className="text-2xl font-bold text-center">Ежедневный отчет бани</h1>
         <table className="w-full border border-gray-800">
           <thead>
-            <tr className="bg-white text-black">
+            <tr className="bg-white text-black border-2">
               <td className="w-1/12 border border-gray-300">
                 <input
                   type="date"
@@ -181,8 +194,11 @@ export default function Page({}: PageProps) {
         <div>
           <table className="w-full min-w-full border bg-white border-gray-300">
             <thead>
-              <tr className="bg-white text-black">
-                <th className="border px-0 py-0"></th>
+              <tr className="bg-white text-black border-2">
+                <th className="border px-0 py-0">
+                  {/* <PlusIcon /> */}
+                  <TrashIcon className='text-gray-400'/>
+                </th>
                 <th colSpan={2} className="w-1/12 border px-0 text-center">
                   Время
                 </th>
@@ -196,12 +212,21 @@ export default function Page({}: PageProps) {
                 <th colSpan={2} className="w-1/3 border px-0">Зарплата</th>
               </tr>
             </thead>
-            <tbody className="text-center">
+
+
+            <tbody className="text-center border-2 border-b-blue-600">
               {rows.map((row, index) => (
-                <tr key={`row-${index}`}>
+                <tr key={`row-${index}`} className='border-2 border-b-gray-200'>
+
+                  {/* Чекбокс */}
                   <td className="border px-0 relative">
-                    <CustomCheckbox checked={selectedRows.includes(index)} onChange={() => toggleSelection(index)} />
+                    <CustomCheckbox
+                      isChecked={selectedRows.includes(index)} // проверьте поддержку isChecked
+                      onChange={() => toggleSelection(index)}
+                    />
                   </td>
+
+                  {/* Время начала */}
                   <td className="border px-0">
                     <input
                       type="time"
@@ -210,6 +235,8 @@ export default function Page({}: PageProps) {
                       onChange={(event) => updateRow(index, 'startTime', event.target.value)}
                     />
                   </td>
+
+                  {/* Время окончания */}
                   <td className="border px-0">
                     <input
                       type="time"
@@ -218,6 +245,8 @@ export default function Page({}: PageProps) {
                       onChange={(event) => updateRow(index, 'endTime', event.target.value)}
                     />
                   </td>
+
+                  {/* Баня */}
                   <td className="border px-0 relative">
                     <div>
                       <input
@@ -236,6 +265,8 @@ export default function Page({}: PageProps) {
                       </datalist>
                     </div>
                   </td>
+
+                  {/* Аренда */}
                   <td className="border px-0">
                     <NumberInput
                       type="text"
@@ -246,6 +277,8 @@ export default function Page({}: PageProps) {
                       onChange={(event) => updateRow(index, 'rent', event.target.value)}
                     />
                   </td>
+
+                  {/* Продажи */}
                   <td className="border px-0">
                     <NumberInput
                       type="text"
@@ -256,6 +289,8 @@ export default function Page({}: PageProps) {
                       onChange={(event) => updateRow(index, 'sales', event.target.value)}
                     />
                   </td>
+
+                  {/* СПА */}
                   <td className="border px-0">
                     <NumberInput
                       type="text"
@@ -266,15 +301,19 @@ export default function Page({}: PageProps) {
                       onChange={(event) => updateRow(index, 'spa', event.target.value)}
                     />
                   </td>
+
+                  {/* Сумма */}
                   <td className="border px-0">
                     <strong>{calculateRowTotal(row).toLocaleString('ru-RU')}</strong>
                   </td>
+
+                  {/* Оплата */}
                   <td className="px-0">
                     <div className="border-1 border-gray-200">
                       <input
                         type="number"
                         step="10"
-                        placeholder=" "
+                        placeholder="1"
                         className="w-full border-transparent h-6 border border-b-gray-200"
                       />
                     </div>
@@ -282,7 +321,7 @@ export default function Page({}: PageProps) {
                       <input
                         type="number"
                         step="10"
-                        placeholder=" "
+                        placeholder="2"
                         className="w-full border-transparent h-6 border border-b-gray-200"
                       />
                     </div>
@@ -290,7 +329,7 @@ export default function Page({}: PageProps) {
                       <input
                         type="number"
                         step="10"
-                        placeholder=" "
+                        placeholder="3"
                         className="w-full border-transparent h-6 border border-b-gray-200"
                       />
                     </div>
@@ -298,11 +337,13 @@ export default function Page({}: PageProps) {
                       <input
                         type="number"
                         step="10"
-                        placeholder=" "
+                        placeholder="4"
                         className="w-full border-transparent h-6 border"
                       />
                     </div>
                   </td>
+
+                  {/* Способы оплаты */}
                   <td className="border px-0">
                     <div className="border-1 border-gray-200">
                       <input
@@ -310,7 +351,15 @@ export default function Page({}: PageProps) {
                         list="payment-type-list"
                         placeholder=""
                         className="w-full border-transparent h-6 border border-b-gray-200"
+                        value={row.payment}
+                        onChange={(event) => updateRow(index, 'payment', event.target.value)}
                       />
+                      <datalist id="payment-type-list">
+                        <option value="Тер"></option>
+                        <option value="НАЛ"></option>
+                        <option value="Сайт"></option>
+                        <option value="Ресеп"></option>
+                      </datalist>
                     </div>
                     <div className="border-1 border-gray-200">
                       <input
@@ -408,6 +457,8 @@ export default function Page({}: PageProps) {
                 </tr>
               ))}
             </tbody>
+
+
             <tfoot>
               <tr className="bg-gray-100 text-black">
                 <td colSpan={4} className="font-bold border px-4 py-2">
@@ -426,25 +477,40 @@ export default function Page({}: PageProps) {
           </table>
 
           {/* Кнопки */}
-          <div className="flex justify-evenly mt-4">
+          <div className="m-1">
+
+            {/* ДОБАВИТЬ СТРОКУ */}
             <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              className="bg-green-400 hover:bg-green-500 py-1 px-4 mx-4 rounded"
               onClick={handleAddRow}
             >
-              Добавить строку
+              <PlusIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
             </button>
+
+            {/* УДАЛИТЬ СТРОКУ */}
             <button
-              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              className="bg-red-400 hover:bg-red-500 text-white font-bold py-1 px-4 mx-4 rounded"
               disabled={selectedRows.length === 0}
               onClick={handleDeleteRow}
             >
-              Удалить выбранные строки
+              <TrashIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
             </button>
+
+            {/* ЭКСПОРТ В PDF */}
             <button
-              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              className="bg-sky-200 hover:bg-sky-300 py-1 px-4 mx-4 rounded"
               onClick={exportToPdf}
             >
-              Сохранить в PDF
+              PDF <ArrowTopRightOnSquareIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
+            </button>
+
+            {/* ОТПРАВИТЬ ПИСЬМО */}
+            <button
+              className="bg-slate-100 hover:bg-yellow-200 py-1 px-4 mx-4 rounded"
+              onClick={exportToPdf}
+            >
+              <EnvelopeIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
+              {/* <ArrowRightIcon /> */}
             </button>
           </div>
         </div>
