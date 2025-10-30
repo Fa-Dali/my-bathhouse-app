@@ -63,6 +63,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'my_bathhouse_backend.apps.users',
     'corsheaders',
+    #     для работы с PDF
+    'reports.apps.ReportsConfig',
 ]
 
 MIDDLEWARE = [
