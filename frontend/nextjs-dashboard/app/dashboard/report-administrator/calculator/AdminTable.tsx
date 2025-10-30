@@ -109,11 +109,13 @@ export default function Page({ }: PageProps) {
 
   // Функционал чекбокса
   const toggleSelection = (index: number) => {
-    if (selectedRows.includes(index)) {
-      setSelectedRows(selectedRows.filter(i => i !== index)); // удаляем из списка
-    } else {
-      setSelectedRows([...selectedRows, index]); // добавляем в список
-    }
+    setSelectedRows(prevSelectedRows => {
+      if (prevSelectedRows.includes(index)) {
+        return prevSelectedRows.filter(i => i !== index); // Убираем индекс из списка
+      } else {
+        return [...prevSelectedRows, index]; // Добавляем индекс
+      }
+    });
   };
 
   // Форматирование чисел с разделителями тысяч
@@ -152,7 +154,7 @@ export default function Page({ }: PageProps) {
   };
 
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto font-sans">
 
       <div className="head">
         <h1 className="text-2xl font-bold text-center">Ежедневный отчет бани</h1>
@@ -194,7 +196,7 @@ export default function Page({ }: PageProps) {
 
 
 
-        <div className="beautiful-scroll overflow-y-auto h-[550px]">
+        <div className="beautiful-scroll overflow-y-auto h-[1120px]">
           <table className="w-full min-w-full border bg-white border-gray-300">
             <thead>
               <tr className="bg-white text-black border-2">
@@ -463,8 +465,8 @@ export default function Page({ }: PageProps) {
 
 
             <tfoot>
-              <tr className="bg-yellow-50 text-black">
-                <td colSpan={4} className="font-bold border px-4 py-2">
+              <tr className="bg-yellow-50 text-black text-right">
+                <td colSpan={4} className=" text-left font-bold border px-4 py-2">
                   ИТОГ:
                 </td>
                 <td className="border px-4 py-2">{totals.totalRent.toLocaleString('ru-RU')}</td>
