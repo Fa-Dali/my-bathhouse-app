@@ -1,4 +1,4 @@
-
+// frontend/nextjs-dashboard/app/layout.tsx
 import '@/app/ui/global.css';
 import Header from '@/app/components/Header';
 import { inter } from '@/app/ui/fonts';
@@ -9,7 +9,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="ru">
       <body className={`${inter.className} antialiased`}>
         {/* <Header /> */}
         {children}

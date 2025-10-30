@@ -12,16 +12,49 @@ import useFormattedNumber from './scripts/useFormattedNumber';
 import { NumberInput } from './scripts/InputField';
 import jsPDF from 'jspdf'; // Библиотека для формирования PDF
 import autoTable from 'jspdf-autotable'; // Пакет для автоматического заполнения таблиц в jspdf
-import {PlusIcon,
-        EllipsisVerticalIcon,
-        ArchiveBoxXMarkIcon,
-        MinusIcon,
-        TrashIcon,
-        EnvelopeOpenIcon,
-        EnvelopeIcon,
-        ArrowTopRightOnSquareIcon,
-        ArrowRightIcon
-      } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  EllipsisVerticalIcon,
+  ArchiveBoxXMarkIcon,
+  MinusIcon,
+  TrashIcon,
+  EnvelopeOpenIcon,
+  EnvelopeIcon,
+  ArrowTopRightOnSquareIcon,
+  ArrowRightIcon
+} from "@heroicons/react/24/outline";
+
+// Вспомогательная функция для загрузки шрифта через worker
+async function loadFontViaWorker(fontPath: string): Promise<ArrayBuffer> {
+  const fontLoaderWorker = `
+    self.onmessage = async ({ data }) => {
+      const { path } = data;
+      const fs = require('fs');
+      // @ts-ignore
+      const fontBuffer = fs.readFileSync(path);
+      self.postMessage(new Uint8Array(fontBuffer).buffer);
+    };
+  `;
+
+  const workerBlob = new Blob(['self.onmessage = ', fontLoaderWorker, ';'], { type: 'application/javascript' });
+  const workerURL = URL.createObjectURL(workerBlob);
+  const worker = new Worker(workerURL);
+
+  return new Promise((resolve, reject) => {
+    worker.onmessage = e => {
+      resolve(e.data);
+      URL.revokeObjectURL(workerURL);
+    };
+    worker.onerror = error => {
+      reject(error.message);
+      URL.revokeObjectURL(workerURL);
+    };
+    worker.postMessage({ path: fontPath });
+  });
+}
+
+// Абсолютный путь к файлу шрифта
+const fontPath = process.cwd() + '/app/dashboard/report-administrator/calculator/fonts/Roboto/static/Roboto-Regular.ttf';
 
 // Шаблон пустой строки
 const emptyRowTemplate = {
@@ -36,6 +69,12 @@ const emptyRowTemplate = {
 
 // Интерфейс пропсов компонента
 export interface PageProps { }
+
+// Очистка текста перед записью в PDF
+const sanitizeText = (text: string): string =>
+  text.normalize("NFC")
+    .trim()
+    .replace(/(\n|\r)+/, '');
 
 // Основной компонент
 export default function Page({ }: PageProps) {
@@ -127,8 +166,21 @@ export default function Page({ }: PageProps) {
   const totals = calculateTotals();
 
   // Экспорт таблицы в PDF
-  const exportToPdf = () => {
-    const doc = new jsPDF(); // Создание нового документа PDF
+  const exportToPdf = async () => {
+    console.log('Начало экспорта PDF...');
+
+    const doc = new jsPDF(); // Создаем экземпляр PDF-документа
+
+    // Загружаем шрифт через worker
+    const fontPath = process.cwd() + '/app/dashboard/report-administrator/calculator/fonts/Roboto/static/Roboto-Regular.ttf';
+    const fontBuffer: ArrayBuffer = await loadFontViaWorker(fontPath);
+
+    // Регистрируем шрифт
+    doc.addFileToVFS('Roboto-Regular.ttf', fontBuffer);
+    doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+    doc.setFont('Roboto');
+
+    // Генерируем PDF
     const columns = [
       { title: 'Время начала', dataKey: 'startTime' },
       { title: 'Время окончания', dataKey: 'endTime' },
@@ -140,17 +192,22 @@ export default function Page({ }: PageProps) {
     ];
 
     const data = rows.map((row, index) => ({
-      startTime: row.startTime,
-      endTime: row.endTime,
-      audience: row.audience,
+      startTime: sanitizeText(row.startTime),
+      endTime: sanitizeText(row.endTime),
+      audience: sanitizeText(row.audience),
       rent: formatNumber(cleanNumber(row.rent)),
       sales: formatNumber(cleanNumber(row.sales)),
       spa: formatNumber(cleanNumber(row.spa)),
-      total: formatNumber(calculateRowTotal(row)),
+      total: formatNumber(calculateRowTotal(row))
     }));
 
     autoTable(doc, { head: columns, body: data });
+
+    console.log('PDF сгенерирован, начинаем сохранение...');
+
     doc.save('bania-report.pdf');
+
+    console.log('PDF успешно сохранён!');
   };
 
   return (
@@ -158,6 +215,7 @@ export default function Page({ }: PageProps) {
 
       <div className="head">
         <h1 className="text-2xl font-bold text-center">Ежедневный отчет бани</h1>
+
         <table className="w-full border border-gray-800">
           <thead>
             <tr className="bg-white text-black border-2">
@@ -189,12 +247,11 @@ export default function Page({ }: PageProps) {
           </thead>
           <tbody></tbody>
         </table>
+
       </div>
 
       {/* Таблица отчета */}
       <div className="div-container flex justify-between gap-1">
-
-
 
         <div className="beautiful-scroll overflow-y-auto h-[1120px]">
           <table className="w-full min-w-full border bg-white border-gray-300">
@@ -202,7 +259,7 @@ export default function Page({ }: PageProps) {
               <tr className="bg-white text-black border-2">
                 <th className="border px-0 py-0">
                   {/* <PlusIcon /> */}
-                  <TrashIcon className='text-gray-400'/>
+                  <TrashIcon className='text-gray-400' />
                 </th>
                 <th colSpan={2} className="w-1/12 border px-0 text-center">
                   Время

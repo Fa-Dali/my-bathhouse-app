@@ -12,6 +12,16 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  // Добавил для обработки шрифтов
+  webpack(config) {
+    // Добавляем новое правило для обработки шрифтов
+    config.module.rules.push({
+      test: /\.(ttf|eot|svg|gif)$/,
+      use: 'file-loader',
+    });
+    return config;
+  },
 };
 
 export default nextConfig;

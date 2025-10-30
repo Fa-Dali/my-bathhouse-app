@@ -97,6 +97,8 @@ my-bathhouse-app/
 │   └── nextjs-dashboard
 │       ├── .next                      # Кэш и временные файлы Next.js
 │       ├── app/                       # Исходники клиентской части приложения
+│       │   ├── types/
+│       │   │   └── declarations.d.ts
 │       │   ├── auth/                  # Аутентификация
 │       │   │   ├── context/
 │       │   │   │   └── auth-provider.tsx
@@ -185,11 +187,17 @@ my-bathhouse-app/
 │       │   │   │   │   ├── AdminTable.tsx
 │       │   │   │   │   ├── CustomCheckbox.tsx
 │       │   │   │   │   ├── page.tsx
-│       │   │   │   │   └── TableCSS.module.css
-│       │   │   │   ├── style/
-│       │   │   │   │   ├── Cell.module.css
-│       │   │   │   │   ├── Select.module.css
-│       │   │   │   │   └── TimeInput.module.css
+│       │   │   │   │   ├── TableCSS.module.css
+│       │   │   │   │   ├── scripts/
+│       │   │   │   │   │   ├── InputField.tsx
+│       │   │   │   │   │   └── useFormattedNumber.tsx
+│       │   │   │   │   ├── style/
+│       │   │   │   │   │   ├── Cell.module.css
+│       │   │   │   │   │   ├── Select.module.css
+│       │   │   │   │   │   └── TimeInput.module.css
+│       │   │   │   │   └── fonts/
+│       │   │   │   │       └── Roboto/
+│       │   │   │   │           └── static/...
 │       │   │   │   ├── page.tsx       # Основная страница отчёта администратора
 │       │   │   │   └── loading.tsx
 │       │   │   |
@@ -418,4 +426,11 @@ pnpm run dev
 ---
 
 Если возникнут дополнительные вопросы, обращайтесь!
+
+================================================
+ДОПОЛНИТЕЛЬНЫЕ ПАКЕТЫ УСТАНОВИЛ
+1. ДЛЯ обработки файлов шрифтов и изображений.
+    pnpm install file-loader
+
+2. ДЛЯ...
 '''
