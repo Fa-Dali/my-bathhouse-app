@@ -1,71 +1,77 @@
-# backend/my-bathhouse-backend/reports/views.py
+# backend/my-bathhouse-backend/reports/api_views.py
 
+from django.http import JsonResponse
 from django.views import View
-from django.http import HttpResponse, JsonResponse
-from weasyprint import HTML
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.shortcuts import get_object_or_404
 from .models import Report
+import json
+from decimal import Decimal
 
-# Проверка доступности сервера
+# === 1. Сохранение отчёта ===
+@csrf_exempt  # Только если API с внешнего домена (иначе настройте CORS)
+@require_http_methods(["POST"])
+def save_report(request):
+    try:
+        data = json.loads(request.body)
+
+        # Валидация
+        required = ['admin_name', 'created_at', 'rows', 'totalPayment']
+        if not all(k in data for k in required):
+            return JsonResponse({'error': 'Отсутствуют обязательные поля'}, status=400)
+
+        # Сохраняем
+        report = Report.objects.create(
+            admin_name = data['admin_name'],
+            created_at = data['created_at'],
+            data = data['rows'],  # массив
+            # total_payment = data['totalPayment'],
+            total_payment=Decimal(str(data.get('totalPayment', 0))),
+        )
+
+        return JsonResponse({'success': True, 'id': report.id})
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Неверный JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+# === 2. Проверка сервера ===
 class CheckServerView(View):
     def get(self, request, *args, **kwargs):
-        return HttpResponse("OK", status=200)
+        return JsonResponse({'status': 'ok'})
 
-# Формирование PDF документа
+
+# === 3. Генерация PDF (заглушка) ===
 class GeneratePDFView(View):
     def get(self, request, *args, **kwargs):
-        # Получаем данные из GET-параметров или делаем дополнительную логику
-        # Например, собираем данные из базы данных
-        data = {...}  # замените на реальный источник данных:
-        # ЧИТАЙ КОММЕНТ НИЖЕ, ПОСЛЕ СТРОКИ ============
+        # Пока возвращаем заглушку
+        return JsonResponse({'message': 'PDF генерация пока не реализована'}, status=200)
 
-        # Конструируем HTML-шаблон с данными
-        html_template = """
-        <html>
-        <body>
-            <!-- Ваша HTML-марка -->
-        </body>
-        </html>
-        """.format(**data)
 
-        # Генерируем PDF
-        pdf = HTML(string=html_template).write_pdf()
-
-        # Возврат PDF в качестве аттача
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="report.pdf"'
-        response.write(pdf)
-        return response
-
-# представление для получения всех отчётов:
+# === 4. Получение списка отчётов ===
 def get_reports(request):
-    reports = Report.objects.all()
+    reports = Report.objects.all().order_by('-created_at')[:10]  # последние 10
     data = [
         {
-            'start_time': report.start_time,
-            'end_time': report.end_time,
-            'audience': report.audience,
-            'rent': report.rent,
-            'sales': report.sales,
-            'spa': report.spa,
-            'payment': report.payment,
-            'admin_name': report.admin_name,
-            'created_at': report.created_at,
+            'id': r.id,
+            'admin_name': r.admin_name,
+            'created_at': r.created_at.isoformat(),
+            'total_payment': float(r.total_payment),
+            'inserted_at': r.inserted_at.isoformat(),
         }
-        for report in reports
+        for r in reports
     ]
-    return JsonResponse(data, safe=False)
+    return JsonResponse({'reports': data}, safe=False)
 
-# представление для обработки отправки данных:
+
+# === 5. Создание отчёта (если нужно отдельно от save_report) ===
+@csrf_exempt
+@require_http_methods(["POST"])
 def create_report(request):
-    if request.method == 'POST':
-        admin_name = request.POST.get('admin_name')
-        created_at = request.POST.get('created_at')
-        # Остальные поля можно добавить аналогично
-
-        report = Report(admin_name=admin_name, created_at=created_at)
-        report.save()
-        return HttpResponse("Отчёт успешно создан", status=201)
-    return HttpResponse("Метод не поддерживается", status=405)
+    # Можно оставить как алиас для save_report или добавить логику
+    return save_report(request)
 
 # =====================================================================
 #  предложено сделать таким образом:

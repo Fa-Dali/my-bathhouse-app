@@ -28,10 +28,12 @@ from rest_framework.routers import DefaultRouter
 urlpatterns = [
     # Администраторская панель Django
     path('admin/', admin.site.urls),
-    # Включаем маршруты нашего приложения
-    path('api/', include('my_bathhouse_backend.apps.users.urls')),
     # Главная страница
     path('', home, name='home'), # ( !? откинул из кода : убрал эту строку)
+    # Включаем маршруты приложения ДЛЯ ПОЛЬЗОВАТЕЛЕЙ
+    path('api/', include('my_bathhouse_backend.apps.users.urls')),
+    # Включаем маршруты приложения ДЛЯ СОХРАНЕНИЯ ЕЖЕДНЕВНОГО ОТЧЕТА
+    path('api/', include('my_bathhouse_backend.apps.reports.urls')),
 ]
 
 # Добавляем маршрут для обслуживания медиа файлов.

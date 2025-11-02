@@ -2,21 +2,21 @@
 
 # Таблица Отчета Администратора Ежедневный
 
+# models.py
 from django.db import models
-from django.utils import timezone
+from decimal import Decimal
 
 class Report(models.Model):
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-    audience = models.CharField(max_length=100)
-    rent = models.DecimalField(max_digits=10, decimal_places=2)
-    sales = models.DecimalField(max_digits=10, decimal_places=2)
-    spa = models.DecimalField(max_digits=10, decimal_places=2)
-    payment = models.CharField(max_length=100)
-    admin_name = models.CharField(
-        max_length=100)  # Фамилия и инициалы администратора
-    created_at = models.DateTimeField(
-        default=timezone.now)  # Дата создания таблицы
+    admin_name = models.CharField("Имя администратора", max_length=100)
+    created_at = models.DateTimeField("Дата и время создания", db_index=True)
+    data = models.JSONField("Данные отчёта", help_text="Полная структура строк, оплат, мастеров")
+    total_payment = models.DecimalField("Общая оплата", max_digits=12, decimal_places=2)
+    inserted_at = models.DateTimeField("Дата сохранения", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Отчёт"
+        verbose_name_plural = "Отчёты"
+        ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.start_time} - {self.end_time}"
+        return f"{self.admin_name} — {self.created_at}"

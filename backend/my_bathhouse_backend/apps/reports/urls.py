@@ -5,18 +5,23 @@ from django.urls import path
 from .api_views import (GeneratePDFView,
                         CheckServerView,
                         get_reports,
-                        create_report)
+                        create_report,
+                        save_report)
+
 
 urlpatterns = [
-    # маршрут для генерации документа PDF:
+    # ПЕРЕДЕЛАТЬ маршрут для генерации документа PDF:
     path('generate-pdf/', GeneratePDFView.as_view(), name='generate_pdf'),
 
-    # маршрут для проверки доступности сервера
+    # ПЕРЕДЕЛАТЬ маршрут для проверки доступности сервера
     path('check-server/', CheckServerView.as_view(), name='check_server'),
 
-    # маршрут для получения отчётов:
+    # ПЕРЕДЕЛАТЬ маршрут для получения отчётов:
     path('reports/', get_reports, name='get_reports'),
 
-    # маршрут для отправки данных на сервер
+    # ПЕРЕДЕЛАТЬ маршрут для отправки данных на сервер
     path('reports/create/', create_report, name='create_report'),
+
+    #  сохранение отчета из фронтенда
+    path('api/reports/', save_report, name='save_report'),
 ]

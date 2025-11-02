@@ -44,7 +44,12 @@ DEBUG = True
 #   Когда вы развертываете сайт публично, вам потребуется добавить
 #   реальные домены, на которых ваше приложение размещено
 #   (например, example.com, www.example.com).
-ALLOWED_HOSTS = [] # ALLOWED_HOSTS = ["*"] Можно оставить открытым для
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    # 'bathhouse-app.ru',
+    # 'www.bathhouse-app.ru',
+] # ALLOWED_HOSTS = ["*"] Можно оставить открытым для
 # тестирования
 
 
@@ -65,6 +70,7 @@ INSTALLED_APPS = [
     'corsheaders',
     #     для работы с PDF
     'my_bathhouse_backend.apps.reports.apps.ReportsConfig',
+    'django.contrib.postgres',  # ← обязательно для JSONField
 ]
 
 MIDDLEWARE = [
@@ -78,15 +84,16 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',  # фронтенд на localhost:3000
-]
-
 # CORS_ALLOWED_ORIGIN_REGEXES = [
 #     r'^http://localhost:3000.*$',
 #     # 'http://192.168.1.169:3000',
 #     # '*'
 # ]
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',  # фронтенд на localhost:3000
+    # "http://127.0.0.1:3000",
+]
 
 # Опционально: разрешить куки/авторизацию (если нужны)
 CORS_ALLOW_CREDENTIALS = True
@@ -98,6 +105,18 @@ CORS_ALLOW_METHODS = [
     'PATCH',
     'POST',
     'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
 ROOT_URLCONF = 'my_bathhouse_backend.urls'
@@ -154,12 +173,6 @@ LOGGING = {
             'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
         },
-    # 'handlers': {
-    #     'console': {
-    #         'level': 'DEBUG',  # Изменили уровень на DEBUG
-    #         'filters': ['require_debug_true'],  # Только при включённом режиме DEBUG
-    #         'class': 'logging.StreamHandler',
-    #     },
     },
     'loggers': {
         # 'django': {
