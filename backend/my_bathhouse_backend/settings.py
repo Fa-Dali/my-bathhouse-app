@@ -64,7 +64,7 @@ INSTALLED_APPS = [
     'my_bathhouse_backend.apps.users',
     'corsheaders',
     #     для работы с PDF
-    'reports.apps.ReportsConfig',
+    'my_bathhouse_backend.apps.reports.apps.ReportsConfig',
 ]
 
 MIDDLEWARE = [

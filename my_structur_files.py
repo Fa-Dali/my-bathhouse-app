@@ -69,10 +69,26 @@ my-bathhouse-app/
 │   │   └── pyvenv.cfg                  # Конфигурационный файл виртуального окружения
 │   │
 │   ├── media/
-│   │   └── avatars/...                 # Сохранение фото пользователей
+│   │   ├── avatars/...                 # Сохранение фото пользователей
+│   │   └── reports/
+│   │       ├── admin/
+│   │       │   ├── day/...
+│   │       │   ├── month/...
+│   │       │   └── year/...
+│   │       └── master/...
+│   │           ├── day/...
+│   │           ├── month/...
+│   │           └── year/...
 │   │
 │   ├── my-bathhouse-backend/           # Основной каталог Django-приложения
 │   │   ├── apps/                       # Приложения Django
+│   │   │   ├── report/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── api_views.py
+│   │   │   │   ├── forms.py
+│   │   │   │   ├── models.py
+│   │   │   │   ├── serializers.py
+│   │   │   │   └── urls.py
 │   │   │   ├── users/                  # Модели пользователей
 │   │   │   │   ├── migrations/        # Файлы миграций базы данных
 │   │   │   │   │   ├── 0001_initial.py

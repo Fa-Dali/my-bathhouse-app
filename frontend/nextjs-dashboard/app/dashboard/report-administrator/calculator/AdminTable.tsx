@@ -2,16 +2,20 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import CustomCheckbox from './CustomCheckbox';
 import '../../../../app/ui/global.css';
 import './style/TimeInput.module.css';
 import './style/Select.module.css';
 import './style/Cell.module.css';
-import useFormattedNumber from './scripts/useFormattedNumber';
+import useFormattedNumber from './scripts/useFormattedNumber'; // Использование хука
+import useCurrentDate from '../hooks/useCurrentDate';
 import { NumberInput } from './scripts/InputField';
-import jsPDF from 'jspdf'; // Библиотека для формирования PDF
-import autoTable from 'jspdf-autotable'; // Пакет для автоматического заполнения таблиц в jspdf
+
+import jsPDF from 'jspdf';                            // Библиотека для формирования PDF
+import autoTable from 'jspdf-autotable';              // Пакет для автоматического заполнения таблиц в jspdf
+import html2canvas from 'html2canvas';                // Библиотека для создания скриншота HTML
+
 import {
   PlusIcon,
   EllipsisVerticalIcon,
@@ -64,7 +68,10 @@ const emptyRowTemplate = {
   rent: '',
   sales: '',
   spa: '',
-  payment: '',
+  paymentAmount: '',  // Новое поле для "ОПЛАТА"
+  paymentMethod: '',  // Новое поле для "Способ оплаты"
+  masterName: '',     // Новое поле для "Зарплаты (Имя)"
+  masterSalary: '',   // Новое поле для "Зарплаты (суммы)"
 };
 
 // Интерфейс пропсов компонента
@@ -78,6 +85,10 @@ const sanitizeText = (text: string): string =>
 
 // Основной компонент
 export default function Page({ }: PageProps) {
+
+  const currentDate = useCurrentDate(); // Получаем текущую дату
+  console.log("Текущая дата: ", currentDate); // Логируем дату для проверки
+
   // Чистящая функция перемещается сюда, чтобы стать доступной всему компоненту
   const cleanNumber = (value: string | number) => {
     if (typeof value === 'string') {
@@ -88,6 +99,33 @@ export default function Page({ }: PageProps) {
 
   // Массив строк таблицы
   const [rows, setRows] = React.useState([emptyRowTemplate]);
+
+  // Приводим устаревшие данные к современному формату
+  React.useEffect(() => {
+    if (rows.some(row => !('paymentAmount' in row))) {
+      setRows(
+        rows.map(row => ({
+          ...row,
+          paymentAmount: '', // Присваиваем старое значение или оставляем пустым
+          paymentMethod: '',
+          masterName: '',
+          masterSalary: ''
+        }))
+      );
+    }
+  }, [rows]);
+
+  // функция для получения данных из базы данных
+  const fetchReports = async () => {
+    const response = await fetch('/api/reports/');
+    const data = await response.json();
+    setRows(data);
+  };
+
+  // Использование useEffect для загрузки данных:
+  useEffect(() => {
+    fetchReports();
+  }, []);
 
   // Проверка выбранных строк
   const [selectedRows, setSelectedRows] = React.useState<number[]>([]);
@@ -126,7 +164,10 @@ export default function Page({ }: PageProps) {
       rent: '',
       sales: '',
       spa: '',
-      payment: '',
+      paymentAmount: '', // Новое поле для "ОПЛАТА"
+      paymentMethod: '', // Новое поле для "Способ оплаты"
+      masterName: '',    // Новое поле для "Зарплаты (Имя)"
+      masterSalary: '',  // Новое поле для "Зарплаты (суммы)"
     };
 
     setRows([...rows, newRow]);
@@ -165,20 +206,39 @@ export default function Page({ }: PageProps) {
   // Вычислим итоговую сумму
   const totals = calculateTotals();
 
+  // Обновление таблицы, используя данные из `rows`
+  const data = rows.map((row, index) => ({
+    startTime: sanitizeText(row.startTime),
+    endTime: sanitizeText(row.endTime),
+    audience: sanitizeText(row.audience),
+    rent: formatNumber(cleanNumber(row.rent)),
+    sales: formatNumber(cleanNumber(row.sales)),
+    spa: formatNumber(cleanNumber(row.spa)),
+    total: formatNumber(calculateRowTotal(row)),
+    paymentAmount: formatNumber(cleanNumber(row.paymentAmount)), // Новое поле
+    paymentMethod: sanitizeText(row.paymentMethod),              // Новое поле
+    masterName: sanitizeText(row.masterName),                   // Новое поле
+    masterSalary: formatNumber(cleanNumber(row.masterSalary)),   // Новое поле
+  }));
+
+  // ==========================================
   // Экспорт таблицы в PDF
   const exportToPdf = async () => {
     console.log('Начало экспорта PDF...');
 
     const doc = new jsPDF(); // Создаем экземпляр PDF-документа
 
-    // Загружаем шрифт через worker
-    const fontPath = process.cwd() + '/app/dashboard/report-administrator/calculator/fonts/Roboto/static/Roboto-Regular.ttf';
-    const fontBuffer: ArrayBuffer = await loadFontViaWorker(fontPath);
+    // Загружаем шрифт через HTTP-запрос
+    const fontResponse = await fetch('/app/dashboard/report-administrator/calculator/fonts/static/Roboto-Regular.ttf');
+    const fontBuffer = await fontResponse.arrayBuffer();
+
+    // Преобразуем ArrayBuffer в строку base64
+    const fontBufferBase64 = Buffer.from(fontBuffer).toString('base64');
 
     // Регистрируем шрифт
-    doc.addFileToVFS('Roboto-Regular.ttf', fontBuffer);
+    doc.addFileToVFS('Roboto-Regular.ttf', fontBufferBase64);
     doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
-    doc.setFont('Roboto');
+    doc.setFont('Roboto'); // Применяем шрифт ко всему документу
 
     // Генерируем PDF
     const columns = [
@@ -189,6 +249,10 @@ export default function Page({ }: PageProps) {
       { title: 'Продажи', dataKey: 'sales' },
       { title: 'SPA', dataKey: 'spa' },
       { title: 'Сумма', dataKey: 'total' },
+      { title: 'ОПЛАТА', dataKey: 'paymentAmount' },
+      { title: 'Способ оплаты', dataKey: 'paymentMethod' },
+      { title: 'Зарплата (Имя)', dataKey: 'masterName' },
+      { title: 'Зарплата (сумма)', dataKey: 'masterSalary' },
     ];
 
     const data = rows.map((row, index) => ({
@@ -198,23 +262,176 @@ export default function Page({ }: PageProps) {
       rent: formatNumber(cleanNumber(row.rent)),
       sales: formatNumber(cleanNumber(row.sales)),
       spa: formatNumber(cleanNumber(row.spa)),
-      total: formatNumber(calculateRowTotal(row))
+      total: formatNumber(calculateRowTotal(row)),
+      paymentAmount: formatNumber(cleanNumber(row.paymentAmount || '')),
+      paymentMethod: sanitizeText(row.paymentMethod || ''),
+      masterName: sanitizeText(row.masterName || ''),
+      masterSalary: formatNumber(cleanNumber(row.masterSalary || '')),
     }));
 
-    autoTable(doc, { head: columns, body: data });
+    // Настройки для автоматической таблицы
+    autoTable(doc, {
+      head: columns,
+      body: data,
+      theme: 'grid', // Выберите нужный стиль ('striped', 'plain')
+      styles: {
+        fontSize: 10,
+        valign: 'middle',
+        halign: 'left',
+        cellPadding: 0, // Без внутреннего отступа
+        lineColor: '#ccc',
+        textColor: '#333',
+      },
+      columnStyles: {
+        startTime: { cellWidth: 50 },
+        endTime: { cellWidth: 50 },
+        audience: { cellWidth: 100 },
+        rent: { cellWidth: 80 },
+        sales: { cellWidth: 80 },
+        spa: { cellWidth: 80 },
+        total: { cellWidth: 80 },
+        paymentAmount: { cellWidth: 80 },
+        paymentMethod: { cellWidth: 80 },
+        masterName: { cellWidth: 80 },
+        masterSalary: { cellWidth: 80 },
+      },
+      tableWidth: 'auto',
+    });
 
     console.log('PDF сгенерирован, начинаем сохранение...');
 
-    doc.save('bania-report.pdf');
+    // Сохраняем PDF с именем, сформированным из даты и времени
+    const date = new Date();
+    const fileName = `report-${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}-${date.getHours()}-${date.getMinutes()}.pdf`;
+    doc.save(fileName);
 
     console.log('PDF успешно сохранён!');
   };
 
+  //---------------------------------------------
+
+  // Экспорт таблицы в PDF
+  // const exportToPdf = async () => {
+  //   console.log('Начало экспорта PDF...');
+
+  //   const doc = new jsPDF(); // Создаем экземпляр PDF-документа
+
+  //   // Найти элемент с таблицей
+  //   const element = document.querySelector('#admin-report-table');
+
+  //   if (!(element instanceof HTMLElement)) {
+  //     console.error('Элемент с id "admin-report-table" не найден.');
+  //     return;
+  //   }
+
+  //   // Рисуем изображение таблицы
+  //   const options = {
+  //     scale: window.devicePixelRatio || 1, // Масштабируем рисунок согласно устройству
+  //     background: "#fff", // Белый фон
+  //   };
+
+  //   const canvas = await html2canvas(element, options);
+  //   const imgData = canvas.toDataURL('image/png');
+
+  //   // Добавляем изображение в PDF
+  //   const imgProps = doc.getImageProperties(imgData);
+  //   const pdfWidth = doc.internal.pageSize.getWidth();
+  //   const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+  //   doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+  //   // Сохраняем PDF
+  //   const fileName = `report-${new Date().toISOString()}.pdf`;
+  //   doc.save(fileName);
+
+  //   console.log('PDF успешно сохранён!');
+  // };
+
+  // ===========================================
+  // Функция для проверки доступности сервера
+  const checkServerAvailability = async () => {
+    try {
+      const response = await fetch('/check-server/');
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  // Функция для генерации PDF на клиенте
+  const generateClientSidePDF = async () => {
+    const element = document.querySelector('#admin-report-table');
+
+    if (!element) {
+      console.error('Элемент с id "admin-report-table" не найден.');
+      return;
+    }
+
+    const canvas = await html2canvas(element as HTMLElement);
+    const imgData = canvas.toDataURL('image/png');
+
+    const pdf = new jsPDF();
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save('report.pdf');
+  };
+
+  // Функция для генерации PDF с проверкой доступности сервера
+  const generatePDF = async () => {
+    try {
+      const serverAvailable = await checkServerAvailability();
+
+      if (serverAvailable) {
+        const response = await fetch('/generate-pdf/');
+        if (response.ok) {
+          const blob = await response.blob();
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = 'report.pdf';
+          link.click();
+        } else {
+          console.error('Ошибка при генерации PDF на сервере.');
+        }
+      } else {
+        await generateClientSidePDF();
+      }
+    } catch (error) {
+      console.error('Ошибка при отправке запроса:', error);
+    }
+  };
+
+  // Функция для отправки данных на сервер
+  const sendReportToBackend = async () => {
+    const formData = new FormData();
+    formData.append('admin_name', 'Фамилия И.О. администратора'); // Замените на реальное значение
+    formData.append('created_at', new Date().toISOString()); // Текущая дата и время
+    formData.append('start_time', rows[0].startTime);
+    formData.append('end_time', rows[0].endTime);
+    formData.append('audience', rows[0].audience);
+    formData.append('rent', rows[0].rent);
+    formData.append('sales', rows[0].sales);
+    formData.append('spa', rows[0].spa);
+    formData.append('payment', rows[0].paymentAmount);
+
+    const res = await fetch('/api/reports/', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (res.ok) alert('Отчёт отправлен успешно!');
+  };
+
+
+
   return (
-    <div className="container mx-auto font-sans">
+    <div id="admin-report-table" className="container mx-auto font-sans">
 
       <div className="head">
-        <h1 className="text-2xl font-bold text-center">Ежедневный отчет бани</h1>
+        <h3></h3>
+        <h1 className="text-2xl text-center"><b>"Ежедневный отчет бани"</b> : {currentDate} г.</h1>
 
         <table className="w-full border border-gray-800">
           <thead>
@@ -222,7 +439,8 @@ export default function Page({ }: PageProps) {
               <td className="w-1/12 border border-gray-300">
                 <input
                   type="date"
-                  className="w-full h-8 border-none focus:ring-transparent focus:outline-none"
+                  className="w-full h-8 border-none focus:ring-transparent focus:outline-none text-start"
+                // value='{currentDate}' // Устанавливаем текущую дату
                 />
               </td>
               <td className="w-1/12 border text-center bg-white border-gray-300">
@@ -413,8 +631,8 @@ export default function Page({ }: PageProps) {
                         list="payment-type-list"
                         placeholder=""
                         className="w-full border-transparent h-6 border border-b-gray-200"
-                        value={row.payment}
-                        onChange={(event) => updateRow(index, 'payment', event.target.value)}
+                        value={row.paymentMethod}
+                        onChange={(event) => updateRow(index, 'paymentMethod', event.target.value)}
                       />
                       <datalist id="payment-type-list">
                         <option value="Тер"></option>
@@ -562,13 +780,28 @@ export default function Page({ }: PageProps) {
 
                 {/* ЭКСПОРТ В PDF */}
                 <button
+                  title='Сохранить в PDF'
                   className="bg-sky-200 hover:bg-sky-300 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
-                  onClick={exportToPdf}
+                  onClick={generatePDF}
                 >
                   PDF <ArrowTopRightOnSquareIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
                 </button>
 
-                {/* ОТПРАВИТЬ ПИСЬМО */}
+                {/* КНОПКА ОТПРАВЛЯЕТ ОТЧЕТ В БД
+                    НАДО ОБЪЕДИНИТЬ В:
+                                  ОТЧЕТ В БД
+                                  ОТПРАВИТЬ ПИСЬМО НАЧАЛЬСТВУ
+                                  ОТПРАВИТЬ В ТЕЛЕГРАМ НАЧАЛЬСТВУ*/}
+                <button
+                  title="Отправить отчет в БД"
+                  className="bg-slate-100 hover:bg-yellow-200 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
+                  onClick={sendReportToBackend}
+                >
+                  <EnvelopeIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
+                  {/* <ArrowRightIcon /> */}
+                </button>
+
+                {/* ОТПРАВИТЬ ПИСЬМО !!! проверить нужна ли эта кнопка*/}
                 <button
                   className="bg-slate-100 hover:bg-yellow-200 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
                   onClick={exportToPdf}
