@@ -97,6 +97,10 @@ export default function Page({ }: PageProps) {
 
   const [adminName, setAdminName] = useState(''); // ← по умолчанию
 
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    return new Date().toISOString().split('T')[0]; // формат "2025-11-04"
+  });
+
   // Получение текущей даты
   const currentDate = useCurrentDate();
   useEffect(() => {
@@ -582,45 +586,7 @@ export default function Page({ }: PageProps) {
     setRows([emptyRowTemplate]);
   };
 
-
-  // АВТОЗАГРУЗКА ОТЧЁТА ЗА ТЕКУЩУЮ ДАТУ
-  // useEffect(() => {
-  //   loadReportForToday();
-  // }, []);
-
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    const fetchReport = async () => {
-      const today = new Date().toISOString().split('T')[0];
-      try {
-        const response = await fetch(`http://localhost:8000/api/reports/date/${today}/`);
-        if (response.ok) {
-          const data = await response.json();
-          const normalized = data.reports.map((row: ReportRow) => ({
-            ...emptyRowTemplate,
-            ...row,
-            payments: Array.isArray(row.payments) ? row.payments : emptyRowTemplate.payments,
-            masters: Array.isArray(row.masters) ? row.masters : emptyRowTemplate.masters,
-          }));
-          setRows(normalized);
-          setCurrentReportId(data.id);
-        } else {
-          setRows([emptyRowTemplate]);
-          setCurrentReportId(null);
-        }
-      } catch (error) {
-        console.error('Ошибка загрузки:', error);
-        setRows([emptyRowTemplate]);
-        setCurrentReportId(null);
-      } finally {
-        setIsLoaded(true); // ✅ Помечаем, что загрузка завершена
-      }
-    };
-
-    fetchReport();
-  }, []);
-
+  // ЗАГРУЗКА ОТЧЕТА ЗА ТЕКУЩУЮ ДАТУ
   const loadReportForToday = async () => {
     const today = new Date().toISOString().split('T')[0]; // '2025-11-04'
 
@@ -663,6 +629,69 @@ export default function Page({ }: PageProps) {
     saveReport(true); // isAutoSave = true
   };
 
+  // ЗАГРУЗКА ОТЧЕТА ЗА ТЕКУЩУЮ ДАТУ
+  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  const loadReportByDate = async (date: string) => {
+    setIsLoading(true); // ← начало загрузки
+    try {
+      const response = await fetch(`http://localhost:8000/api/reports/date/${date}/`);
+
+      if (response.ok) {
+        const data: ReportResponse = await response.json();
+        const normalized = data.reports.map((row: ReportRow) => ({
+          ...emptyRowTemplate,
+          ...row,
+          payments: Array.isArray(row.payments)
+            ? [
+              ...row.payments,
+              ...Array(4 - row.payments.length).fill({ amount: '', method: '' })
+            ].slice(0, 4)
+            : [...emptyRowTemplate.payments],
+          masters: Array.isArray(row.masters)
+            ? [
+              ...row.masters,
+              ...Array(4 - row.masters.length).fill({ name: '', salary: '' })
+              ].slice(0, 4)
+            : [...emptyRowTemplate.masters],
+        }));
+        setRows(normalized);
+        setCurrentReportId(data.id);
+        setAdminName(data.admin_name || ''); // ← подгружаем имя админа
+      } else {
+        // Отчёта нет → пустая таблица
+        setRows([emptyRowTemplate]);
+        setCurrentReportId(null);
+        // Не меняем adminName — пусть остаётся как есть или пусто
+      }
+    } catch (error) {
+      console.error('Ошибка при загрузке отчёта:', error);
+      setRows([emptyRowTemplate]);
+      setCurrentReportId(null);
+    } finally {
+      setIsLoading(false); // ← завершение загрузки
+    }
+  };
+
+  useEffect(() => {
+    loadReportByDate(selectedDate);
+  }, []);
+
+  useEffect(() => {
+    // Пропускаем автосохранение при первой загрузке
+    if (isInitialLoad) {
+      setIsInitialLoad(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      saveReportAuto();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [rows, adminName]);
+
 
   return (
     //  key={currentReportId || 'new'} - Помогает избежать "залипания" состояния.
@@ -673,8 +702,7 @@ export default function Page({ }: PageProps) {
     >
 
       <div className="head">
-        <h3></h3>
-        <h1 className="text-2xl text-center"><b>"Ежедневный отчет бани"</b> : {currentDate} г.</h1>
+        <h1 className="text-2xl text-center"><b>"Ежедневный отчет бани"</b> : {selectedDate} г.</h1>
 
         {/* ИНДИКАТОР СТАТУС СОХРАНЕНИЯ - Этот блок будет появляться в правом верхнем углу*/}
         {status !== 'idle' && (
@@ -684,7 +712,7 @@ export default function Page({ }: PageProps) {
           </div>
         )}
 
-        {isLoaded ? (
+        {!isLoading && (
           <table className="w-full border border-gray-800">
             <thead>
               <tr className="bg-white text-black border-2">
@@ -692,7 +720,12 @@ export default function Page({ }: PageProps) {
                   <input
                     type="date"
                     className="w-full h-8 border-none focus:ring-transparent focus:outline-none text-start"
-                  // value='{currentDate}' // Устанавливаем текущую дату
+                    value={selectedDate}
+                    onChange={async (e) => {
+                      const newDate = e.target.value;
+                      setSelectedDate(newDate);
+                      await loadReportByDate(newDate);
+                    }}
                   />
                 </td>
                 <td className="w-1/12 border text-center bg-white border-gray-300">
@@ -720,336 +753,340 @@ export default function Page({ }: PageProps) {
             </thead>
             <tbody></tbody>
           </table>
-        ) : (
-          <div className="flex justify-center p-8">
-            <p>Загрузка отчёта...</p>
-          </div>
         )}
-
       </div>
 
       {/* Таблица отчета */}
       <div className="div-container flex justify-between gap-1">
 
         <div className="beautiful-scroll overflow-y-auto h-[1120px]">
-          <table className="w-full min-w-full border bg-white border-gray-300">
-            <thead>
-              <tr className="bg-white text-black border-2">
-                <th className="border px-0 py-0">
-                  {/* <PlusIcon /> */}
-                  <TrashIcon className='text-gray-400' />
-                </th>
-                <th colSpan={2} className="w-1/12 border px-0 text-center">
-                  Время
-                </th>
-                <th className="w-2/12 border px-0">Баня</th>
-                <th className="w-1/12 border px-0">Аренда</th>
-                <th className="w-1/12 border px-0">Продажа</th>
-                <th className="w-1/12 border px-0">СПА</th>
-                <th className="w-1/12 border px-0">СУММА</th>
-                <th className="w-1/12 border px-0 bg-white">ОПЛАТА</th>
-                <th className="w-1/12 border px-0 bg-white">Способ оплаты</th>
-                <th colSpan={2} className="w-1/3 border px-0">Зарплата</th>
-              </tr>
-            </thead>
+
+          {isLoading ? (
+            <div className="flex justify-center p-8">
+              <p>Загрузка отчёта...</p>
+            </div>
+          ) : (
+            <div>
+              {/* ОСНОВНАЯ Таблица */}
+              <table className="w-full min-w-full border bg-white border-gray-300">
+                <thead>
+                  <tr className="bg-white text-black border-2">
+                    <th className="border px-0 py-0">
+                      {/* <PlusIcon /> */}
+                      <TrashIcon className='text-gray-400' />
+                    </th>
+                    <th colSpan={2} className="w-1/12 border px-0 text-center">
+                      Время
+                    </th>
+                    <th className="w-2/12 border px-0">Баня</th>
+                    <th className="w-1/12 border px-0">Аренда</th>
+                    <th className="w-1/12 border px-0">Продажа</th>
+                    <th className="w-1/12 border px-0">СПА</th>
+                    <th className="w-1/12 border px-0">СУММА</th>
+                    <th className="w-1/12 border px-0 bg-white">ОПЛАТА</th>
+                    <th className="w-1/12 border px-0 bg-white">Способ оплаты</th>
+                    <th colSpan={2} className="w-1/3 border px-0">Зарплата</th>
+                  </tr>
+                </thead>
 
 
-            <tbody className="h-30 text-center border-2 border-b-blue-600">
-              {rows.map((row, index) => (
-                <tr key={`row-${index}`} className='border-2 border-b-gray-200'>
+                <tbody className="h-30 text-center border-2 border-b-blue-600">
+                  {rows.map((row, index) => (
+                    <tr key={`row-${index}`} className='border-2 border-b-gray-200'>
 
-                  {/* Чекбокс */}
-                  <td className="border px-0 relative">
-                    <CustomCheckbox
-                      isChecked={selectedRows.includes(index)} // проверьте поддержку isChecked
-                      onChange={() => toggleSelection(index)}
-                    />
-                  </td>
+                      {/* Чекбокс */}
+                      <td className="border px-0 relative">
+                        <CustomCheckbox
+                          isChecked={selectedRows.includes(index)} // проверьте поддержку isChecked
+                          onChange={() => toggleSelection(index)}
+                        />
+                      </td>
 
-                  {/* Время начала */}
-                  <td className="border px-0">
-                    <input
-                      type="time"
-                      className="w-full h-22 border border-transparent"
-                      value={row.startTime}
-                      onChange={(event) => updateRow(index, 'startTime', event.target.value)}
-                    />
-                  </td>
+                      {/* Время начала */}
+                      <td className="border px-0">
+                        <input
+                          type="time"
+                          className="w-full h-22 border border-transparent"
+                          value={row.startTime}
+                          onChange={(event) => updateRow(index, 'startTime', event.target.value)}
+                        />
+                      </td>
 
-                  {/* Время окончания */}
-                  <td className="border px-0">
-                    <input
-                      type="time"
-                      className="w-full h-22 border border-transparent"
-                      value={row.endTime}
-                      onChange={(event) => updateRow(index, 'endTime', event.target.value)}
-                    />
-                  </td>
+                      {/* Время окончания */}
+                      <td className="border px-0">
+                        <input
+                          type="time"
+                          className="w-full h-22 border border-transparent"
+                          value={row.endTime}
+                          onChange={(event) => updateRow(index, 'endTime', event.target.value)}
+                        />
+                      </td>
 
-                  {/* Баня */}
-                  <td className="border px-0 relative">
-                    <div>
-                      <input
-                        type="text"
-                        list="audience-list"
-                        placeholder="Аудитория"
-                        className="w-full border-transparent h-22 text-center"
-                        value={row.audience}
-                        onChange={(event) => updateRow(index, 'audience', event.target.value)}
-                      />
-                      <datalist id="audience-list">
-                        <option value="Муромец"></option>
-                        <option value="Никитич"></option>
-                        <option value="Попович"></option>
-                        <option value="Массаж"></option>
-                      </datalist>
-                    </div>
-                  </td>
-
-                  {/* Аренда */}
-                  <td className="border px-0">
-                    <NumberInput
-                      type="text"
-                      step="10"
-                      placeholder=""
-                      className="h-22 text-right w-full border-none focus:ring-transparent focus:outline-none"
-                      value={row.rent}
-                      onChange={(event) => updateRow(index, 'rent', event.target.value)}
-                    />
-                  </td>
-
-                  {/* Продажи */}
-                  <td className="border px-0">
-                    <NumberInput
-                      type="text"
-                      step="10"
-                      placeholder=""
-                      className="h-22 text-right w-full border-none focus:ring-transparent focus:outline-none"
-                      value={row.sales}
-                      onChange={(event) => updateRow(index, 'sales', event.target.value)}
-                    />
-                  </td>
-
-                  {/* СПА */}
-                  <td className="border px-0">
-                    <NumberInput
-                      type="text"
-                      step="10"
-                      placeholder=""
-                      className="h-22 text-right w-full border-none focus:ring-transparent focus:outline-none"
-                      value={row.spa}
-                      onChange={(event) => updateRow(index, 'spa', event.target.value)}
-                    />
-                  </td>
-
-                  {/* Сумма */}
-                  <td className="border px-0">
-                    <strong>{calculateRowTotal(row).toLocaleString('ru-RU')}</strong>
-                  </td>
-
-                  {/* Колонка ОПЛАТА */}
-                  <td className="px-0">
-                    {Array.isArray(row.payments) ? (
-                      row.payments.map((payment, idx) => (
-                        <div key={idx} className="border-1 border-gray-200">
+                      {/* Баня */}
+                      <td className="border px-0 relative">
+                        <div>
                           <input
-                            type="number"
-                            step="10"
+                            type="text"
+                            list="audience-list"
+                            placeholder="Аудитория"
+                            className="w-full border-transparent h-22 text-center"
+                            value={row.audience}
+                            onChange={(event) => updateRow(index, 'audience', event.target.value)}
+                          />
+                          <datalist id="audience-list">
+                            <option value="Муромец"></option>
+                            <option value="Никитич"></option>
+                            <option value="Попович"></option>
+                            <option value="Массаж"></option>
+                          </datalist>
+                        </div>
+                      </td>
+
+                      {/* Аренда */}
+                      <td className="border px-0">
+                        <NumberInput
+                          type="text"
+                          step="10"
+                          placeholder=""
+                          className="h-22 text-right w-full border-none focus:ring-transparent focus:outline-none"
+                          value={row.rent}
+                          onChange={(event) => updateRow(index, 'rent', event.target.value)}
+                        />
+                      </td>
+
+                      {/* Продажи */}
+                      <td className="border px-0">
+                        <NumberInput
+                          type="text"
+                          step="10"
+                          placeholder=""
+                          className="h-22 text-right w-full border-none focus:ring-transparent focus:outline-none"
+                          value={row.sales}
+                          onChange={(event) => updateRow(index, 'sales', event.target.value)}
+                        />
+                      </td>
+
+                      {/* СПА */}
+                      <td className="border px-0">
+                        <NumberInput
+                          type="text"
+                          step="10"
+                          placeholder=""
+                          className="h-22 text-right w-full border-none focus:ring-transparent focus:outline-none"
+                          value={row.spa}
+                          onChange={(event) => updateRow(index, 'spa', event.target.value)}
+                        />
+                      </td>
+
+                      {/* Сумма */}
+                      <td className="border px-0">
+                        <strong>{calculateRowTotal(row).toLocaleString('ru-RU')}</strong>
+                      </td>
+
+                      {/* Колонка ОПЛАТА */}
+                      <td className="px-0">
+                        {Array.isArray(row.payments) ? (
+                          row.payments.map((payment, idx) => (
+                            <div key={idx} className="border-1 border-gray-200">
+                              <input
+                                type="number"
+                                step="10"
+                                placeholder=""
+                                className="h-8 w-full border-transparent border border-b-gray-200"
+                                value={payment.amount}
+                                onChange={(e) => updatePaymentAmount(index, idx, e.target.value)}
+                              />
+                            </div>
+                          ))
+                        ) : (
+                          <div>—</div>
+                        )}
+                      </td>
+
+                      {/* Колонка СПОСОБ ОПЛАТЫ */}
+                      <td className="border px-0">
+                        {row.payments.map((payment, idx) => (
+                          <div key={idx} className="border-1 border-gray-200">
+                            <select
+                              value={payment.method}
+                              onChange={(e) => updatePaymentMethod(index, idx, e.target.value)}
+                              className="w-full border-transparent h-8 border border-b-gray-200"
+                            >
+                              <option value="">Выберите метод</option>
+                              <option value="Тер">Тер</option>
+                              <option value="НАЛ">НАЛ</option>
+                              <option value="Сайт">Сайт</option>
+                              <option value="Ресеп">Ресеп</option>
+                            </select>
+                          </div>
+                        ))}
+                      </td>
+
+                      <td className="border px-0 relative">
+                        <div className="border-1 border-gray-200">
+                          <input
+                            type="text"
+                            list="master-name"
                             placeholder=""
-                            className="h-8 w-full border-transparent border border-b-gray-200"
-                            value={payment.amount}
-                            onChange={(e) => updatePaymentAmount(index, idx, e.target.value)}
+                            className="w-full border-transparent h-6 border border-b-gray-200"
                           />
                         </div>
-                      ))
-                    ) : (
-                      <div>—</div>
-                    )}
-                  </td>
-
-                  {/* Колонка СПОСОБ ОПЛАТЫ */}
-                  <td className="border px-0">
-                    {row.payments.map((payment, idx) => (
-                      <div key={idx} className="border-1 border-gray-200">
-                        <select
-                          value={payment.method}
-                          onChange={(e) => updatePaymentMethod(index, idx, e.target.value)}
-                          className="w-full border-transparent h-8 border border-b-gray-200"
-                        >
-                          <option value="">Выберите метод</option>
-                          <option value="Тер">Тер</option>
-                          <option value="НАЛ">НАЛ</option>
-                          <option value="Сайт">Сайт</option>
-                          <option value="Ресеп">Ресеп</option>
-                        </select>
-                      </div>
-                    ))}
-                  </td>
-
-                  <td className="border px-0 relative">
-                    <div className="border-1 border-gray-200">
-                      <input
-                        type="text"
-                        list="master-name"
-                        placeholder=""
-                        className="w-full border-transparent h-6 border border-b-gray-200"
-                      />
-                    </div>
-                    <div className="border-1 border-gray-200">
-                      <input
-                        type="text"
-                        list="master-name"
-                        placeholder=""
-                        className="w-full border-transparent h-6 border border-b-gray-200"
-                      />
-                    </div>
-                    <div className="border-1 border-gray-200">
-                      <input
-                        type="text"
-                        list="master-name"
-                        placeholder=""
-                        className="w-full border-transparent h-6 border border-b-gray-200"
-                      />
-                    </div>
-                    <div className="border-1 border-gray-200">
-                      <input
-                        type="text"
-                        list="master-name"
-                        placeholder=""
-                        className="w-full border-transparent h-6"
-                      />
-                    </div>
-                  </td>
-                  <td className="border px-0">
-                    <div className="border-1 border-gray-200">
-                      <input
-                        type="text"
-                        list="master-payment"
-                        placeholder=""
-                        className="w-full border-transparent h-6 border border-b-gray-200"
-                      />
-                    </div>
-                    <div className="border-1 border-gray-200">
-                      <input
-                        type="text"
-                        list="master-payment"
-                        placeholder=""
-                        className="w-full border-transparent h-6 border border-b-gray-200"
-                      />
-                    </div>
-                    <div className="border-1 border-gray-200">
-                      <input
-                        type="text"
-                        list="master-payment"
-                        placeholder=""
-                        className="w-full border-transparent h-6 border border-b-gray-200"
-                      />
-                    </div>
-                    <div className="border-1 border-gray-200">
-                      <input
-                        type="text"
-                        list="master-payment"
-                        placeholder=""
-                        className="w-full border-transparent h-6"
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+                        <div className="border-1 border-gray-200">
+                          <input
+                            type="text"
+                            list="master-name"
+                            placeholder=""
+                            className="w-full border-transparent h-6 border border-b-gray-200"
+                          />
+                        </div>
+                        <div className="border-1 border-gray-200">
+                          <input
+                            type="text"
+                            list="master-name"
+                            placeholder=""
+                            className="w-full border-transparent h-6 border border-b-gray-200"
+                          />
+                        </div>
+                        <div className="border-1 border-gray-200">
+                          <input
+                            type="text"
+                            list="master-name"
+                            placeholder=""
+                            className="w-full border-transparent h-6"
+                          />
+                        </div>
+                      </td>
+                      <td className="border px-0">
+                        <div className="border-1 border-gray-200">
+                          <input
+                            type="text"
+                            list="master-payment"
+                            placeholder=""
+                            className="w-full border-transparent h-6 border border-b-gray-200"
+                          />
+                        </div>
+                        <div className="border-1 border-gray-200">
+                          <input
+                            type="text"
+                            list="master-payment"
+                            placeholder=""
+                            className="w-full border-transparent h-6 border border-b-gray-200"
+                          />
+                        </div>
+                        <div className="border-1 border-gray-200">
+                          <input
+                            type="text"
+                            list="master-payment"
+                            placeholder=""
+                            className="w-full border-transparent h-6 border border-b-gray-200"
+                          />
+                        </div>
+                        <div className="border-1 border-gray-200">
+                          <input
+                            type="text"
+                            list="master-payment"
+                            placeholder=""
+                            className="w-full border-transparent h-6"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
 
 
-            <tfoot>
-              <tr className="bg-yellow-50 text-black text-right">
-                <td colSpan={4} className=" text-left font-bold border px-4 py-2">
-                  ИТОГ:
-                </td>
-                <td className="border px-4 py-2">{totals.totalRent.toLocaleString('ru-RU')}</td>
-                <td className="border px-4 py-2">{totals.totalSales.toLocaleString('ru-RU')}</td>
-                <td className="border px-4 py-2">{totals.totalSpa.toLocaleString('ru-RU')}</td>
-                <td className="border px-4 py-2">{totals.grandTotal.toLocaleString('ru-RU')}</td>
-                <td className="border px-4 py-2">{"\u00A0"}</td>
-                <td className="border px-4 py-2">{"\u00A0"}</td>
-                <td className="border px-4 py-2">{"\u00A0"}</td>
-                <td className="border px-4 py-2">{"\u00A0"}</td>
-              </tr>
-            </tfoot>
-          </table>
+                <tfoot>
+                  <tr className="bg-yellow-50 text-black text-right">
+                    <td colSpan={4} className=" text-left font-bold border px-4 py-2">
+                      ИТОГ:
+                    </td>
+                    <td className="border px-4 py-2">{totals.totalRent.toLocaleString('ru-RU')}</td>
+                    <td className="border px-4 py-2">{totals.totalSales.toLocaleString('ru-RU')}</td>
+                    <td className="border px-4 py-2">{totals.totalSpa.toLocaleString('ru-RU')}</td>
+                    <td className="border px-4 py-2">{totals.grandTotal.toLocaleString('ru-RU')}</td>
+                    <td className="border px-4 py-2">{"\u00A0"}</td>
+                    <td className="border px-4 py-2">{"\u00A0"}</td>
+                    <td className="border px-4 py-2">{"\u00A0"}</td>
+                    <td className="border px-4 py-2">{"\u00A0"}</td>
+                  </tr>
+                </tfoot>
+              </table>
 
-          {/* Кнопки */}
-          <div className="flex flex-col min-h-screen justify-between"> {/* ****************** */}
-            <div className="p-2 fixed bottom-0 left-0 right-0 z-50 ml-[250px]">
-              <div className="p-1 bg-slate-200 shadow-lg shadow-slate-400/30">
+              {/* КНОПКИ */}
+              <div className="flex flex-col min-h-screen justify-between">
+                <div className="p-2 fixed bottom-0 left-0 right-0 z-50 ml-[250px]">
+                  <div className="p-1 bg-slate-200 shadow-lg shadow-slate-400/30">
 
-                {/* ДОБАВИТЬ СТРОКУ */}
-                <button
-                  className="bg-green-400 hover:bg-green-500 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
-                  onClick={handleAddRow}
-                >
-                  <PlusIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
-                </button>
+                    {/* ДОБАВИТЬ СТРОКУ */}
+                    <button
+                      className="bg-green-400 hover:bg-green-500 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
+                      onClick={handleAddRow}
+                    >
+                      <PlusIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
+                    </button>
 
-                {/* УДАЛИТЬ СТРОКУ */}
-                <button
-                  className="bg-red-400 hover:bg-red-500 text-white font-bold py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
-                  disabled={selectedRows.length === 0}
-                  onClick={handleDeleteRow}
-                >
-                  <TrashIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
-                </button>
+                    {/* УДАЛИТЬ СТРОКУ */}
+                    <button
+                      className="bg-red-400 hover:bg-red-500 text-white font-bold py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
+                      disabled={selectedRows.length === 0}
+                      onClick={handleDeleteRow}
+                    >
+                      <TrashIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
+                    </button>
 
-                {/* ЭКСПОРТ В PDF */}
-                <button
-                  title='Сохранить в PDF'
-                  className="bg-sky-200 hover:bg-sky-300 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
-                  onClick={generatePDF}
-                >
-                  PDF <ArrowTopRightOnSquareIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
-                </button>
+                    {/* ЭКСПОРТ В PDF */}
+                    <button
+                      title='Сохранить в PDF'
+                      className="bg-sky-200 hover:bg-sky-300 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
+                      onClick={generatePDF}
+                    >
+                      PDF <ArrowTopRightOnSquareIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
+                    </button>
 
-                {/* КНОПКА ОТПРАВЛЯЕТ ОТЧЕТ В БД
-                    НАДО ОБЪЕДИНИТЬ В:
-                                  ОТЧЕТ В БД
-                                  ОТПРАВИТЬ ПИСЬМО НАЧАЛЬСТВУ
-                                  ОТПРАВИТЬ В ТЕЛЕГРАМ НАЧАЛЬСТВУ*/}
-                <button
-                  title="Отправить отчет в БД"
-                  className="bg-slate-100 hover:bg-yellow-200 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
-                  onClick={() => saveReport(false)} // 👈 Ручное сохранение
-                >
-                  <EnvelopeIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
-                  {/* <ArrowRightIcon /> */} - БД
-                </button>
+                    {/* КНОПКА ОТПРАВЛЯЕТ ОТЧЕТ В БД
+                        НАДО ОБЪЕДИНИТЬ В:
+                                      ОТЧЕТ В БД
+                                      ОТПРАВИТЬ ПИСЬМО НАЧАЛЬСТВУ
+                                      ОТПРАВИТЬ В ТЕЛЕГРАМ НАЧАЛЬСТВУ*/}
+                    <button
+                      title="Отправить отчет в БД"
+                      className="bg-slate-100 hover:bg-yellow-200 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
+                      onClick={() => saveReport(false)} // 👈 Ручное сохранение
+                    >
+                      <EnvelopeIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
+                      {/* <ArrowRightIcon /> */} - БД
+                    </button>
 
-                {/* ОТПРАВИТЬ ПИСЬМО !!! проверить нужна ли эта кнопка*/}
-                <button
-                  className="bg-slate-100 hover:bg-yellow-200 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
-                  onClick={exportToPdf}
-                >
-                  <EnvelopeIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
-                  {/* <ArrowRightIcon /> */}
-                </button>
+                    {/* ОТПРАВИТЬ ПИСЬМО !!! проверить нужна ли эта кнопка*/}
+                    <button
+                      className="bg-slate-100 hover:bg-yellow-200 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
+                      onClick={exportToPdf}
+                    >
+                      <EnvelopeIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
+                      {/* <ArrowRightIcon /> */}
+                    </button>
 
-                {/* Кнопка загрузки прошлых отчётов */}
-                <button
-                  className="bg-blue-400 hover:bg-blue-500 text-white font-bold py-1 px-4 mx-4 rounded-full shadow-lg"
-                  onClick={fetchReports}
-                >
-                  📂 Загрузить отчёты
-                </button>
+                    {/* Кнопка загрузки прошлых отчётов */}
+                    <button
+                      className="bg-blue-400 hover:bg-blue-500 text-white font-bold py-1 px-4 mx-4 rounded-full shadow-lg"
+                      onClick={fetchReports}
+                    >
+                      📂 Загрузить отчёты
+                    </button>
 
-                {/* Кнопка: */}
-                <button
-                  className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-1 px-4 mx-4 rounded-full"
-                  onClick={clearTable}
-                >
-                  🧹 Очистить
-                </button>
+                    {/* Кнопка: */}
+                    <button
+                      className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-1 px-4 mx-4 rounded-full"
+                      onClick={clearTable}
+                    >
+                      🧹 Очистить
+                    </button>
 
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-
+          )}
         </div>
 
 
@@ -1058,6 +1095,6 @@ export default function Page({ }: PageProps) {
 
       {/* Элемент для отображения пути к файлу */}
       {/* <div id="download-button"></div> */}
-    </div>
+    </div >
   );
 }
