@@ -134,11 +134,6 @@ export default function Page({ }: PageProps) {
     }
   };
 
-  // Использование useEffect для загрузки данных:
-  useEffect(() => {
-    fetchReports([emptyRowTemplate]);
-  }, []);
-
   // Проверка выбранных строк
   const [selectedRows, setSelectedRows] = React.useState<number[]>([]);
 
