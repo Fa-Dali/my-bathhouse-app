@@ -3,7 +3,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,     // Включаем строгий режим React
-  experimental: {},          // Здесь можно задать экспериментальные фичи
+  // experimental: {},          Здесь можно задать экспериментальные фичи
   async rewrites() {
     return [
       {

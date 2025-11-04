@@ -6,7 +6,9 @@ from .api_views import (GeneratePDFView,
                         CheckServerView,
                         get_reports,
                         create_report,
-                        save_report)
+                        save_report,
+                        get_report_by_date,
+                        update_report)
 
 
 urlpatterns = [
@@ -24,4 +26,8 @@ urlpatterns = [
 
     #  сохранение отчета из фронтенда
     path('', save_report, name='save_report'),  # POST /api/reports/
+
+    # ДЛЯ АВТОМАТИЧЕСКОГО ОБНОВЛЕНИЯ ТАБЛИЦЫ Еж-Отчет-Админ
+    path('date/<str:date>/', get_report_by_date, name='get_report_by_date'),
+    path('<int:id>/', update_report, name='update_report'),
 ]

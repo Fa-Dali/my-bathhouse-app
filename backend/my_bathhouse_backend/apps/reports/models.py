@@ -9,6 +9,7 @@ from decimal import Decimal
 class Report(models.Model):
     admin_name = models.CharField("Имя администратора", max_length=100)
     created_at = models.DateTimeField("Дата и время создания", db_index=True)
+    updated_at = models.DateTimeField("Дата обновления", auto_now=True)
     data = models.JSONField("Данные отчёта", help_text="Полная структура строк, оплат, мастеров")
     total_payment = models.DecimalField("Общая оплата", max_digits=12, decimal_places=2)
     inserted_at = models.DateTimeField("Дата сохранения", auto_now_add=True)

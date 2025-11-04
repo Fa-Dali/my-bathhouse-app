@@ -1,5 +1,6 @@
 // frontend/nextjs-dashboard/app/dashboard/report-administrator/calculator/AdminTable.tsx
 
+// @refresh reset
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -45,7 +46,25 @@ interface Master {
   salary: string;
 }
 
-const emptyRowTemplate = {
+interface ReportRow {
+  startTime: string;
+  endTime: string;
+  audience: string;
+  rent: string;
+  sales: string;
+  spa: string;
+  payments: { amount: string; method: string }[];
+  masters: { name: string; salary: string }[];
+}
+
+interface ReportResponse {
+  id: string;
+  admin_name: string;
+  created_at: string;
+  reports: ReportRow[];
+}
+
+const emptyRowTemplate: ReportRow = {
   startTime: '',
   endTime: '',
   audience: '',
@@ -76,12 +95,15 @@ const sanitizeText = (text: string | undefined | null): string => {
 // Основной компонент
 export default function Page({ }: PageProps) {
 
-  const [adminName, setAdminName] = useState('Кирсанова О.'); // ← по умолчанию
+  const [adminName, setAdminName] = useState(''); // ← по умолчанию
 
-  const currentDate = useCurrentDate(); // Получаем текущую дату
-  console.log("Текущая дата: ", currentDate); // Логируем дату для проверки
+  // Получение текущей даты
+  const currentDate = useCurrentDate();
+  useEffect(() => {
+    console.log("Текущая дата: ", currentDate);
+  }, [currentDate]);
 
-  // Чистящая функция перемещается сюда, чтобы стать доступной всему компоненту
+  // Функция для очистки числа в ячейке
   const cleanNumber = (value: string | number) => {
     if (typeof value === 'string') {
       return Number(value.replace(/[^-\d.,]+/g, '').replace(',', '.')) || 0;
@@ -92,7 +114,7 @@ export default function Page({ }: PageProps) {
   // Массив строк таблицы
   const [rows, setRows] = React.useState([emptyRowTemplate]);
 
-  // ✅ Добавьте эти функции здесь:
+  // функция для обновления суммы оплаты
   const updatePaymentAmount = (rowIndex: number, paymentIndex: number, value: string) => {
     setRows(prev => {
       const updated = [...prev];
@@ -101,6 +123,7 @@ export default function Page({ }: PageProps) {
     });
   };
 
+  // Функция для обновления метода оплаты
   const updatePaymentMethod = (rowIndex: number, paymentIndex: number, value: string) => {
     setRows(prev => {
       const updated = [...prev];
@@ -114,7 +137,7 @@ export default function Page({ }: PageProps) {
     try {
       const response = await fetch('http://localhost:8000/api/reports/list/');
       if (!response.ok) throw new Error('Ошибка загрузки');
-      const data = await response.json();
+      const data: ReportResponse = await response.json();
 
       // 🔧 НОРМАЛИЗАЦИЯ ДАННЫХ — ВАЖНО!
       const normalizedReports = data.reports.map((row: any) => ({
@@ -136,6 +159,12 @@ export default function Page({ }: PageProps) {
 
   // Проверка выбранных строк
   const [selectedRows, setSelectedRows] = React.useState<number[]>([]);
+
+  // УМНАЯ ОТПРАВКА POST ИЛИ PUT
+  const [currentReportId, setCurrentReportId] = useState<string | null>(null);
+
+  // Статус сохранения
+  const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   // Метод для расчета суммы каждой строки
   const calculateRowTotal = (row: typeof emptyRowTemplate) => {
@@ -162,7 +191,7 @@ export default function Page({ }: PageProps) {
     };
   };
 
-  // №3 - Функция для добавления новой строки
+  // Функция для добавления новой строки
   const handleAddRow = () => {
     const newRow = {
       startTime: '',
@@ -256,7 +285,6 @@ export default function Page({ }: PageProps) {
     ),
   }));
 
-  // ==========================================
   // Экспорт таблицы в PDF
   const exportToPdf = async () => {
     console.log('Начало экспорта PDF...');
@@ -347,9 +375,6 @@ export default function Page({ }: PageProps) {
     console.log('PDF успешно сохранён!');
   };
 
-  //---------------------------------------------
-
-
   // Функция для проверки доступности сервера
   const checkServerAvailability = async () => {
     try {
@@ -430,48 +455,53 @@ export default function Page({ }: PageProps) {
   //         "totalPayment": 1300
   // }
 
-  // ВАРИАНТ 1
+  // №1 ВАРИАНТ
   // const sendReportToBackend = async () => {
-  //   const reportData = rows.map(row => ({
-  //     startTime: row.startTime,
-  //     endTime: row.endTime,
-  //     audience: row.audience,
-  //     rent: cleanNumber(row.rent),
-  //     sales: cleanNumber(row.sales),
-  //     spa: cleanNumber(row.spa),
-  //     total: cleanNumber(row.rent) + cleanNumber(row.sales) + cleanNumber(row.spa),
-  //     payments: row.payments.map(p => ({
-  //       amount: cleanNumber(p.amount),
-  //       method: p.method
-  //     })),
-  //     masters: row.masters.map(m => ({
-  //       name: m.name,
-  //       salary: cleanNumber(m.salary)
-  //     }))
-  //   }));
-
-  //   const totalPayment = reportData.reduce((sum, row) =>
-  //     sum + row.payments.reduce((pSum, p) => pSum + p.amount, 0), 0
-  //   );
-
   //   const payload = {
-  //     admin_name: 'Фамилия И.О. администратора',
+  //     admin_name: adminName, // ← замените на реальное значение
   //     created_at: new Date().toISOString(),
-  //     rows: reportData,
-  //     totalPayment
+  //     totalPayment: 0,
+  //     rows: rows.map(row => ({
+  //       start_time: row.startTime,
+  //       end_time: row.endTime,
+  //       audience: row.audience,
+  //       rent: cleanNumber(row.rent),
+  //       sales: cleanNumber(row.sales),
+  //       spa: cleanNumber(row.spa),
+  //       payments: row.payments
+  //         .filter(p => p.amount || p.method)
+  //         .map(p => ({
+  //           amount: cleanNumber(p.amount),
+  //           method: p.method,
+  //         })),
+  //       masters: row.masters
+  //         .filter(m => m.name || m.salary)
+  //         .map(m => ({
+  //           name: m.name,
+  //           salary: cleanNumber(m.salary),
+  //         })),
+  //     })),
   //   };
 
+  //   payload.totalPayment = payload.rows.reduce(
+  //     (sum, row) => sum + row.payments.reduce((pSum, p) => pSum + p.amount, 0),
+  //     0
+  //   );
+
   //   try {
-  //     const res = await fetch('/api/reports/', {
+  //     const res = await fetch('http://127.0.0.1:8000/api/reports/', {
   //       method: 'POST',
   //       headers: {
-  //         'Content-Type': 'application/json'
+  //         'Content-Type': 'application/json',
   //       },
-  //       body: JSON.stringify(payload)
+  //       body: JSON.stringify(payload),
   //     });
 
   //     if (res.ok) {
   //       alert('Отчёт отправлен успешно!');
+  //     } else {
+  //       const error = await res.json();
+  //       alert(`Ошибка: ${error.error}`);
   //     }
   //   } catch (error) {
   //     console.error('Ошибка:', error);
@@ -479,10 +509,16 @@ export default function Page({ }: PageProps) {
   //   }
   // };
 
-  // ВАРИАНТ 2
-  const sendReportToBackend = async () => {
+  // №2 ВАРИАНТ СОХРАНЕНИЕ ОТЧЕТА
+  // 'idle'   — ничего не происходит
+  // 'saving' — идёт сохранение
+  // 'saved'  — всё хорошо
+
+  const saveReport = async (isAutoSave = false) => {
+    setStatus('saving'); // 👈 Показываем "Сохраняю..."
+    const today = new Date().toISOString().split('T')[0];
     const payload = {
-      admin_name: adminName, // ← замените на реальное значение
+      admin_name: adminName,
       created_at: new Date().toISOString(),
       totalPayment: 0,
       rows: rows.map(row => ({
@@ -512,27 +548,34 @@ export default function Page({ }: PageProps) {
       0
     );
 
+    const method = currentReportId ? 'PUT' : 'POST';
+    const url = currentReportId
+      ? `http://localhost:8000/api/reports/${currentReportId}/`
+      : 'http://localhost:8000/api/reports/';
+
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/reports/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
       if (res.ok) {
-        alert('Отчёт отправлен успешно!');
+        const data = await res.json();
+        setCurrentReportId(data.id); // Сохраняем ID
+        setStatus('saved'); // 👈 Успех!
+        setTimeout(() => setStatus('idle'), 2000); // Через 2 сек — исчезает
+
+        if (!isAutoSave) alert('Отчёт сохранён!');
       } else {
-        const error = await res.json();
-        alert(`Ошибка: ${error.error}`);
+        console.error('Ошибка:', await res.json());
+        setStatus('idle');
       }
     } catch (error) {
-      console.error('Ошибка:', error);
-      alert('Не удалось отправить отчёт.');
+      console.error('Не удалось отправить отчёт:', error);
+      setStatus('idle');
     }
   };
-  // END ВАРИАНТ 2
 
   // ДЛЯ КНОПКИ ОЧИСТКА ТАБЛИЦЫ
   const clearTable = () => {
@@ -540,47 +583,148 @@ export default function Page({ }: PageProps) {
   };
 
 
+  // АВТОЗАГРУЗКА ОТЧЁТА ЗА ТЕКУЩУЮ ДАТУ
+  // useEffect(() => {
+  //   loadReportForToday();
+  // }, []);
+
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const fetchReport = async () => {
+      const today = new Date().toISOString().split('T')[0];
+      try {
+        const response = await fetch(`http://localhost:8000/api/reports/date/${today}/`);
+        if (response.ok) {
+          const data = await response.json();
+          const normalized = data.reports.map((row: ReportRow) => ({
+            ...emptyRowTemplate,
+            ...row,
+            payments: Array.isArray(row.payments) ? row.payments : emptyRowTemplate.payments,
+            masters: Array.isArray(row.masters) ? row.masters : emptyRowTemplate.masters,
+          }));
+          setRows(normalized);
+          setCurrentReportId(data.id);
+        } else {
+          setRows([emptyRowTemplate]);
+          setCurrentReportId(null);
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки:', error);
+        setRows([emptyRowTemplate]);
+        setCurrentReportId(null);
+      } finally {
+        setIsLoaded(true); // ✅ Помечаем, что загрузка завершена
+      }
+    };
+
+    fetchReport();
+  }, []);
+
+  const loadReportForToday = async () => {
+    const today = new Date().toISOString().split('T')[0]; // '2025-11-04'
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/reports/date/${today}/`);
+      if (response.ok) {
+        const data: ReportResponse = await response.json();
+        const normalized = data.reports.map(row => ({
+          ...emptyRowTemplate,
+          ...row,
+          payments: Array.isArray(row.payments) ? row.payments : emptyRowTemplate.payments,
+          masters: Array.isArray(row.masters) ? row.masters : emptyRowTemplate.masters,
+        }));
+        setRows(normalized);
+        setCurrentReportId(data.id); // ✅ СОХРАНЯЕМ ID
+      } else {
+        // Нет отчёта — начать с пустой строки
+        setRows([emptyRowTemplate]);
+        setCurrentReportId(null); // ✅ Явно сбрасываем ID
+      }
+    } catch (error) {
+      console.error('Не удалось загрузить отчёт за сегодня:', error);
+      setRows([emptyRowTemplate]);
+      setCurrentReportId(null);
+    }
+  };
+
+  // АВТОСОХРАНЕНИЕ через 2 сек после последнего изменения
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      saveReportAuto();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [rows, adminName]);
+
+
+  // АВТОСОХРАНЕНИЕ - Вызывается каждые 30 секунд
+  const saveReportAuto = () => {
+    saveReport(true); // isAutoSave = true
+  };
+
+
   return (
-    <div id="admin-report-table" className="container mx-auto font-sans">
+    //  key={currentReportId || 'new'} - Помогает избежать "залипания" состояния.
+    <div id="admin-report-table"
+      className="container mx-auto font-sans"
+      key={currentReportId || 'new'}
+      suppressHydrationWarning
+    >
 
       <div className="head">
         <h3></h3>
         <h1 className="text-2xl text-center"><b>"Ежедневный отчет бани"</b> : {currentDate} г.</h1>
 
-        <table className="w-full border border-gray-800">
-          <thead>
-            <tr className="bg-white text-black border-2">
-              <td className="w-1/12 border border-gray-300">
-                <input
-                  type="date"
-                  className="w-full h-8 border-none focus:ring-transparent focus:outline-none text-start"
-                // value='{currentDate}' // Устанавливаем текущую дату
-                />
-              </td>
-              <td className="w-1/12 border text-center bg-white border-gray-300">
-                Админ:
-              </td>
-              <td className="border border-gray-300">
-                <div>
+        {/* ИНДИКАТОР СТАТУС СОХРАНЕНИЯ - Этот блок будет появляться в правом верхнем углу*/}
+        {status !== 'idle' && (
+          <div className="fixed top-4 right-4 bg-white border px-3 py-2 rounded shadow text-sm z-50 animate-fade-in">
+            {status === 'saving' && 'Сохраняю...'}
+            {status === 'saved' && '✅ Сохранено'}
+          </div>
+        )}
+
+        {isLoaded ? (
+          <table className="w-full border border-gray-800">
+            <thead>
+              <tr className="bg-white text-black border-2">
+                <td className="w-1/12 border border-gray-300">
                   <input
-                    type="text"
-                    list="fio-list"
-                    placeholder="Фамилия Имя Отчество"
-                    className="w-full border-transparent"
-                    value={adminName}
-                    onChange={(e) => setAdminName(e.target.value)}
+                    type="date"
+                    className="w-full h-8 border-none focus:ring-transparent focus:outline-none text-start"
+                  // value='{currentDate}' // Устанавливаем текущую дату
                   />
-                  <datalist id="fio-list">
-                    <option value="Кирсанова О."></option>
-                    <option value="Менделеева О."></option>
-                    <option value="Фадеев С.В."></option>
-                  </datalist>
-                </div>
-              </td>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+                </td>
+                <td className="w-1/12 border text-center bg-white border-gray-300">
+                  Админ:
+                </td>
+                <td className="border border-gray-300">
+                  <div>
+                    {/* Фамилия Имя Отчество */}
+                    <input
+                      type="text"
+                      list="fio-list"
+                      placeholder=""
+                      className="w-full border-transparent"
+                      value={adminName}
+                      onChange={(e) => setAdminName(e.target.value)}
+                    />
+                    <datalist id="fio-list">
+                      <option value="Кирсанова О."></option>
+                      <option value="Менделеева О."></option>
+                      <option value="Фадеев С.В."></option>
+                    </datalist>
+                  </div>
+                </td>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        ) : (
+          <div className="flex justify-center p-8">
+            <p>Загрузка отчёта...</p>
+          </div>
+        )}
 
       </div>
 
@@ -871,7 +1015,7 @@ export default function Page({ }: PageProps) {
                 <button
                   title="Отправить отчет в БД"
                   className="bg-slate-100 hover:bg-yellow-200 py-1 px-4 mx-4 rounded-full shadow-lg shadow-slate-500/40"
-                  onClick={sendReportToBackend}
+                  onClick={() => saveReport(false)} // 👈 Ручное сохранение
                 >
                   <EnvelopeIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
                   {/* <ArrowRightIcon /> */} - БД

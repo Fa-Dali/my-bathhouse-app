@@ -4,10 +4,12 @@ from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from .models import Report
 import json
 from decimal import Decimal
+from datetime import datetime
 
 # === 1. Сохранение отчёта ===
 @csrf_exempt  # Только если API с внешнего домена (иначе настройте CORS)
@@ -72,6 +74,38 @@ def get_reports(request):
 def create_report(request):
     # Можно оставить как алиас для save_report или добавить логику
     return save_report(request)
+
+# === 6. Автоматическое обновление отчета Админа
+@csrf_exempt
+def get_report_by_date(request, date):
+    try:
+        target_date = datetime.strptime(date, '%Y-%m-%d').date()
+        report = Report.objects.filter(created_at__date=target_date).first()
+        if report:
+            return JsonResponse({
+                'id': report.id,
+                'reports': report.data
+            }, safe=False)
+        return JsonResponse({'reports': []}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@csrf_exempt
+def update_report(request, id):
+    try:
+        report = Report.objects.get(id=id)
+        data = json.loads(request.body)
+        report.data = data['rows']
+        report.admin_name = data['admin_name']
+        report.save()
+        return JsonResponse({'id': report.id, 'message': 'Обновлено'})
+    except Report.DoesNotExist:
+        return JsonResponse({'error': 'Не найдено'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+# === 7. ...
 
 # =====================================================================
 #  предложено сделать таким образом:
