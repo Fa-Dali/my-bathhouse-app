@@ -33,7 +33,7 @@ urlpatterns = [
     # Включаем маршруты приложения ДЛЯ ПОЛЬЗОВАТЕЛЕЙ
     path('api/', include('my_bathhouse_backend.apps.users.urls')),
     # Включаем маршруты приложения ДЛЯ СОХРАНЕНИЯ ЕЖЕДНЕВНОГО ОТЧЕТА
-    path('api/', include('my_bathhouse_backend.apps.reports.urls')),
+    path('api/reports/', include('my_bathhouse_backend.apps.reports.urls')),
 ]
 
 # Добавляем маршрут для обслуживания медиа файлов.

@@ -111,14 +111,32 @@ export default function Page({ }: PageProps) {
 
   // функция для получения данных из базы данных
   const fetchReports = async () => {
-    const response = await fetch('/api/reports/');
-    const data = await response.json();
-    setRows(data);
+    try {
+      const response = await fetch('http://localhost:8000/api/reports/list/');
+      if (!response.ok) throw new Error('Ошибка загрузки');
+      const data = await response.json();
+
+      // 🔧 НОРМАЛИЗАЦИЯ ДАННЫХ — ВАЖНО!
+      const normalizedReports = data.reports.map((row: any) => ({
+        startTime: row.startTime || '',
+        endTime: row.endTime || '',
+        audience: row.audience || '',
+        rent: row.rent || '',
+        sales: row.sales || '',
+        spa: row.spa || '',
+        payments: Array.isArray(row.payments) ? row.payments : [...emptyRowTemplate.payments],
+        masters: Array.isArray(row.masters) ? row.masters : [...emptyRowTemplate.masters],
+      }));
+
+      setRows(normalizedReports); // ← data.reports, потому что get_reports возвращает {'reports': [...]}
+    } catch (error) {
+      console.error('Не удалось загрузить отчёты:', error);
+    }
   };
 
   // Использование useEffect для загрузки данных:
   useEffect(() => {
-    fetchReports();
+    fetchReports([emptyRowTemplate]);
   }, []);
 
   // Проверка выбранных строк
@@ -521,6 +539,11 @@ export default function Page({ }: PageProps) {
   };
   // END ВАРИАНТ 2
 
+  // ДЛЯ КНОПКИ ОЧИСТКА ТАБЛИЦЫ
+  const clearTable = () => {
+    setRows([emptyRowTemplate]);
+  };
+
 
   return (
     <div id="admin-report-table" className="container mx-auto font-sans">
@@ -687,18 +710,22 @@ export default function Page({ }: PageProps) {
 
                   {/* Колонка ОПЛАТА */}
                   <td className="px-0">
-                    {row.payments.map((payment, idx) => (
-                      <div key={idx} className="border-1 border-gray-200">
-                        <input
-                          type="number"
-                          step="10"
-                          placeholder=""
-                          className="h-8 w-full border-transparent border border-b-gray-200"
-                          value={payment.amount}
-                          onChange={(e) => updatePaymentAmount(index, idx, e.target.value)}
-                        />
-                      </div>
-                    ))}
+                    {Array.isArray(row.payments) ? (
+                      row.payments.map((payment, idx) => (
+                        <div key={idx} className="border-1 border-gray-200">
+                          <input
+                            type="number"
+                            step="10"
+                            placeholder=""
+                            className="h-8 w-full border-transparent border border-b-gray-200"
+                            value={payment.amount}
+                            onChange={(e) => updatePaymentAmount(index, idx, e.target.value)}
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <div>—</div>
+                    )}
                   </td>
 
                   {/* Колонка СПОСОБ ОПЛАТЫ */}
@@ -863,6 +890,23 @@ export default function Page({ }: PageProps) {
                   <EnvelopeIcon className="w-6 h-6 inline-block align-middle text-gray-800" />
                   {/* <ArrowRightIcon /> */}
                 </button>
+
+                {/* Кнопка загрузки прошлых отчётов */}
+                <button
+                  className="bg-blue-400 hover:bg-blue-500 text-white font-bold py-1 px-4 mx-4 rounded-full shadow-lg"
+                  onClick={fetchReports}
+                >
+                  📂 Загрузить отчёты
+                </button>
+
+                {/* Кнопка: */}
+                <button
+                  className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-1 px-4 mx-4 rounded-full"
+                  onClick={clearTable}
+                >
+                  🧹 Очистить
+                </button>
+
               </div>
             </div>
           </div>

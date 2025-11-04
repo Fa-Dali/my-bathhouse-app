@@ -17,11 +17,11 @@ urlpatterns = [
     path('check-server/', CheckServerView.as_view(), name='check_server'),
 
     # ПЕРЕДЕЛАТЬ маршрут для получения отчётов:
-    path('reports/', get_reports, name='get_reports'),
+    path('list/', get_reports, name='get_reports'),  # GET /api/reports/list/
 
     # ПЕРЕДЕЛАТЬ маршрут для отправки данных на сервер
-    path('reports/create/', create_report, name='create_report'),
+    path('create/', create_report, name='create_report'),  # POST /api/reports/create/
 
     #  сохранение отчета из фронтенда
-    path('api/reports/', save_report, name='save_report'),
+    path('', save_report, name='save_report'),  # POST /api/reports/
 ]
