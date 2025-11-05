@@ -386,7 +386,7 @@ export default function Page({ }: PageProps) {
                     <datalist id="fio-list">
                       <option value="Кирсанова О."></option>
                       <option value="Менделеева О."></option>
-                      <option value="Фадеев С.В."></option>
+                      <option value="Зорина З."></option>
                     </datalist>
                   </div>
                 </td>
@@ -426,35 +426,35 @@ export default function Page({ }: PageProps) {
                 <tbody className="beautiful-scroll text-center border-2 border-b-blue-600">
                   {rows.map((row, index) => (
                     <tr key={`row-${index}`} className='border-2 border-b-gray-200'>
-                      <td className="border px-0 relative">
+                      <td className="border relative">
                         <CustomCheckbox
                           isChecked={selectedRows.includes(index)}
                           onChange={() => toggleSelection(index)}
                         />
                       </td>
 
-                      <td className="border px-0">
+                      <td className="border">
                         <input
                           type="time"
-                          className="w-full h-22 border border-transparent"
+                          className="w-full border border-transparent"
                           value={row.startTime}
                           onChange={(e) => updateRow(index, 'startTime', e.target.value)}
                         />
                       </td>
-                      <td className="border px-0">
+                      <td className="border">
                         <input
                           type="time"
-                          className="w-full h-22 border border-transparent"
+                          className="w-full border border-transparent"
                           value={row.endTime}
                           onChange={(e) => updateRow(index, 'endTime', e.target.value)}
                         />
                       </td>
-                      <td className="border px-0 relative">
+                      <td className="border relative">
                         <input
                           type="text"
                           list="audience-list"
                           placeholder="Аудитория"
-                          className="w-full border-transparent h-22 text-center"
+                          className="w-full border-transparent text-center"
                           value={row.audience}
                           onChange={(e) => updateRow(index, 'audience', e.target.value)}
                         />
@@ -465,56 +465,56 @@ export default function Page({ }: PageProps) {
                           <option value="Массаж"></option>
                         </datalist>
                       </td>
-                      <td className="border px-0">
+                      <td className="border">
                         <NumberInput
                           type="text"
                           step="10"
-                          className="h-22 text-right w-full border-none focus:ring-transparent focus:outline-none"
+                          className="text-right w-full border-none focus:ring-transparent focus:outline-none"
                           value={row.rent}
                           onChange={(e) => updateRow(index, 'rent', e.target.value)}
                         />
                       </td>
-                      <td className="border px-0">
+                      <td className="border">
                         <NumberInput
                           type="text"
                           step="10"
-                          className="h-22 text-right w-full border-none focus:ring-transparent focus:outline-none"
+                          className="text-right w-full border-none focus:ring-transparent focus:outline-none"
                           value={row.sales}
                           onChange={(e) => updateRow(index, 'sales', e.target.value)}
                         />
                       </td>
-                      <td className="border px-0">
+                      <td className="border">
                         <NumberInput
                           type="text"
                           step="10"
-                          className="h-22 text-right w-full border-none focus:ring-transparent focus:outline-none"
+                          className="text-right w-full border-none focus:ring-transparent focus:outline-none"
                           value={row.spa}
                           onChange={(e) => updateRow(index, 'spa', e.target.value)}
                         />
                       </td>
-                      <td className="border px-0">
+                      <td className="border">
                         <strong>{calculateRowTotal(row).toLocaleString('ru-RU')}</strong>
                       </td>
-                      <td className="px-0">
+                      <td className="">
                         {row.payments.map((payment, idx) => (
                           <div key={idx} className="border-1 border-gray-200">
                             <input
                               type="number"
                               step="10"
-                              className="h-8 w-full border-transparent border border-b-gray-200"
+                              className="w-full border-transparent border border-b-gray-200"
                               value={payment.amount}
                               onChange={(e) => updatePaymentAmount(index, idx, e.target.value)}
                             />
                           </div>
                         ))}
                       </td>
-                      <td className="border px-0">
+                      <td className="border">
                         {row.payments.map((payment, idx) => (
                           <div key={idx} className="border-1 border-gray-200">
                             <select
                               value={payment.method}
                               onChange={(e) => updatePaymentMethod(index, idx, e.target.value)}
-                              className="w-full border-transparent h-8 border border-b-gray-200"
+                              className="w-full border-transparent border border-b-gray-200"
                             >
                               <option value=""></option>
                               <option value="Тер">Тер</option>
@@ -525,13 +525,13 @@ export default function Page({ }: PageProps) {
                           </div>
                         ))}
                       </td>
-                      <td className="border px-0 relative">
+                      <td className="border">
                         {row.masters.map((master, idx) => (
                           <div key={idx} className="border-1 border-gray-200">
                             <input
                               type="text"
                               list="master-name"
-                              className="w-full border-transparent h-6 border border-b-gray-200"
+                              className="w-full border-transparent border border-b-gray-200"
                               value={master.name}
                               onChange={(e) => {
                                 const updated = [...rows];
@@ -542,13 +542,13 @@ export default function Page({ }: PageProps) {
                           </div>
                         ))}
                       </td>
-                      <td className="border px-0">
+                      <td className="border">
                         {row.masters.map((master, idx) => (
                           <div key={idx} className="border-1 border-gray-200">
                             <input
                               type="text"
                               list="master-payment"
-                              className="w-full border-transparent h-6 border border-b-gray-200"
+                              className="w-full border-transparent border border-b-gray-200"
                               value={master.salary}
                               onChange={(e) => {
                                 const updated = [...rows];

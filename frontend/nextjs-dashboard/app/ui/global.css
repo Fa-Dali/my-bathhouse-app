@@ -340,6 +340,23 @@ input[type="text"] {
   border-color: #e2e8f0; /* border-slate-200 */
 }
 
+/* Уменьшаем высоту строк таблицы */
+#admin-report-table tbody td {
+  padding-top: 0rem;    /* py-1 = 0.25rem */
+  padding-bottom: 0rem; /* py-1 */
+}
+
+/* Уменьшаем высоту инпутов */
+#admin-report-table input[type="time"],
+#admin-report-table input[type="text"],
+#admin-report-table input[type="number"],
+#admin-report-table select {
+  padding-top: 0rem;    /* py-0.5 */
+  padding-bottom: 0rem; /* py-0.5 */
+  line-height: 1.25;        /* Уменьшаем межстрочный интервал */
+  height: auto;             /* Снимаем фиксированную высоту, если была */
+}
+
 /* Ячейки — аккуратные */
 #admin-report-table td {
   color: #334155; /* text-slate-700 */
@@ -358,7 +375,7 @@ input[type="text"] {
 #admin-report-table input[type="text"],
 #admin-report-table input[type="number"],
 #admin-report-table select {
-  height: 2.25rem; /* ~36px */
+  height: 1.5rem; /* ~36px */
   line-height: 1.5;
 }
 
