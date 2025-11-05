@@ -84,6 +84,8 @@ def get_report_by_date(request, date):
         if report:
             return JsonResponse({
                 'id': report.id,
+                'admin_name': report.admin_name,
+                'created_at': report.created_at.isoformat(),
                 'reports': report.data
             }, safe=False)
         return JsonResponse({'reports': []}, status=404)
