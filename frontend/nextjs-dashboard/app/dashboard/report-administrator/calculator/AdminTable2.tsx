@@ -134,17 +134,26 @@ export default function Page({ }: PageProps) {
     let totalRent = 0;
     let totalSales = 0;
     let totalSpa = 0;
+    let totalMastersSalary = 0;
 
     for (let row of rows) {
       totalRent += cleanNumber(row.rent);
       totalSales += cleanNumber(row.sales);
       totalSpa += cleanNumber(row.spa);
+
+      // Суммируем зарплаты мастеров в каждой строке
+      for (let master of row.masters) {
+        if (master.salary) {
+          totalMastersSalary += cleanNumber(master.salary);
+        }
+      }
     }
 
     return {
       totalRent,
       totalSales,
       totalSpa,
+      totalMastersSalary,
       grandTotal: totalRent + totalSales + totalSpa,
     };
   };
@@ -414,7 +423,7 @@ export default function Page({ }: PageProps) {
                   </tr>
                 </thead>
 
-                <tbody className="text-center border-2 border-b-blue-600">
+                <tbody className="beautiful-scroll text-center border-2 border-b-blue-600">
                   {rows.map((row, index) => (
                     <tr key={`row-${index}`} className='border-2 border-b-gray-200'>
                       <td className="border px-0 relative">
@@ -563,8 +572,8 @@ export default function Page({ }: PageProps) {
                     <td className="border px-3 py-2">{totals.grandTotal.toLocaleString('ru-RU')}</td>
                     <td className="border px-3 py-2">{"\u00A0"}</td>
                     <td className="border px-3 py-2">{"\u00A0"}</td>
-                    <td className="border px-3 py-2">{"\u00A0"}</td>
-                    <td className="border px-3 py-2">{"\u00A0"}</td>
+                    <td className="border px-3 py-2">Зарплата мастерам:</td>
+                    <td className="border px-3 py-2"><strong>{totals.totalMastersSalary.toLocaleString('ru-RU')}</strong></td>
                   </tr>
                 </tfoot>
               </table>

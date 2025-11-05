@@ -22,15 +22,15 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         <ul className="flex gap-4">
 
           <li>
-            <Link href="/account" className="hover:text-blue-500 transition-colors duration-300">
+            {/* <Link href="/account" className="hover:text-blue-500 transition-colors duration-300">
               Account
-            </Link>
+            </Link> */}
           </li>
 
           <li>
-            <Link href="/login" className="hover:text-blue-500 transition-colors duration-300">
+            {/* <Link href="/login" className="hover:text-blue-500 transition-colors duration-300">
               Login
-            </Link>
+            </Link> */}
           </li>
 
         </ul>
