@@ -283,3 +283,97 @@ input[type='time']::-webkit-calendar-picker-indicator {
 }
 
 /* *** END *** АНИМАЦИЯ ЗАГРУЗКИ ОТЧЕТА ТАБЛИЦЫ АДМИНИСТРАТОРА */
+
+/* ==== ИИ ============================================================================/ */
+
+/* frontend/nextjs-dashboard/app/ui/global.css */
+
+/* === СТИЛИ ДЛЯ ТАБЛИЦЫ АДМИНИСТРАТОРА === */
+
+/* input[type="time"] — красивый вид */
+#admin-report-table input[type="time"] {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  background-color: #ffffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* input[type="date"] — в шапке */
+input[type="date"] {
+  @apply text-sm font-medium px-2 py-1 border border-slate-200 rounded-md bg-white hover:border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-200 focus:border-blue-300 transition-colors;
+}
+
+/* select — выпадашки */
+select {
+  @apply text-sm font-medium px-2 py-1 border border-slate-200 rounded-md bg-white text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-200 focus:border-blue-300 transition-colors;
+}
+
+/* NumberInput — из InputField */
+.number-input {
+  @apply text-sm font-medium text-right px-2 py-1 border border-slate-200 rounded-md bg-white hover:border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-200 focus:border-blue-300 transition-colors;
+}
+
+/* Текстовое поле (admin, audience) */
+input[type="text"] {
+  @apply text-sm font-medium px-2 py-1 border border-slate-200 rounded-md bg-white text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-200 focus:border-blue-300 transition-colors;
+}
+
+/* === СТИЛИ ТАБЛИЦЫ === */
+
+/* Общий стиль таблицы */
+#admin-report-table table {
+  border-collapse: collapse;
+}
+
+/* Заголовки — мягкие, с отступом */
+#admin-report-table th {
+  background-color: #f8fafc; /* bg-slate-50 */
+  color: #64748b; /* text-slate-500 */
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-color: #e2e8f0; /* border-slate-200 */
+}
+
+/* Ячейки — аккуратные */
+#admin-report-table td {
+  color: #334155; /* text-slate-700 */
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 500;
+  border-color: #e2e8f0; /* border-slate-200 */
+}
+
+/* Высота строк — hover */
+#admin-report-table tbody tr:hover {
+  background-color: #f1f5f9; /* hover:bg-slate-50 */
+}
+
+/* Фиксированная высота для чистоты */
+#admin-report-table input[type="time"],
+#admin-report-table input[type="text"],
+#admin-report-table input[type="number"],
+#admin-report-table select {
+  height: 2.25rem; /* ~36px */
+  line-height: 1.5;
+}
+
+/* Сумма в строке */
+#admin-report-table td strong {
+  font-weight: 600;           /* font-semibold */
+  color: #1e293b;             /* text-slate-800 */
+}
+
+/* Подвал — итог */
+#admin-report-table tfoot td {
+  font-weight: 600;
+  color: #1e293b; /* text-slate-800 */
+  background-color: #fef9c3; /* bg-yellow-50 */
+  border-top: 2px solid #e2e8f0; /* border-t-2 border-slate-200 */
+}
+
+/* === END: СТИЛИ === */

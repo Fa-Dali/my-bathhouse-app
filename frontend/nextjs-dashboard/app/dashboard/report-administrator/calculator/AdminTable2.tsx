@@ -78,6 +78,12 @@ export default function Page({ }: PageProps) {
     return new Date().toISOString().split('T')[0];
   });
 
+  // Функция форматирования даты
+  const formatDate = (dateString: string): string => {
+    const [year, month, day] = dateString.split('-');
+    return `${day}.${month}.${year}`;
+  };
+
   const currentDate = useCurrentDate();
   useEffect(() => {
     console.log("Текущая дата: ", currentDate);
@@ -331,7 +337,7 @@ export default function Page({ }: PageProps) {
       suppressHydrationWarning
     >
       <div className="head">
-        <h1 className="text-2xl text-center"><b>"Ежедневный отчет бани"</b> : {selectedDate} г.</h1>
+        <h1 className="text-2xl text-center"><b>"Ежедневный отчет бани"</b> : {formatDate(selectedDate)} г.</h1>
 
         {status !== 'idle' && (
           <div className="fixed top-4 right-4 bg-white border px-3 py-2 rounded shadow text-sm z-50 animate-fade-in">
@@ -393,18 +399,18 @@ export default function Page({ }: PageProps) {
               <table className="w-full min-w-full border bg-white border-gray-300">
                 <thead>
                   <tr className="bg-white text-black border-2">
-                    <th className="border px-0 py-0">
+                    <th className="border px-2 py-1 bg-slate-50">
                       <TrashIcon className='text-gray-400' />
                     </th>
-                    <th colSpan={2} className="w-1/12 border px-0 text-center">Время</th>
-                    <th className="w-2/12 border px-0">Баня</th>
-                    <th className="w-1/12 border px-0">Аренда</th>
-                    <th className="w-1/12 border px-0">Продажа</th>
-                    <th className="w-1/12 border px-0">СПА</th>
-                    <th className="w-1/12 border px-0">СУММА</th>
-                    <th className="w-1/12 border px-0 bg-white">ОПЛАТА</th>
-                    <th className="w-1/12 border px-0 bg-white">Способ оплаты</th>
-                    <th colSpan={2} className="w-1/3 border px-0">Зарплата</th>
+                    <th colSpan={2} className="w-1/12 border px-2 py-2 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">Время</th>
+                    <th className="w-2/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">Баня</th>
+                    <th className="w-1/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">Аренда</th>
+                    <th className="w-1/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">Продажа</th>
+                    <th className="w-1/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">СПА</th>
+                    <th className="w-1/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">СУММА</th>
+                    <th className="w-1/12 border px-2 py-2 bg-white text-xs font-semibold uppercase tracking-wider text-slate-600">ОПЛАТА</th>
+                    <th className="w-1/12 border px-2 py-2 bg-white text-xs font-semibold uppercase tracking-wider text-slate-600">Способ</th>
+                    <th colSpan={2} className="w-1/3 border px-2 py-2 bg-white text-xs font-semibold uppercase tracking-wider text-slate-600">Зарплата</th>
                   </tr>
                 </thead>
 
@@ -501,7 +507,7 @@ export default function Page({ }: PageProps) {
                               onChange={(e) => updatePaymentMethod(index, idx, e.target.value)}
                               className="w-full border-transparent h-8 border border-b-gray-200"
                             >
-                              <option value="">Выберите метод</option>
+                              <option value=""></option>
                               <option value="Тер">Тер</option>
                               <option value="НАЛ">НАЛ</option>
                               <option value="Сайт">Сайт</option>
@@ -549,16 +555,16 @@ export default function Page({ }: PageProps) {
                 </tbody>
 
                 <tfoot>
-                  <tr className="bg-yellow-50 text-black text-right">
-                    <td colSpan={4} className="text-left font-bold border px-4 py-2">ИТОГ:</td>
-                    <td className="border px-4 py-2">{totals.totalRent.toLocaleString('ru-RU')}</td>
-                    <td className="border px-4 py-2">{totals.totalSales.toLocaleString('ru-RU')}</td>
-                    <td className="border px-4 py-2">{totals.totalSpa.toLocaleString('ru-RU')}</td>
-                    <td className="border px-4 py-2">{totals.grandTotal.toLocaleString('ru-RU')}</td>
-                    <td className="border px-4 py-2">{"\u00A0"}</td>
-                    <td className="border px-4 py-2">{"\u00A0"}</td>
-                    <td className="border px-4 py-2">{"\u00A0"}</td>
-                    <td className="border px-4 py-2">{"\u00A0"}</td>
+                  <tr className="bg-yellow-50 text-slate-800 font-semibold text-right border-t-2 border-slate-200">
+                    <td colSpan={4} className="text-left font-bold border px-3 py-2">ИТОГ:</td>
+                    <td className="border px-3 py-2">{totals.totalRent.toLocaleString('ru-RU')}</td>
+                    <td className="border px-3 py-2">{totals.totalSales.toLocaleString('ru-RU')}</td>
+                    <td className="border px-3 py-2">{totals.totalSpa.toLocaleString('ru-RU')}</td>
+                    <td className="border px-3 py-2">{totals.grandTotal.toLocaleString('ru-RU')}</td>
+                    <td className="border px-3 py-2">{"\u00A0"}</td>
+                    <td className="border px-3 py-2">{"\u00A0"}</td>
+                    <td className="border px-3 py-2">{"\u00A0"}</td>
+                    <td className="border px-3 py-2">{"\u00A0"}</td>
                   </tr>
                 </tfoot>
               </table>
