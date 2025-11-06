@@ -393,4 +393,36 @@ input[type="text"] {
   border-top: 2px solid #e2e8f0; /* border-t-2 border-slate-200 */
 }
 
-/* === END: СТИЛИ === */
+/* === END: СТИЛИ ТАБЛИЦЫ === */
+
+/* === МОБИЛЬНЫЙ: СТИЛИ ТАБЛИЦЫ === */
+
+/* @media (max-width: 768px) {
+  #admin-report-table th,
+  #admin-report-table td {
+    padding: 0.25rem 0rem;
+    font-size: 0.75rem;
+  }
+
+  #admin-report-table input,
+  #admin-report-table select,
+  #admin-report-table input[type="text"],
+  #admin-report-table input[type="number"],
+  #admin-report-table input[type="time"] {
+    font-size: 0.75rem;
+    padding: 0.125rem 0.25rem;
+    height: auto;
+  }
+
+  /* Адаптация кнопок внизу */
+  /* #admin-report-table .p-1 {
+    padding: 0.25rem;
+  } */
+
+  /* #admin-report-table button {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  } 
+} */
+
+/* === END: МОБИЛЬНЫЙ: СТИЛИ ТАБЛИЦЫ === */

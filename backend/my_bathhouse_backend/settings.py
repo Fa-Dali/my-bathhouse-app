@@ -93,6 +93,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',  # фронтенд на localhost:3000
     "http://127.0.0.1:3000",
+    "http://192.168.1.169:3000",
 ]
 
 # CORS_ALLOWED_ALL_ORIGINS = True

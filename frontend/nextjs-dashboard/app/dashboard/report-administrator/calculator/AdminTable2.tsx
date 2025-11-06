@@ -5,7 +5,7 @@
 
 import React, { useEffect, useState } from 'react';
 import CustomCheckbox from './CustomCheckbox';
-import '../../../../app/ui/global.css';
+// import '../../../../app/ui/global.css';
 import './style/TimeInput.module.css';
 import './style/Select.module.css';
 import './style/Cell.module.css';
@@ -18,6 +18,9 @@ import {
   TrashIcon,
   EnvelopeIcon,
   ArrowTopRightOnSquareIcon,
+  DocumentMinusIcon,
+  PaperAirplaneIcon,
+  FolderArrowDownIcon,
 } from "@heroicons/react/24/outline";
 
 export interface PageProps { }
@@ -398,187 +401,192 @@ export default function Page({ }: PageProps) {
       </div>
 
       <div className="div-container flex justify-between gap-1">
-        <div className="beautiful-scroll overflow-y-auto h-[1120px]">
+        <div>
           {isLoading ? (
             <div className="flex justify-center p-8">
               <p>Загрузка отчёта...</p>
             </div>
           ) : (
-            <div>
-              <table className="w-full min-w-full border bg-white border-gray-300">
-                <thead>
-                  <tr className="bg-white text-black border-2">
-                    <th className="border px-2 py-1 bg-slate-50">
-                      <TrashIcon className='text-gray-400' />
-                    </th>
-                    <th colSpan={2} className="w-1/12 border px-2 py-2 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">Время</th>
-                    <th className="w-2/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">Баня</th>
-                    <th className="w-1/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">Аренда</th>
-                    <th className="w-1/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">Продажа</th>
-                    <th className="w-1/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">СПА</th>
-                    <th className="w-1/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">СУММА</th>
-                    <th className="w-1/12 border px-2 py-2 bg-white text-xs font-semibold uppercase tracking-wider text-slate-600">ОПЛАТА</th>
-                    <th className="w-1/12 border px-2 py-2 bg-white text-xs font-semibold uppercase tracking-wider text-slate-600">Способ</th>
-                    <th colSpan={2} className="w-1/3 border px-2 py-2 bg-white text-xs font-semibold uppercase tracking-wider text-slate-600">Зарплата</th>
-                  </tr>
-                </thead>
-
-                <tbody className="beautiful-scroll text-center border-2 border-b-blue-600">
-                  {rows.map((row, index) => (
-                    <tr key={`row-${index}`} className='border-2 border-b-gray-200'>
-                      <td className="border relative">
-                        <CustomCheckbox
-                          isChecked={selectedRows.includes(index)}
-                          onChange={() => toggleSelection(index)}
-                        />
-                      </td>
-
-                      <td className="border">
-                        <input
-                          type="time"
-                          className="w-full border border-transparent"
-                          value={row.startTime}
-                          onChange={(e) => updateRow(index, 'startTime', e.target.value)}
-                        />
-                      </td>
-                      <td className="border">
-                        <input
-                          type="time"
-                          className="w-full border border-transparent"
-                          value={row.endTime}
-                          onChange={(e) => updateRow(index, 'endTime', e.target.value)}
-                        />
-                      </td>
-                      <td className="border relative">
-                        <input
-                          type="text"
-                          list="audience-list"
-                          placeholder="Аудитория"
-                          className="w-full border-transparent text-center"
-                          value={row.audience}
-                          onChange={(e) => updateRow(index, 'audience', e.target.value)}
-                        />
-                        <datalist id="audience-list">
-                          <option value="Муромец"></option>
-                          <option value="Никитич"></option>
-                          <option value="Попович"></option>
-                          <option value="Массаж"></option>
-                        </datalist>
-                      </td>
-                      <td className="border">
-                        <NumberInput
-                          type="text"
-                          step="10"
-                          className="text-right w-full border-none focus:ring-transparent focus:outline-none"
-                          value={row.rent}
-                          onChange={(e) => updateRow(index, 'rent', e.target.value)}
-                        />
-                      </td>
-                      <td className="border">
-                        <NumberInput
-                          type="text"
-                          step="10"
-                          className="text-right w-full border-none focus:ring-transparent focus:outline-none"
-                          value={row.sales}
-                          onChange={(e) => updateRow(index, 'sales', e.target.value)}
-                        />
-                      </td>
-                      <td className="border">
-                        <NumberInput
-                          type="text"
-                          step="10"
-                          className="text-right w-full border-none focus:ring-transparent focus:outline-none"
-                          value={row.spa}
-                          onChange={(e) => updateRow(index, 'spa', e.target.value)}
-                        />
-                      </td>
-                      <td className="border">
-                        <strong>{calculateRowTotal(row).toLocaleString('ru-RU')}</strong>
-                      </td>
-                      <td className="">
-                        {row.payments.map((payment, idx) => (
-                          <div key={idx} className="border-1 border-gray-200">
-                            <input
-                              type="number"
-                              step="10"
-                              className="w-full border-transparent border border-b-gray-200"
-                              value={payment.amount}
-                              onChange={(e) => updatePaymentAmount(index, idx, e.target.value)}
-                            />
-                          </div>
-                        ))}
-                      </td>
-                      <td className="border">
-                        {row.payments.map((payment, idx) => (
-                          <div key={idx} className="border-1 border-gray-200">
-                            <select
-                              value={payment.method}
-                              onChange={(e) => updatePaymentMethod(index, idx, e.target.value)}
-                              className="w-full border-transparent border border-b-gray-200"
-                            >
-                              <option value=""></option>
-                              <option value="Тер">Тер</option>
-                              <option value="НАЛ">НАЛ</option>
-                              <option value="Сайт">Сайт</option>
-                              <option value="Ресеп">Ресеп</option>
-                            </select>
-                          </div>
-                        ))}
-                      </td>
-                      <td className="border">
-                        {row.masters.map((master, idx) => (
-                          <div key={idx} className="border-1 border-gray-200">
-                            <input
-                              type="text"
-                              list="master-name"
-                              className="w-full border-transparent border border-b-gray-200"
-                              value={master.name}
-                              onChange={(e) => {
-                                const updated = [...rows];
-                                updated[index].masters[idx].name = e.target.value;
-                                setRows(updated);
-                              }}
-                            />
-                          </div>
-                        ))}
-                      </td>
-                      <td className="border">
-                        {row.masters.map((master, idx) => (
-                          <div key={idx} className="border-1 border-gray-200">
-                            <input
-                              type="text"
-                              list="master-payment"
-                              className="w-full border-transparent border border-b-gray-200"
-                              value={master.salary}
-                              onChange={(e) => {
-                                const updated = [...rows];
-                                updated[index].masters[idx].salary = e.target.value;
-                                setRows(updated);
-                              }}
-                            />
-                          </div>
-                        ))}
-                      </td>
+            <div className=" beautiful-scroll overflow-y-auto max-h-[300px]">
+              <div className="overflow-x-auto pb-[225px]">
+                <table className="w-full min-w-full border bg-white border-gray-300">
+                  <thead>
+                    <tr className="bg-white text-black border-2">
+                      <th className="border px-2 py-1 bg-slate-50">
+                        <TrashIcon className='text-gray-400' />
+                      </th>
+                      <th colSpan={2} className="w-1/12 border px-2 py-2 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">Время</th>
+                      <th className="w-2/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">Баня</th>
+                      <th className="w-1/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">Аренда</th>
+                      <th className="w-1/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">Продажа</th>
+                      <th className="w-1/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">СПА</th>
+                      <th className="w-1/12 border px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">СУММА</th>
+                      <th className="w-1/12 border px-2 py-2 bg-white text-xs font-semibold uppercase tracking-wider text-slate-600">ОПЛАТА</th>
+                      <th className="w-1/12 border px-2 py-2 bg-white text-xs font-semibold uppercase tracking-wider text-slate-600">Способ</th>
+                      <th colSpan={2} className="w-1/3 border px-2 py-2 bg-white text-xs font-semibold uppercase tracking-wider text-slate-600">Зарплата</th>
                     </tr>
-                  ))}
-                </tbody>
+                  </thead>
 
-                <tfoot>
-                  <tr className="bg-yellow-50 text-slate-800 font-semibold text-right border-t-2 border-slate-200">
-                    <td colSpan={4} className="text-left font-bold border px-3 py-2">ИТОГ:</td>
-                    <td className="border px-3 py-2">{totals.totalRent.toLocaleString('ru-RU')}</td>
-                    <td className="border px-3 py-2">{totals.totalSales.toLocaleString('ru-RU')}</td>
-                    <td className="border px-3 py-2">{totals.totalSpa.toLocaleString('ru-RU')}</td>
-                    <td className="border px-3 py-2">{totals.grandTotal.toLocaleString('ru-RU')}</td>
-                    <td className="border px-3 py-2">{"\u00A0"}</td>
-                    <td className="border px-3 py-2">{"\u00A0"}</td>
-                    <td className="border px-3 py-2">Зарплата мастерам:</td>
-                    <td className="border px-3 py-2"><strong>{totals.totalMastersSalary.toLocaleString('ru-RU')}</strong></td>
-                  </tr>
-                </tfoot>
-              </table>
+                  <tbody className="beautiful-scroll text-center border-2 border-b-blue-600">
+                    {rows.map((row, index) => (
+                      <tr key={`row-${index}`} className='border-2 border-b-gray-200'>
+                        <td className="border relative">
+                          <CustomCheckbox
+                            isChecked={selectedRows.includes(index)}
+                            onChange={() => toggleSelection(index)}
+                          />
+                        </td>
 
-              <div className="flex flex-col min-h-screen justify-between">
+                        <td className="border">
+                          <input
+                            type="time"
+                            className="w-full border border-transparent"
+                            value={row.startTime}
+                            onChange={(e) => updateRow(index, 'startTime', e.target.value)}
+                          />
+                        </td>
+                        <td className="border">
+                          <input
+                            type="time"
+                            className="w-full border border-transparent"
+                            value={row.endTime}
+                            onChange={(e) => updateRow(index, 'endTime', e.target.value)}
+                          />
+                        </td>
+                        <td className="border relative">
+                          <input
+                            type="text"
+                            list="audience-list"
+                            placeholder="Аудитория"
+                            className="w-full border-transparent text-center"
+                            value={row.audience}
+                            onChange={(e) => updateRow(index, 'audience', e.target.value)}
+                          />
+                          <datalist id="audience-list">
+                            <option value="Муромец"></option>
+                            <option value="Никитич"></option>
+                            <option value="Попович"></option>
+                            <option value="Массаж"></option>
+                          </datalist>
+                        </td>
+                        <td className="border">
+                          <NumberInput
+                            type="text"
+                            step="10"
+                            className="text-right w-full border-none focus:ring-transparent focus:outline-none"
+                            value={row.rent}
+                            onChange={(e) => updateRow(index, 'rent', e.target.value)}
+                          />
+                        </td>
+                        <td className="border">
+                          <NumberInput
+                            type="text"
+                            step="10"
+                            className="text-right w-full border-none focus:ring-transparent focus:outline-none"
+                            value={row.sales}
+                            onChange={(e) => updateRow(index, 'sales', e.target.value)}
+                          />
+                        </td>
+                        <td className="border">
+                          <NumberInput
+                            type="text"
+                            step="10"
+                            className="text-right w-full border-none focus:ring-transparent focus:outline-none"
+                            value={row.spa}
+                            onChange={(e) => updateRow(index, 'spa', e.target.value)}
+                          />
+                        </td>
+                        <td className="border">
+                          <strong>{calculateRowTotal(row).toLocaleString('ru-RU')}</strong>
+                        </td>
+                        <td className="">
+                          {row.payments.map((payment, idx) => (
+                            <div key={idx} className="border-1 border-gray-200">
+                              <input
+                                type="number"
+                                step="10"
+                                className="w-full border-transparent border border-b-gray-200"
+                                value={payment.amount}
+                                onChange={(e) => updatePaymentAmount(index, idx, e.target.value)}
+                              />
+                            </div>
+                          ))}
+                        </td>
+                        <td className="border">
+                          {row.payments.map((payment, idx) => (
+                            <div key={idx} className="border-1 border-gray-200">
+                              <select
+                                value={payment.method}
+                                onChange={(e) => updatePaymentMethod(index, idx, e.target.value)}
+                                className="w-full border-transparent border border-b-gray-200"
+                              >
+                                <option value=""></option>
+                                <option value="Тер">Тер</option>
+                                <option value="НАЛ">НАЛ</option>
+                                <option value="Сайт">Сайт</option>
+                                <option value="Ресеп">Ресеп</option>
+                              </select>
+                            </div>
+                          ))}
+                        </td>
+                        <td className="border">
+                          {row.masters.map((master, idx) => (
+                            <div key={idx} className="border-1 border-gray-200">
+                              <input
+                                type="text"
+                                list="master-name"
+                                className="w-full border-transparent border border-b-gray-200"
+                                value={master.name}
+                                onChange={(e) => {
+                                  const updated = [...rows];
+                                  updated[index].masters[idx].name = e.target.value;
+                                  setRows(updated);
+                                }}
+                              />
+                            </div>
+                          ))}
+                        </td>
+                        <td className="border">
+                          {row.masters.map((master, idx) => (
+                            <div key={idx} className="border-1 border-gray-200">
+                              <input
+                                type="text"
+                                list="master-payment"
+                                className="w-full border-transparent border border-b-gray-200"
+                                value={master.salary}
+                                onChange={(e) => {
+                                  const updated = [...rows];
+                                  updated[index].masters[idx].salary = e.target.value;
+                                  setRows(updated);
+                                }}
+                              />
+                            </div>
+                          ))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+
+                  <tfoot>
+                    <tr className="bg-yellow-50 text-slate-800 font-semibold text-right border-t-2 border-slate-200">
+                      <td colSpan={4} className="text-left font-bold border px-3 py-2">ИТОГ:</td>
+                      <td className="border px-3 py-2">{totals.totalRent.toLocaleString('ru-RU')}</td>
+                      <td className="border px-3 py-2">{totals.totalSales.toLocaleString('ru-RU')}</td>
+                      <td className="border px-3 py-2">{totals.totalSpa.toLocaleString('ru-RU')}</td>
+                      <td className="border px-3 py-2">{totals.grandTotal.toLocaleString('ru-RU')}</td>
+                      <td className="border px-3 py-2">{"\u00A0"}</td>
+                      <td className="border px-3 py-2">{"\u00A0"}</td>
+                      <td className="border px-3 py-2">Зарплата мастерам:</td>
+                      <td className="border px-3 py-2"><strong>{totals.totalMastersSalary.toLocaleString('ru-RU')}</strong></td>
+                    </tr>
+                  </tfoot>
+                </table>
+                <div className="bg-blue-100 h-[5px]"></div>
+              </div>
+
+
+              {/* КНОПКИ ДЕСКТОП 1 ВАРИАНТ */}
+              {/* <div className="flex flex-col min-h-screen justify-between">
                 <div className="p-2 fixed bottom-0 left-0 right-0 z-50 ml-[250px]">
                   <div className="p-1 bg-slate-200 shadow-lg shadow-slate-400/30">
                     <button
@@ -633,9 +641,141 @@ export default function Page({ }: PageProps) {
                     >
                       🧹 Очистить
                     </button>
+
+
+
                   </div>
                 </div>
+              </div> */}
+
+              {/* КНОПКИ ДЕСКТОП 2 ВАРИАНТ */}
+              <div className="hidden sm:flex pl-2 h-12 fixed bottom-0 left-0 right-0 z-50 ml-[250px] w-full">
+                <div className="flex flex-wrap gap-2 p-1 bg-slate-200 shadow-lg shadow-slate-400/30 w-full justify-start">
+
+                  {/* КНОПКА : ДОБАВИТЬ СТРОКУ */}
+                  <button
+                    className="px-4 py-2 bg-gradient-to-b from-gray-100 to-green-200
+                            text-gray-800 rounded-lg shadow-sm
+                              border border-gray-200 hover:shadow
+                            hover:from-gray-100 hover:to-green-400
+                              transition-all duration-150 flex items-center gap-2"
+                    onClick={handleAddRow}
+                  >
+                    <PlusIcon className="w-6 h-6" />
+                  </button>
+
+                  {/* КНОПКА : УДАЛИТЬ СТРОКУ */}
+                  <button
+                    className="px-4 py-2 bg-gradient-to-b from-red-50 to-red-500
+                              text-gray-800 rounded-lg shadow-sm
+                              border border-gray-200 hover:shadow
+                              hover:from-red-300 hover:to-red-700
+                              disabled:opacity-50 disabled:cursor-not-allowed
+                              transition-all duration-150 flex items-center gap-2"
+                    disabled={selectedRows.length === 0}
+                    onClick={handleDeleteRow}
+                  >
+                    <TrashIcon className="w-6 h-6" />
+                  </button>
+
+                  {/* КНОПКА : Сохранить в PDF */}
+                  <button
+                    title='Сохранить в PDF'
+                    className="px-4 py-2 bg-gradient-to-b from-gray-100 to-sky-200
+                            text-gray-800 rounded-lg shadow-sm
+                              border border-gray-200 hover:shadow
+                            hover:from-gray-100 hover:to-blue-300
+                              transition-all duration-150 flex items-center gap-2"
+                    onClick={() => { }}
+                  >
+                    PDF <ArrowTopRightOnSquareIcon className="w-6 h-6" />
+                  </button>
+
+                  {/* КНОПКА : Сохранить отчёт */}
+                  <button
+                    title="Сохранить отчёт"
+                    className="px-4 py-2 bg-gradient-to-b from-gray-200 to-green-300
+                              text-gray-800 rounded-lg shadow-sm
+                              border border-gray-300 hover:shadow-md
+                              hover:from-gray-100 hover:to-green-500
+                              disabled:opacity-60 disabled:cursor-not-allowed
+                              transition-all duration-150 flex items-center gap-2 font-medium"
+                    onClick={() => saveReport(false)}
+                    disabled={status === 'saving'}
+                  >
+                    Сохранить 💾
+                  </button>
+
+                  {/* КНОПКА : ОЧИСТИТЬ ТАБЛИЦУ */}
+                  {/* <button
+                  title="❗️❗️❗️ ЭТО УДАЛИТ ИНФОРМАЦИЮ ИЗ БАЗЫ ДАННЫХ НА ВЫБРАННУЮ ДАТУ"
+                    className="px-4 py-2 bg-gradient-to-b from-gray-100 to-red-200
+                              text-gray-700 rounded-lg shadow-sm
+                              border border-gray-200 hover:shadow
+                              hover:from-red-900 hover:to-red-500
+                              transition-all duration-150 flex items-center gap-2"
+                    onClick={clearTable}
+                  >
+                    🧹 Очистить
+                  </button> */}
+
+                  {/* КНОПКА : ОТПРАВИТЬ ОТЧЕТ */}
+                  <button
+                    title="Сохранить отчёт"
+                    className="px-4 py-2 bg-gradient-to-b from-gray-200 to-sky-200
+                              text-gray-800 rounded-lg shadow-sm
+                              border border-gray-300 hover:shadow-md
+                              hover:from-gray-100 hover:to-sky-300
+                              disabled:opacity-60 disabled:cursor-not-allowed
+                              transition-all duration-150 flex items-center gap-2 font-medium"
+                    // onClick={() => saveReport(false)}
+                    disabled={status === 'saving'}
+                  >
+                    Отправить
+                    <PaperAirplaneIcon className="w-6 h-6" />
+                  </button>
+
+                </div>
               </div>
+
+
+              {/* КНОПКА "+" : МОБИЛНЫЙ ЭКРАН */}
+              {/* <div className="sm:hidden fixed bottom-10 right-12 z-50">
+                <button
+                  onClick={handleAddRow}
+                  className="w-12 h-12 bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition-colors"
+                >
+                  <PlusIcon className="w-6 h-6" />
+                </button>
+              </div> */}
+
+              {/* Компактная панель — только на мобильных */}
+              <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-gray-100 border-t shadow-lg z-50">
+                <div className="flex justify-around items-center p-1 text-xs">
+
+                  <button onClick={handleAddRow} className="m-1 border rounded-md border-slate-500 p-2 text-white">
+                    <PlusIcon className="text-green-600 w-5 h-5" />
+                  </button>
+
+                  <button
+                    onClick={handleDeleteRow}
+                    disabled={selectedRows.length === 0}
+                    className="m-1 border rounded-md border-slate-500 p-2 text-white"
+                  >
+                    <TrashIcon className="text-red-600 w-5 h-5" />
+                  </button>
+
+                  <button onClick={() => saveReport(false)} className="m-1 border rounded-md border-slate-500 p-2 text-white">
+                    <FolderArrowDownIcon className="text-gray-500 w-5 h-5" />
+                  </button>
+
+                  <button onClick={clearTable} className="m-1 border rounded-md border-slate-500 p-2 text-white bg-red-500">
+                    <DocumentMinusIcon className="text-white w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+
             </div>
           )}
         </div>

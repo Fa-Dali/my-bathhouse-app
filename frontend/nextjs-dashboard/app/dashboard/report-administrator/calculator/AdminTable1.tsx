@@ -4,7 +4,7 @@
 
 import React, { useEffect } from 'react';
 import CustomCheckbox from './CustomCheckbox';
-import '../../../../app/ui/global.css';
+// import '../../../../app/ui/global.css';
 import './style/TimeInput.module.css';
 import './style/Select.module.css';
 import './style/Cell.module.css';
