@@ -83,11 +83,18 @@ my-bathhouse-app/
 │   ├── my-bathhouse-backend/           # Основной каталог Django-приложения
 │   │   ├── apps/                       # Приложения Django
 │   │   │   ├── report/
+│   │   │   │   ├── migrations/
+│   │   │   │   │   ├── 0001_initial.py
+│   │   │   │   │   ├── 0002_report_updated_at.py
+│   │   │   │   │   └── __init.py
 │   │   │   │   ├── __init__.py
+│   │   │   │   ├── admin.py
 │   │   │   │   ├── api_views.py
+│   │   │   │   ├── apps.py
 │   │   │   │   ├── forms.py
 │   │   │   │   ├── models.py
 │   │   │   │   ├── serializers.py
+│   │   │   │   ├── test_statistic.py
 │   │   │   │   └── urls.py
 │   │   │   ├── users/                  # Модели пользователей
 │   │   │   │   ├── migrations/        # Файлы миграций базы данных

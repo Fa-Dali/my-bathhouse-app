@@ -5,8 +5,12 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
+from django.conf import settings
+from django.template.loader import render_to_string
+from weasyprint import HTML
 from django.shortcuts import get_object_or_404
 from .models import Report
+import os
 import json
 from decimal import Decimal
 from datetime import datetime
@@ -45,12 +49,128 @@ class CheckServerView(View):
         return JsonResponse({'status': 'ok'})
 
 
-# === 3. Генерация PDF (заглушка) ===
+# === 3. Генерация PDF ===
+@method_decorator(csrf_exempt, name='dispatch')
 class GeneratePDFView(View):
-    def get(self, request, *args, **kwargs):
-        # Пока возвращаем заглушку
-        return JsonResponse({'message': 'PDF генерация пока не реализована'}, status=200)
+    def post(self, request, *args, **kwargs):
+        try:
+            data = json.loads(request.body)
+            date_str = data.get('date')
+            overwrite = data.get('overwrite', False)
 
+            if not date_str:
+                return JsonResponse({'error': 'Дата не указана'}, status=400)
+
+            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            formatted_date = selected_date.strftime('%d-%m-%Y')
+            year = selected_date.year
+            month = f"{selected_date.month:02d}"
+
+            # Путь к файлу
+            media_dir = os.path.join(settings.MEDIA_ROOT, 'reports', 'admin', str(year), month)
+            os.makedirs(media_dir, exist_ok=True)
+            file_path = os.path.join(media_dir, f"{formatted_date}.pdf")
+
+            # Проверяем существование файла
+            if os.path.exists(file_path) and not overwrite:
+                return JsonResponse({
+                    'exists': True,
+                    'file_url': f'/media/reports/admin/{year}/{month}/{formatted_date}.pdf'
+                }, status=409)
+
+            # Получаем отчёт
+            report = Report.objects.filter(created_at__date=selected_date).first()
+            if not report:
+                return JsonResponse({'error': 'Нет данных для этой даты'}, status=404)
+
+            # Формат чисел: 1500000 → "1 500 000"
+            def format_num(value):
+                try:
+                    n = int(float(value))
+                    return f"{n:,}".replace(",", " ")
+                except (ValueError, TypeError, OverflowError):
+                    return "0"
+
+            # Подготавливаем строки
+            rows = []
+            totals = {
+                'total_rent': 0,
+                'total_sales': 0,
+                'total_spa': 0,
+                'grand_total': 0,
+                'total_masters_salary': 0
+            }
+
+            for row_data in report.data:
+                rent = Decimal(row_data.get('rent', 0))
+                sales = Decimal(row_data.get('sales', 0))
+                spa = Decimal(row_data.get('spa', 0))
+                total = rent + sales + spa
+
+                totals['total_rent'] += rent
+                totals['total_sales'] += sales
+                totals['total_spa'] += spa
+                for m in row_data.get('masters', []):
+                    salary = Decimal(m.get('salary', 0))
+                    totals['total_masters_salary'] += salary
+
+                # Фильтруем payments — только непустые
+                payments = [
+                    p for p in row_data.get('payments', [])
+                    if p.get('amount') or p.get('method')
+                ]
+
+                rows.append({
+                    'start_time': row_data.get('start_time', ''),
+                    'end_time': row_data.get('end_time', ''),
+                    'audience': row_data.get('audience', ''),
+                    'rent': format_num(rent),
+                    'sales': format_num(sales),
+                    'spa': format_num(spa),
+                    'total': format_num(total),
+                    'payments': [
+                        {
+                            'amount': format_num(p.get('amount', 0)),
+                            'method': p.get('method', '').strip()
+                        }
+                        for p in payments
+                        if p.get('method') or p.get('amount')
+                    ],
+                    'masters': [
+                        {
+                            'name': m.get('name', ''),
+                            'salary': format_num(m.get('salary', 0))
+                        }
+                        for m in row_data.get('masters', [])
+                    ]
+                })
+
+            # Форматируем итоги
+            totals = {k: format_num(v) for k, v in totals.items()}
+
+            # Рендерим
+            html_string = render_to_string('report_pdf.html', {
+                'admin_name': report.admin_name,
+                'report_date': selected_date.strftime('%d.%m.%Y'),
+                'rows': rows,
+                'totals': totals,
+                'generated_at': datetime.now().strftime('%d.%m.%Y %H:%M')
+            })
+
+            # Генерация PDF
+            html = HTML(string=html_string)
+            pdf = html.write_pdf()
+
+            with open(file_path, 'wb') as f:
+                f.write(pdf)
+
+            return JsonResponse({
+                'success': True,
+                'file_url': f'/media/reports/admin/{year}/{month}/{formatted_date}.pdf'
+            })
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 
 # === 4. Получение списка отчётов ===
 def get_reports(request):

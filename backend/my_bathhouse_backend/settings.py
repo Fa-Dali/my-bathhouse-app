@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     #     для работы с PDF
     'my_bathhouse_backend.apps.reports.apps.ReportsConfig',
     'django.contrib.postgres',  # ← обязательно для JSONField
+    'django.contrib.humanize',
 ]
 
 MIDDLEWARE = [

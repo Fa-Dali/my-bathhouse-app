@@ -327,6 +327,50 @@ export default function Page({ }: PageProps) {
     }
   };
 
+  const handleGeneratePDF = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/reports/generate-pdf/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: selectedDate })
+      });
+
+      const data = await response.json();
+
+      if (response.status === 409 && data.exists) {
+        const overwrite = window.confirm(
+          `Файл отчёта за ${formatDate(selectedDate)} уже существует.\n\nХотите пересохранить?`
+        );
+        if (!overwrite) return;
+
+        // Перезапись
+        const overwriteRes = await fetch('http://localhost:8000/api/reports/generate-pdf/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date: selectedDate, overwrite: true })
+        });
+
+        const result = await overwriteRes.json();
+        if (result.success) {
+          alert('✅ PDF пересохранён');
+        } else {
+          alert('❌ Ошибка: ' + result.error);
+        }
+        return;
+      }
+
+      if (data.success) {
+        alert('✅ PDF сохранён');
+      } else {
+        alert('❌ Ошибка: ' + data.error);
+      }
+    } catch (err) {
+      console.error('Ошибка:', err);
+      alert('❌ Не удалось подключиться к серверу');
+    }
+  };
+
+
   useEffect(() => {
     loadReportByDate(selectedDate);
   }, [selectedDate]);
@@ -686,7 +730,7 @@ export default function Page({ }: PageProps) {
                               border border-gray-200 hover:shadow
                             hover:from-gray-100 hover:to-blue-300
                               transition-all duration-150 flex items-center gap-2"
-                    onClick={() => { }}
+                    onClick={handleGeneratePDF}
                   >
                     PDF <ArrowTopRightOnSquareIcon className="w-6 h-6" />
                   </button>
