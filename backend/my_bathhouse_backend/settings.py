@@ -91,6 +91,15 @@ MIDDLEWARE = [
 #     # '*'
 # ]
 
+# === ДОВЕРЕННЫЕ ИСТОЧНИКИ ДЛЯ CSRF ===
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://192.168.1.169:3000',
+]
+
+# Без CSRF_TRUSTED_ORIGINS Django блокирует POST-запросы с фронтенда,
+# даже если CORS разрешён.
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',  # фронтенд на localhost:3000
     "http://127.0.0.1:3000",
@@ -252,3 +261,16 @@ SIMPLE_JWT = {
     # refresh-токена
 }
 # ===================================
+
+# Email настройки — Yandex
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'fa.daliastro@gmail.com'  # ← твой новый Gmail
+EMAIL_HOST_PASSWORD = 'rphihxdutppmxpxm'  # ← вставь сюда без пробелов!
+DEFAULT_FROM_EMAIL = 'fa.daliastro@gmail.com'
+# === Получатели отчётов ===
+REPORT_RECIPIENTS = [
+    'fadeev.music.studio@yandex.ru',
+]

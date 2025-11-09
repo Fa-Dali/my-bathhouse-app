@@ -12,6 +12,7 @@ import './style/Cell.module.css';
 import useFormattedNumber from './scripts/useFormattedNumber';
 import useCurrentDate from '../hooks/useCurrentDate';
 import { NumberInput } from './scripts/InputField';
+import SendReportModal from './modal/SendReportModal';
 
 import {
   PlusIcon,
@@ -105,6 +106,16 @@ export default function Page({ }: PageProps) {
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  // ДЛЯ ОТПРАВКИ ОТЧЕТА НА ПОЧТУ АДМИНИСТРАЦИИ
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailMode, setEmailMode] = useState<'today' | 'date'>('today');
+  const [customDate, setCustomDate] = useState<string>('');
+
+  // ТАК БУДЕТ ПРОЩЕ ПРИ СМЕНЕ СЕРВЕРА
+  const API_BASE = 'http://localhost:8000';
+  // тогда надо будет писать пути так:
+  // fetch(`${API_BASE}/api/send-report-email/`, { ... })
+  // fetch(`${API_BASE}/api/reports/generate-pdf/`, { ... })
 
   // Синхронизация после сохранения
   useEffect(() => {
@@ -369,6 +380,69 @@ export default function Page({ }: PageProps) {
       alert('❌ Не удалось подключиться к серверу');
     }
   };
+
+  // ДЛЯ ОТПРАВКИ ОТЧЕТА НА ПОЧТУ АДМИНИСТРАЦИИ
+  // const handleSendEmail = async () => { вот 
+  //   let dateToSend = '';
+  //   if (emailMode === 'today') {
+  //     const today = new Date();
+  //     dateToSend = today.toISOString().split('T')[0]; // YYYY-MM-DD
+  //   } else {
+  //     if (!customDate) {
+  //       alert('Выберите дату');
+  //       return;
+  //     }
+  //     dateToSend = customDate;
+  //   }
+
+  //   try {
+  //     const response = await fetch('/api/send-report-email/', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ date: dateToSend }),
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (data.success) {
+  //       alert(`Отчёт отправлен на ${data.sent} адресов`);
+  //     } else {
+  //       alert('Ошибка: ' + data.error);
+  //     }
+  //   } catch (err) {
+  //     alert('Ошибка сети');
+  //   }
+
+  //   // Сброс
+  //   setShowEmailModal(false);
+  //   setEmailMode('today');
+  //   setCustomDate('');
+  // };
+
+  //2 ВАРИАНТ = Обработчик отправки (вне модалки)
+  const handleSendEmail = async (dateToSend: string) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/reports/send-report-email/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: dateToSend }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(`Отчёт отправлен на ${data.sent} адресов`);
+      } else {
+        alert('Ошибка: ' + data.error);
+      }
+    } catch (err) {
+      alert('Ошибка сети в AdminTable2.tsx');
+    }
+
+    // Закрываем модалку
+    setShowEmailModal(false);
+  };
+
 
 
   useEffect(() => {
@@ -765,6 +839,7 @@ export default function Page({ }: PageProps) {
 
                   {/* КНОПКА : ОТПРАВИТЬ ОТЧЕТ */}
                   <button
+                    onClick={() => setShowEmailModal(true)}
                     title="Сохранить отчёт"
                     className="px-4 py-2 bg-gradient-to-b from-gray-200 to-sky-200
                               text-gray-800 rounded-lg shadow-sm
@@ -778,6 +853,12 @@ export default function Page({ }: PageProps) {
                     Отправить
                     <PaperAirplaneIcon className="w-6 h-6" />
                   </button>
+                  {/* Модалка — отдельный компонент */}
+                  <SendReportModal
+                    isOpen={showEmailModal}
+                    onClose={() => setShowEmailModal(false)}
+                    onSend={handleSendEmail}
+                  />
 
                 </div>
               </div>

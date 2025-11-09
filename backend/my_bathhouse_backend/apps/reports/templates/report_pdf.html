@@ -16,7 +16,7 @@
             padding: 1cm;
             background: white;
             color: #334155;
-            font-size: 14px;
+            font-size: 9px;
         }
 
         .header {
@@ -34,206 +34,190 @@
             margin: 5px 0 0 0;
         }
 
+        /* Фиксированная таблица */
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
             table-layout: fixed;
+            font-size: 9px;
         }
 
         th, td {
-            border: 1px solid #e2e8f0;
+            border: 1px solid #000;
             padding: 0;
             text-align: center;
+            white-space: nowrap;
+            vertical-align: top;
         }
 
+        /* Строки данных — высокие */
+        tbody tr {
+            height: 72px !important;
+            line-height: 1;
+        }
+
+        /* Шапка — низкая */
+        thead tr {
+            height: 24px !important;
+            line-height: 1;
+        }
+
+        /* Итог — низкая */
+        tfoot tr {
+            height: 28px !important;
+            line-height: 1;
+        }
+
+        /* Стили для шапки */
         th {
             background-color: #f8fafc;
-            color: #64748b;
-            font-size: 10px;
+            color: #0a2141;
             font-weight: 600;
+            font-size: 8px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 8px 4px;
-            vertical-align: middle;
+            padding: 2px 2px;
         }
 
-        td {
-            color: #334155;
-            font-weight: 500;
-            padding: 0;
-        }
-
-        /* Ячейки с инпутами — имитация */
+        /* Ячейки с числами */
         .cell {
-            padding: 2px 4px;
-            line-height: 1.2;
-        }
-
-        .cell input, .cell select {
             width: 100%;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 4px 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #334155;
-            background-color: white;
+            padding: 2px 4px;
             text-align: center;
+        }
+        .cell input {
+            width: 100%;
             border: none;
             outline: none;
             background: transparent;
-        }
-
-        .cell input:focus, .cell select:focus {
-            border: none;
-            outline: none;
-        }
-
-        /* Сумма — жирная */
-        .total {
-            font-weight: 600;
-            color: #1e293b;
-        }
-
-        /* Подвал — итог */
-        .total-row td {
-            background-color: #fef9c3;
-            font-weight: 600;
-            color: #1e293b;
-            border-top: 2px solid #e2e8f0;
-        }
-        .total-row .cell {
-            padding: 8px 4px;
-        }
-
-        /* Многострочные ячейки */
-        .multi {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            padding: 2px 4px;
-        }
-
-        .multi div {
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 3px 6px;
-            font-size: 12px;
             text-align: center;
-            background-color: white;
+            font-size: 9px;
+            font-weight: 500;
+            white-space: nowrap;
+            line-height: 1;
         }
 
-        /* Прозрачный фон для мульти-ячеек */
-        .multi div::after {
-            content: '';
-            display: block;
-            height: 0;
+        /* Многострочные ячейки — 4 строки */
+        .multi {
+            display: grid;
+            grid-template-rows: repeat(4, 1fr);
+            height: 72px;
+            font-size: 9px;
+        }
+        .multi div {
+            border-bottom: 1px solid #000;
+            padding: 4px 2px;
+            text-align: center;
+            font-size: 9px;
+            line-height: 1;
+        }
+        .multi div:last-child {
+            border-bottom: none;
         }
 
-        /* Ширины колонок — как в Next.js */
-        .col-delete { width: 4%; }
-        .col-time { width: 8%; }
-        .col-audience { width: 8%; }
-        .col-rent { width: 8%; }
-        .col-sales { width: 8%; }
-        .col-spa { width: 8%; }
-        .col-total { width: 8%; }
-        .col-payment { width: 8%; }
-        .col-method { width: 8%; }
-        .col-master-name { width: 8%; }
-        .col-master-salary { width: 8%; }
-
-        /* Подпись */
-        .signature {
-            margin-top: 30px;
-            font-size: 12px;
-            color: #333;
+        /* Итоговая строка — стили */
+        .total-row td {
+            background-color: #fff9c4;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 9px;
+            padding: 4px 2px;
         }
-        .signature p {
-            margin: 5px 0;
-        }
-        .signature span {
-            color: #777;
-            font-size: 11px;
+        .total-row .cell input {
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>"Ежедневный отчет бани"</h1>
-        <p>{{ report_date }} г.</p>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="font-size: 24px; margin-bottom: 0;">Ежедневный отчет бани</h1>
+            <h1 style="margin-bottom: 0;">{{ report_date }} г.</h1>
+        </div>
+        <div>
+            <h3 style="text-align: left; margin-top: 0;">Администратор: {{ admin_name }}</h3>
+        </div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th class="col-delete"><span style="color:#64748b">☒</span></th>
-                <th colspan="2" class="col-time">Время</th>
-                <th class="col-audience">Баня</th>
-                <th class="col-rent">Аренда</th>
-                <th class="col-sales">Продажа</th>
-                <th class="col-spa">СПА</th>
-                <th class="col-total">СУММА</th>
-                <th class="col-payment">ОПЛАТА</th>
-                <th class="col-method">Способ</th>
-                <th class="col-master-name">Имя мастера</th>
-                <th class="col-master-salary">Зарплата</th>
+                <th style="width: 10%;">Время</th>
+                <th style="width: 8%;">Баня</th>
+                <th style="width: 8%;">Аренда</th>
+                <th style="width: 8%;">Продажа</th>
+                <th style="width: 8%;">СПА</th>
+                <th style="width: 8%;">СУММА</th>
+                <th style="width: 8%;">ОПЛАТА</th>
+                <th style="width: 8%;">Способ</th>
+                <th style="width: 10%;">Имя мастера</th>
+                <th style="width: 8%;">Зарплата</th>
             </tr>
         </thead>
         <tbody>
             {% for row in rows %}
             <tr>
-                <td><div class="cell text-center">☐</div></td>
+                <td class="cell">
+                    <input type="text" value="{{ row.start_time }}" style="margin-bottom: 1px;">
+                    <input type="text" value="{{ row.end_time }}" style="margin-top: 1px;">
+                </td>
+                <td class="cell"><input type="text" value="{{ row.audience }}"></td>
+                <td class="cell"><input type="text" value="{{ row.rent }}" style="text-align: center;"></td>
+                <td class="cell"><input type="text" value="{{ row.sales }}" style="text-align: center;"></td>
+                <td class="cell"><input type="text" value="{{ row.spa }}" style="text-align: center;"></td>
+                <td class="cell"><input type="text" value="{{ row.total }}" style="font-weight: bold; text-align: center;"></td>
 
-                <td><div class="cell"><input type="text" value="{{ row.start_time }}"></div></td>
-                <td><div class="cell"><input type="text" value="{{ row.end_time }}"></div></td>
-                <td><div class="cell"><input type="text" value="{{ row.audience }}"></div></td>
-
-                <td><div class="cell"><input type="text" value="{{ row.rent }}" class="text-right"></div></td>
-                <td><div class="cell"><input type="text" value="{{ row.sales }}" class="text-right"></div></td>
-                <td><div class="cell"><input type="text" value="{{ row.spa }}" class="text-right"></div></td>
-                <td><div class="cell total"><strong>{{ row.total }}</strong></div></td>
-
-                <!-- Оплата -->
+                <!-- ОПЛАТА -->
                 <td>
                     <div class="multi">
                         {% for p in row.payments %}
-                            {% if p.amount %}
-                                <div>{{ p.amount }}</div>
+                            <div>{{ p.amount|default:"" }}</div>
+                        {% endfor %}
+                        {% for i in "1234" %}
+                            {% if forloop.counter > row.payments|length %}
+                                <div>&nbsp;</div>
                             {% endif %}
                         {% endfor %}
                     </div>
                 </td>
 
-                <!-- Способ -->
+                <!-- СПОСОБ -->
                 <td>
                     <div class="multi">
                         {% for p in row.payments %}
-                            {% if p.method %}
-                                <div>{{ p.method }}</div>
+                            <div>{{ p.method|default:"" }}</div>
+                        {% endfor %}
+                        {% for i in "1234" %}
+                            {% if forloop.counter > row.payments|length %}
+                                <div>&nbsp;</div>
                             {% endif %}
                         {% endfor %}
                     </div>
                 </td>
 
-                <!-- Имя мастера -->
+                <!-- ИМЯ МАСТЕРА -->
                 <td>
                     <div class="multi">
                         {% for m in row.masters %}
-                            {% if m.name %}
-                                <div>{{ m.name }}</div>
+                            <div>{{ m.name|default:"" }}</div>
+                        {% endfor %}
+                        {% for i in "1234" %}
+                            {% if forloop.counter > row.masters|length %}
+                                <div>&nbsp;</div>
                             {% endif %}
                         {% endfor %}
                     </div>
                 </td>
 
-                <!-- Зарплата -->
+                <!-- ЗАРПЛАТА -->
                 <td>
                     <div class="multi">
                         {% for m in row.masters %}
-                            {% if m.salary %}
-                                <div class="text-right">{{ m.salary }}</div>
+                            <div style="text-align: right;">{{ m.salary|default:"" }}</div>
+                        {% endfor %}
+                        {% for i in "1234" %}
+                            {% if forloop.counter > row.masters|length %}
+                                <div style="text-align: right;">&nbsp;</div>
                             {% endif %}
                         {% endfor %}
                     </div>
@@ -243,22 +227,17 @@
         </tbody>
         <tfoot>
             <tr class="total-row">
-                <td colspan="4" style="text-align: left; padding-left: 10px; font-weight: bold">ИТОГ:</td>
-                <td><div class="cell"><input type="text" value="{{ totals.total_rent }}" class="text-right"></div></td>
-                <td><div class="cell"><input type="text" value="{{ totals.total_sales }}" class="text-right"></div></td>
-                <td><div class="cell"><input type="text" value="{{ totals.total_spa }}" class="text-right"></div></td>
-                <td><div class="cell"><input type="text" value="{{ totals.grand_total }}" class="text-right total"></div></td>
+                <td colspan="2" style="text-align: left; padding-left: 10px;">ИТОГ:</td>
+                <td class="cell"><input type="text" value="{{ totals.total_rent }}" style="text-align: center;"></td>
+                <td class="cell"><input type="text" value="{{ totals.total_sales }}" style="text-align: center;"></td>
+                <td class="cell"><input type="text" value="{{ totals.total_spa }}" style="text-align: center;"></td>
+                <td class="cell"><input type="text" value="{{ totals.grand_total }}" style="font-weight: bold; text-align: center;"></td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
-                <td>Зарплата мастерам:</td>
-                <td><div class="cell"><input type="text" value="{{ totals.total_masters_salary }}" class="text-right total"></div></td>
+                <td>&nbsp;</td>
+                <td class="cell"><input type="text" value="{{ totals.total_masters_salary }}" style="font-weight: bold; text-align: center;"></td>
             </tr>
         </tfoot>
     </table>
-
-    <div class="signature">
-        <p><strong>Администратор:</strong> {{ admin_name }}</p>
-        <p><span>Сгенерировано: {{ generated_at }}</span></p>
-    </div>
 </body>
 </html>

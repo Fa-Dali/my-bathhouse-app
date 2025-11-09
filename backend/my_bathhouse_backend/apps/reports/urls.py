@@ -3,13 +3,16 @@
 
 from django.urls import path
 from .api_views import (GeneratePDFView,
+                        SendReportEmailView,
                         CheckServerView,
                         get_reports,
                         create_report,
                         save_report,
                         get_report_by_date,
-                        update_report)
+                        update_report,
+                        test_email)
 
+print("✅ reports/urls.py загружен! /send-report-email/ зарегистрирован")
 
 urlpatterns = [
     # ПЕРЕДЕЛАТЬ маршрут для генерации документа PDF:
@@ -30,4 +33,8 @@ urlpatterns = [
     # ДЛЯ АВТОМАТИЧЕСКОГО ОБНОВЛЕНИЯ ТАБЛИЦЫ Еж-Отчет-Админ
     path('date/<str:date>/', get_report_by_date, name='get_report_by_date'),
     path('<int:id>/', update_report, name='update_report'),
+
+    # ОТПРАВКА ПИСМА ОТЧЕТ НА ПОЧТУ АДМИНИСТРАЦИИ
+    path('send-report-email/', SendReportEmailView.as_view(), name='send_report_email'),
+    path('test-email/', test_email, name='test_email'),
 ]

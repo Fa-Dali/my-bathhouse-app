@@ -1,19 +1,29 @@
 # backend/my-bathhouse-backend/reports/api_views.py
 
+import logging
+import os
+import json
+from datetime import datetime
 from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.conf import settings
+from django.core.mail import send_mail
+
+# позволяет: Добавлять вложения (как PDF), Лучше контролировать заголовки
+# Отправлять HTML-письма
+from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from weasyprint import HTML
 from django.shortcuts import get_object_or_404
 from .models import Report
-import os
-import json
 from decimal import Decimal
-from datetime import datetime
+import yagmail
+
+
+logger = logging.getLogger(__name__)
 
 # === 1. Сохранение отчёта ===
 @csrf_exempt  # Только если API с внешнего домена (иначе настройте CORS)
@@ -91,6 +101,13 @@ class GeneratePDFView(View):
                 except (ValueError, TypeError, OverflowError):
                     return "0"
 
+            # Функция: дополняет список до 4 элементов
+            def ensure_four(items):
+                """Дополняет список до 4 элементов, пустые — с пустыми значениями"""
+                while len(items) < 4:
+                    items.append({})
+                return items[:4]
+
             # Подготавливаем строки
             rows = []
             totals = {
@@ -107,6 +124,7 @@ class GeneratePDFView(View):
                 spa = Decimal(row_data.get('spa', 0))
                 total = rent + sales + spa
 
+                # Накопление итогов
                 totals['total_rent'] += rent
                 totals['total_sales'] += sales
                 totals['total_spa'] += spa
@@ -114,12 +132,26 @@ class GeneratePDFView(View):
                     salary = Decimal(m.get('salary', 0))
                     totals['total_masters_salary'] += salary
 
-                # Фильтруем payments — только непустые
-                payments = [
-                    p for p in row_data.get('payments', [])
-                    if p.get('amount') or p.get('method')
-                ]
+                # Подготовка payments (всегда 4)
+                payments = []
+                for p in row_data.get('payments', []):
+                    if p.get('amount') or p.get('method'):
+                        payments.append({
+                            'amount': format_num(p.get('amount', 0)),
+                            'method': p.get('method', '').strip()
+                        })
+                payments = ensure_four(payments)
 
+                # Подготовка masters (всегда 4)
+                masters = []
+                for m in row_data.get('masters', []):
+                    masters.append({
+                        'name': m.get('name', ''),
+                        'salary': format_num(m.get('salary', 0))
+                    })
+                masters = ensure_four(masters)
+
+                # Добавляем строку
                 rows.append({
                     'start_time': row_data.get('start_time', ''),
                     'end_time': row_data.get('end_time', ''),
@@ -128,27 +160,14 @@ class GeneratePDFView(View):
                     'sales': format_num(sales),
                     'spa': format_num(spa),
                     'total': format_num(total),
-                    'payments': [
-                        {
-                            'amount': format_num(p.get('amount', 0)),
-                            'method': p.get('method', '').strip()
-                        }
-                        for p in payments
-                        if p.get('method') or p.get('amount')
-                    ],
-                    'masters': [
-                        {
-                            'name': m.get('name', ''),
-                            'salary': format_num(m.get('salary', 0))
-                        }
-                        for m in row_data.get('masters', [])
-                    ]
+                    'payments': payments,
+                    'masters': masters
                 })
 
             # Форматируем итоги
             totals = {k: format_num(v) for k, v in totals.items()}
 
-            # Рендерим
+            # Рендерим HTML
             html_string = render_to_string('report_pdf.html', {
                 'admin_name': report.admin_name,
                 'report_date': selected_date.strftime('%d.%m.%Y'),
@@ -161,6 +180,7 @@ class GeneratePDFView(View):
             html = HTML(string=html_string)
             pdf = html.write_pdf()
 
+            # Сохраняем
             with open(file_path, 'wb') as f:
                 f.write(pdf)
 
@@ -171,6 +191,7 @@ class GeneratePDFView(View):
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+
 
 # === 4. Получение списка отчётов ===
 def get_reports(request):
@@ -227,91 +248,106 @@ def update_report(request, id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
-# === 7. ...
+# === 7. Отправка отчета на почту администрации
+@method_decorator(csrf_exempt, name='dispatch')
+class SendReportEmailView(View):
+    def post(self, request, *args, **kwargs):
+        try:
+            data = json.loads(request.body)
+            date_str = data.get('date')
+
+            if not date_str:
+                logger.error("Дата не указана в запросе")
+                return JsonResponse({'error': 'Дата не указана'}, status=400)
+
+            # Парсим дату
+            try:
+                selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError as e:
+                logger.error(f"Неверный формат даты: {date_str}, ошибка: {e}")
+                return JsonResponse({'error': 'Неверный формат даты'}, status=400)
+
+            formatted_date = selected_date.strftime('%d-%m-%Y')
+            year = selected_date.year
+            month = f"{selected_date.month:02d}"
+
+            # Путь к PDF: media/reports/admin/2025/11/06-11-2025.pdf
+            pdf_filename = f"{formatted_date}.pdf"
+            pdf_path = os.path.join(
+                settings.BASE_DIR,  # ← D:\...\backend
+                'media',
+                'reports',
+                'admin',
+                str(year),
+                month,
+                pdf_filename
+            )
+
+            print("🔍 Путь к PDF:", pdf_path)
+            print("📁 Файл существует:", os.path.exists(pdf_path))
+
+            if not os.path.exists(pdf_path):
+                logger.error(f"PDF-файл не найден: {pdf_path}")
+                return JsonResponse({'error': 'PDF-файл не найден'}, status=404)
+
+            logger.info(f"PDF найден: {pdf_path}")
+
+            # Получатели
+            recipients = getattr(settings, 'REPORT_RECIPIENTS', [])
+            if not recipients:
+                logger.error("Нет получателей в REPORT_RECIPIENTS")
+                return JsonResponse({'error': 'Нет получателей'}, status=500)
+
+            # Отправка через yagmail
+            yag = yagmail.SMTP(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+
+            sent_count = 0
+            failed_count = 0
+
+            for email in recipients:
+                try:
+                    yag.send(
+                        to=email,
+                        subject=f"Ежедневный отчёт бани — {selected_date.strftime('%d.%m.%Y')}",
+                        contents="Добрый день!\n\nВо вложении — ежедневный отчёт бани.",
+                        attachments=pdf_path
+                    )
+                    sent_count += 1
+                    logger.info(f"✅ Успешно отправлено: {email}")
+                except Exception as e:
+                    failed_count += 1
+                    logger.error(f"❌ Ошибка при отправке на {email}: {str(e)}")
+
+            logger.info(f"Рассылка завершена: {sent_count} доставлено, {failed_count} ошибок")
+
+            return JsonResponse({
+                'success': True,
+                'sent': sent_count,
+                'failed': failed_count,
+                'message': f'Отчёт отправлен на {sent_count} из {len(recipients)} адресов'
+            })
+
+        except Exception as e:
+            logger.critical(f"Критическая ошибка в SendReportEmailView: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+# ТЕСТ ДЛЯ ПИСЬМА
+def test_email(request):
+    import logging
+    logger = logging.getLogger(__name__)
+    try:
+        msg = EmailMessage(
+            subject="Тест SMTP",
+            body="Если это письмо пришло — SMTP работает.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=["fadeev.music.studio@yandex.ru"]
+        )
+        msg.send()
+        logger.info("✅ Тестовое письмо отправлено")
+        return JsonResponse({"status": "success", "message": "Письмо отправлено!"})
+    except Exception as e:
+        logger.error(f"❌ Ошибка SMTP: {e}")
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 # =====================================================================
-#  предложено сделать таким образом:
-'''
-В вашем случае, вам нужно заменить комментарий 
-`data = {...}  # замените на реальный источник данных` 
-на реальный код, который будет собирать данные для генерации PDF. 
-
-### Шаги:
-1. **Определите источник данных:**
-   - Вам нужно решить, откуда будут браться данные для PDF. 
-   Это могут быть данные из базы данных, параметры запроса или 
-   другие источники.
-
-2. **Соберите данные:**
-   - Напишите код, который будет извлекать данные из выбранного 
-   источника.
-
-3. **Передайте данные в HTML-шаблон:**
-   - Используйте собранные данные для заполнения HTML-шаблона.
-
-### Пример кода:
-```python
-# backend/my-bathhouse-backend/reports/views.py
-
-from django.views import View
-from django.http import HttpResponse
-from weasyprint import HTML
-from .models import Report  # Импортируйте вашу модель данных
-
-class CheckServerView(View):
-    def get(self, request, *args, **kwargs):
-        return HttpResponse("OK", status=200)
-
-class GeneratePDFView(View):
-    def get(self, request, *args, **kwargs):
-        # Получаем данные из базы данных
-        reports = Report.objects.all()  # Замените на ваш запрос к базе данных
-
-        # Конструируем HTML-шаблон с данными
-        html_template = """
-        <html>
-        <body>
-            <table>
-                <tr>
-                    <th>Название</th>
-                    <th>Описание</th>
-                </tr>
-                {% for report in reports %}
-                <tr>
-                    <td>{{ report.name }}</td>
-                    <td>{{ report.description }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </body>
-        </html>
-        """
-
-        # Генерируем PDF
-        pdf = HTML(string=html_template).write_pdf()
-
-        # Возврат PDF в качестве аттача
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="report.pdf"'
-        response.write(pdf)
-        return response
-```
-
-### Объяснение:
-1. **Получение данных:**
-   - Мы используем модель `Report` для получения данных из базы данных. 
-        Замените `Report` на вашу модель данных.
-
-2. **HTML-шаблон:**
-   - Мы используем шаблонный синтаксис Django для заполнения 
-        HTML-шаблона данными.
-
-3. **Генерация PDF:**
-   - Мы используем библиотеку `weasyprint` для генерации PDF из 
-        HTML-шаблона.
-
-### Итог:
-Теперь у вас есть готовый код для генерации PDF с данными из базы 
-данных. Следуйте инструкциям по настройке и тестированию, чтобы 
-убедиться в корректной работе функционала.
-'''
