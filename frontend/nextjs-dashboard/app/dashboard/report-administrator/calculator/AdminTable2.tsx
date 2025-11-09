@@ -172,6 +172,48 @@ export default function Page({ }: PageProps) {
     };
   };
 
+  // СВОДКА ТИПЫ ОПЛАТ КАССА
+  // === Подсчёт итогов по методам оплаты ===
+  const calculatePaymentTotals = () => {
+    const totals: Record<string, number> = {
+      Тер: 0,
+      НАЛ: 0,
+      Сайт: 0,
+      Ресеп: 0,
+    };
+
+    let total = 0;
+
+    for (let row of rows) {
+      for (let payment of row.payments) {
+        const method = payment.method.trim();
+        const amount = cleanNumber(payment.amount);
+
+        if (method && amount > 0) {
+          if (method === 'Тер') totals['Тер'] += amount;
+          else if (method === 'НАЛ') totals['НАЛ'] += amount;
+          else if (method === 'Сайт') totals['Сайт'] += amount;
+          else if (method === 'Ресеп') totals['Ресеп'] += amount;
+        }
+      }
+    }
+
+    // Общая сумма
+    total = Object.values(totals).reduce((sum, val) => sum + val, 0);
+
+    // Наличные к выдаче: минус зарплата админа (3100 ₽)
+    const cashToHand = (totals['НАЛ'] || 0) - 3100;
+
+    return {
+      totals,
+      total,
+      cashToHand: cashToHand > 0 ? cashToHand : 0
+    };
+  };
+
+  // Вызов функции
+  const { totals: paymentTotals, total: paymentTotal, cashToHand } = calculatePaymentTotals();
+
   // ✅ Добавляем строку с чистым шаблоном
   const handleAddRow = () => {
     setRows(prev => [...prev, getEmptyRow()]);
@@ -380,44 +422,6 @@ export default function Page({ }: PageProps) {
       alert('❌ Не удалось подключиться к серверу');
     }
   };
-
-  // ДЛЯ ОТПРАВКИ ОТЧЕТА НА ПОЧТУ АДМИНИСТРАЦИИ
-  // const handleSendEmail = async () => { вот 
-  //   let dateToSend = '';
-  //   if (emailMode === 'today') {
-  //     const today = new Date();
-  //     dateToSend = today.toISOString().split('T')[0]; // YYYY-MM-DD
-  //   } else {
-  //     if (!customDate) {
-  //       alert('Выберите дату');
-  //       return;
-  //     }
-  //     dateToSend = customDate;
-  //   }
-
-  //   try {
-  //     const response = await fetch('/api/send-report-email/', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ date: dateToSend }),
-  //     });
-
-  //     const data = await response.json();
-
-  //     if (data.success) {
-  //       alert(`Отчёт отправлен на ${data.sent} адресов`);
-  //     } else {
-  //       alert('Ошибка: ' + data.error);
-  //     }
-  //   } catch (err) {
-  //     alert('Ошибка сети');
-  //   }
-
-  //   // Сброс
-  //   setShowEmailModal(false);
-  //   setEmailMode('today');
-  //   setCustomDate('');
-  // };
 
   //2 ВАРИАНТ = Обработчик отправки (вне модалки)
   const handleSendEmail = async (dateToSend: string) => {
@@ -700,7 +704,52 @@ export default function Page({ }: PageProps) {
                   </tfoot>
                 </table>
                 <div className="bg-blue-100 h-[5px]"></div>
+
+
+
+                {/* === СВОДКА ПО ОПЛАТАМ === */}
+              <div className="mt-6 ml-auto w-4/12 max-w-[30%] bg-gray-50 p-4 rounded border text-sm">
+                <h2 className="text-lg font-bold mb-3">КАССА</h2>
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="text-left pb-1">Способ</th>
+                      <th className="text-right pb-1">Сумма</th>
+                    </tr>
+                  </thead>
+                  <tbody className="border-t">
+                    {Object.entries(paymentTotals).map(([method, amount]) => (
+                      <tr key={method}>
+                        <td className="py-1 capitalize">{method}</td>
+                        <td className="py-1 text-right font-mono">
+                          {formatNumber(amount)} ₽
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="border-t font-semibold">
+                    <tr>
+                      <td>ИТОГО</td>
+                      <td className="text-right">{formatNumber(totals.grandTotal)} ₽</td>
+                    </tr>
+                    <tr>
+                      <td className="pt-2 text-red-700">
+                        Наличные отдать<br/>на ресепшен
+                      </td>
+                      <td className="pt-2 text-right font-mono text-red-700">
+                        {formatNumber(cashToHand)} ₽
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
+
+
+
+              </div>
+
+
+
 
 
               {/* КНОПКИ ДЕСКТОП 1 ВАРИАНТ */}

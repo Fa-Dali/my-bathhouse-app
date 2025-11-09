@@ -118,6 +118,9 @@ class GeneratePDFView(View):
                 'total_masters_salary': 0
             }
 
+            # 🔥 НОВОЕ: Подсчёт по методам оплаты
+            payment_totals = {'Тер': Decimal('0'), 'НАЛ': Decimal('0'), 'Сайт': Decimal('0'), 'Ресеп': Decimal('0')}
+
             for row_data in report.data:
                 rent = Decimal(row_data.get('rent', 0))
                 sales = Decimal(row_data.get('sales', 0))
@@ -131,6 +134,13 @@ class GeneratePDFView(View):
                 for m in row_data.get('masters', []):
                     salary = Decimal(m.get('salary', 0))
                     totals['total_masters_salary'] += salary
+
+                # 🔥 НОВОЕ: Суммируем оплаты по методам
+                for p in row_data.get('payments', []):
+                    method = p.get('method', '').strip()
+                    amount = Decimal(p.get('amount', 0))
+                    if method in payment_totals and amount > 0:
+                        payment_totals[method] += amount
 
                 # Подготовка payments (всегда 4)
                 payments = []
@@ -167,13 +177,26 @@ class GeneratePDFView(View):
             # Форматируем итоги
             totals = {k: format_num(v) for k, v in totals.items()}
 
+            # 🔥 НОВОЕ: Подсчёт итогов для передачи в PDF
+            total_payment = sum(payment_totals.values(), Decimal('0'))
+            cash_to_hand = max(payment_totals.get('НАЛ', Decimal('0')) - Decimal('3100'), Decimal('0'))
+
+            # 🔥 НОВОЕ: Форматируем для отображения
+            payment_totals = {k: format_num(v) for k, v in payment_totals.items()}
+            total_payment = format_num(total_payment)
+            cash_to_hand = format_num(cash_to_hand)
+
             # Рендерим HTML
             html_string = render_to_string('report_pdf.html', {
                 'admin_name': report.admin_name,
                 'report_date': selected_date.strftime('%d.%m.%Y'),
                 'rows': rows,
                 'totals': totals,
-                'generated_at': datetime.now().strftime('%d.%m.%Y %H:%M')
+                'generated_at': datetime.now().strftime('%d.%m.%Y %H:%M'),
+                # 🔥 Передаём сводку в шаблон
+                'payment_totals': payment_totals,
+                'total_payment': total_payment,
+                'cash_to_hand': cash_to_hand,
             })
 
             # Генерация PDF
