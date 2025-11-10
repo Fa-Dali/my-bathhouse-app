@@ -138,6 +138,7 @@
 </head>
 
 <body>
+
     <div class="header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h1 style="font-size: 24px; margin-bottom: 0;">Ежедневный отчет бани</h1>
@@ -251,43 +252,6 @@
             </tr>
         </tfoot>
     </table>
-
-    <!-- === СВОДКА ПО ОПЛАТАМ В PDF === -->
-    <!-- <div style="margin-top: 30px; font-size: 12px; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
-        <h3 style="margin: 0 0 10px 0; font-size: 14px;">КАССА</h3>
-        <table style="width: 100%; border-collapse: collapse; font-family: sans-serif;">
-            <thead>
-                <tr style="background-color: #f5f5f5;">
-                    <th style="text-align: left; padding: 5px; border-bottom: 1px solid #ddd;">Способ</th>
-                    <th style="text-align: right; padding: 5px; border-bottom: 1px solid #ddd;">Сумма</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for method, amount in payment_totals.items %}
-                <tr>
-                    <td style="padding: 4px 5px;">{{ method }}</td>
-                    <td style="text-align: right; padding: 4px 5px; font-family: monospace;">
-                        {{ amount|floatformat:0|intcomma }} ₽
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-            <tfoot style="font-weight: bold;">
-                <tr>
-                    <td style="padding: 5px 5px 3px 5px; border-top: 1px solid #ddd;">ИТОГО</td>
-                    <td style="text-align: right; padding: 5px 5px 3px 5px; border-top: 1px solid #ddd;">
-                        {{ total_payment|floatformat:0|intcomma }} ₽
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding: 3px 5px; color: #c00;">Наличные (к выдаче)</td>
-                    <td style="text-align: right; padding: 3px 5px; color: #c00; font-family: monospace;">
-                        {{ cash_to_hand|floatformat:0|intcomma }} ₽
-                    </td>
-                </tr>
-            </tfoot>
-        </table>
-    </div> -->
 
     <!-- === СВОДКА ПО ОПЛАТАМ — ультра-компактно, 30% ширины, справа === -->
     <div style="
@@ -404,7 +368,7 @@
                     font-size: 7.5px;
                     color: #c00;
                     vertical-align: middle;
-                ">Наличные в кассе<br/>минус з/п Админа<br/>3100 ₽</td>
+                ">Наличные в кассе<br />минус з/п Админа<br />3100 ₽</td>
                     <td style="
                     padding: 0.5px 3px;
                     font-size: 8.5px;
@@ -418,6 +382,8 @@
 
         </table>
         <div style="clear: both;"></div>
+
+
     </div>
 
 

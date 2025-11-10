@@ -131,6 +131,7 @@ class GeneratePDFView(View):
                 totals['total_rent'] += rent
                 totals['total_sales'] += sales
                 totals['total_spa'] += spa
+                totals['grand_total'] += total
                 for m in row_data.get('masters', []):
                     salary = Decimal(m.get('salary', 0))
                     totals['total_masters_salary'] += salary
