@@ -1,6 +1,8 @@
+@import 'react-big-calendar/lib/css/react-big-calendar.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 
 input[type='number'] {
   -moz-appearance: textfield;
@@ -430,7 +432,6 @@ input[type="text"] {
 
 /* === СТИЛИ для React Big Calendar === */
 
-@import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 .rbc-event {
     background-color: #2c5e1a;

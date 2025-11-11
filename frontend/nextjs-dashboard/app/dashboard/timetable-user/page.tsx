@@ -8,13 +8,13 @@ import ProtectRoute from '@/app/utils/middlewares/protectRoute';
 
 export default function Page() {
   return (
-    <ProtectRoute>
+    // <ProtectRoute>
       <div>
         <p>ДОСТУПНА : ЗАРЕГИСТРИРОВАННЫМ</p>
         <p>.</p>
         <p>СТРАНИЦА : ДНЕВНОЙ ТАЙМИНГ ОРГАНИЗАЦИИ (для зарегистрированных)</p>
       </div>
-    </ProtectRoute>
+    // </ProtectRoute>
 
   );
 }
