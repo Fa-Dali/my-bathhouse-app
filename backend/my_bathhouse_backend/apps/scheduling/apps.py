@@ -1,3 +1,5 @@
+# http://localhost:8000/api/scheduling/availabilities/
+
 from django.apps import AppConfig
 
 

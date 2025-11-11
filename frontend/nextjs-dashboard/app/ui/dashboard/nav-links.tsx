@@ -33,7 +33,8 @@ const links = [
   },
 
   { name: '3 Тайминг: мастеров',
-    href: '/dashboard/timetable-user',
+    // href: '/dashboard/timetable-user',
+    href: '/dashboard/timing-all-masters',
     icon: ClockIcon
   },
 

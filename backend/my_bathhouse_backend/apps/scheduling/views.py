@@ -8,13 +8,23 @@ from .serializers import AvailabilitySerializer, BookingSerializer
 
 @api_view(['GET'])
 def get_availabilities(request):
-    """Получить доступность мастеров (по дате)"""
-    date_str = request.GET.get('date')
-    if date_str:
-        target_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
-        availabilities = Availability.objects.filter(start__date=target_date)
+    # """Получить доступность мастеров (по дате)"""
+    # date_str = request.GET.get('date')
+    # if date_str:
+    #     target_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
+    #     availabilities = Availability.objects.filter(start__date=target_date)
+    # else:
+    #     availabilities = Availability.objects.filter(start__gte=timezone.now())
+    # return Response(AvailabilitySerializer(availabilities, many=True).data)
+    user = request.user
+
+    if user.has_role('admin'):
+        availabilities = Availability.objects.all()
+    elif user.has_role('paramaster') or user.has_role('masseur'):
+        availabilities = Availability.objects.filter(master=user)
     else:
-        availabilities = Availability.objects.filter(start__gte=timezone.now())
+        availabilities = Availability.objects.none()
+
     return Response(AvailabilitySerializer(availabilities, many=True).data)
 
 @api_view(['POST'])
@@ -28,14 +38,24 @@ def create_availability(request):
 
 @api_view(['GET'])
 def get_bookings(request):
-    """Получить все брони (по дате)"""
-    date_str = request.GET.get('date')
-    if date_str:
-        target_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
-        bookings = Booking.objects.filter(start__date=target_date)
-    else:
+    # """Получить все брони (по дате)"""
+    # date_str = request.GET.get('date')
+    # if date_str:
+    #     target_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
+    #     bookings = Booking.objects.filter(start__date=target_date)
+    # else:
+    #     bookings = Booking.objects.all()
+    # return Response(BookingSerializer(bookings, many=True).data)
+    user = request.user
+
+    if user.has_role('admin'):
         bookings = Booking.objects.all()
-    return Response(BookingSerializer(bookings, many=True).data)
+    elif user.has_role('paramaster') or user.has_role('masseur'):
+        bookings = Booking.objects.filter(master=user)
+    else:
+        bookings = Booking.objects.none()
+
+    return Response(AvailabilitySerializer(bookings, many=True).data)
 
 @api_view(['POST'])
 def create_booking(request):

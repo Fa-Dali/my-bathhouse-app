@@ -14,7 +14,7 @@ from .serializers import LoginSerializer, UserSerializer
 # ==========================
 # ЧТЕНИЕ ТАБЛИЦЫ ПОЛЬЗОВАТЕЛЕЙ ИЗ БД
 from rest_framework.generics import ListAPIView, DestroyAPIView
-from .models import CustomUser
+from .models import CustomUser, Role
 # from .serializers import UserSerializer
 # ===========================
 # УДАЛЕНИЕ ПОЛЬЗОВАТЕЛЕЙ ИЗ БД
@@ -37,6 +37,11 @@ from django.middleware.csrf import get_token
 # ===========================
 # ДЛЯ УДАЛЕНИЯ АВАТАРА ИЗ БД
 from django.core.exceptions import SuspiciousOperation
+# ===========================
+# ДЛЯ ИЗМЕНЕНИЯ РОЛЕЙ ПОЛЬЗОВАТЕЛЯ
+from rest_framework.decorators import api_view
+# from rest_framework.response import Response
+# from .models import CustomUser, Role
 # ===========================
 
 # ДЛЯ РЕГИСТРАЦИИ ПОЛЬЗОВАТЕЛЯ
@@ -111,7 +116,7 @@ class LoginAPI(APIView):
             return Response({'detail': message}, status=status.HTTP_400_BAD_REQUEST)
 
 # =================================================
-
+# Возвращает CSRF-токен для текущего запроса.
 def get_csrf(request):
     """
     Возвращает CSRF-токен для текущего запроса.
@@ -218,3 +223,49 @@ def resize_image(image, size):
     img = Image.open(image)
     img.thumbnail(size, Image.Resampling.LANCZOS)
     return img
+
+# =================================================
+
+# список пользователей и изменение ролей
+@api_view(['GET'])
+def user_list(request):
+    if not request.user.has_role('admin'):
+        return Response({'error': 'Доступ запрещён'}, status=403)
+
+    users = CustomUser.objects.all().prefetch_related('roles')
+    data = [
+        {
+            'id': u.id,
+            'username': u.username,
+            'email': u.email,
+            'phone': u.phone,
+            'roles': [
+                {'code': r.code, 'name': r.name}
+                for r in u.roles.all()
+            ]
+        }
+        for u in users
+    ]
+    return Response(data)
+
+
+@api_view(['POST'])
+def update_user_roles(request, user_id):
+    if not request.user.has_role('admin'):
+        return Response({'error': 'Доступ запрещён'}, status=403)
+
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'Пользователь не найден'}, status=404)
+
+    role_codes = request.data.get('roles', [])
+    valid_codes = Role.objects.filter(code__in=role_codes).values_list('code',
+                                                                       flat=True)
+
+    user.roles.set(Role.objects.filter(code__in=valid_codes))
+
+    return Response({
+        'success': True,
+        'roles': [{'code': r.code, 'name': r.name} for r in user.roles.all()]
+    })

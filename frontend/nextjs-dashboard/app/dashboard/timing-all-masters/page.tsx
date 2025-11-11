@@ -6,7 +6,7 @@ import MasterCalendar from '@/app/components/MasterCalendar';
 export default function Page() {
   return (
     <div>
-      <p>СТРАНИЦА : ТАЙМИНГ ВСЕХ МАСТЕРОВ НА ОПРЕДЕЛЕННУЮ ДАТУ</p>;
+      <p>ТАЙМИНГ ВСЕХ МАСТЕРОВ НА ОПРЕДЕЛЕННУЮ ДАТУ</p>
       <MasterCalendar />
     </div>
   );

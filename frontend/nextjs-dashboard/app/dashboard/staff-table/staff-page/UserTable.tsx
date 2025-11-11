@@ -19,25 +19,6 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
   const { users } = useUsers(); // Используем хук для получения списка пользователей
   const fileInputRef = useRef<HTMLInputElement | null>(null); // Реф для выбора файла
 
-  // // Функция для удаления пользователя
-  // const handleDeleteUser = async (userId: number) => {
-  //   try {
-  //     const response = await fetch(`/api/delete-user/${userId}/`, {
-  //       method: 'DELETE',
-  //     });
-
-  //     if (response.ok) {
-  //       // Перезагружаем страницу после успешного удаления
-  //       window.location.reload(); // Стандартная JS-функция, типизация не требуется
-  //     } else {
-  //       alert('Ошибка при удалении пользователя.');
-  //     }
-  //   } catch (error) {
-  //     console.error('Ошибка при удалении пользователя:', error);
-  //     alert('Ошибка при удалении пользователя.');
-  //   }
-  // };
-
 
   return (
     <table className="min-w-full divide-y divide-gray-200">
@@ -120,4 +101,3 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
     </table>
   );
 }
-
