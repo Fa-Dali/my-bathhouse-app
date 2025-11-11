@@ -229,6 +229,7 @@ def resize_image(image, size):
 # список пользователей и изменение ролей
 @api_view(['GET'])
 def user_list(request):
+    """Только для админа: список всех пользователей с ролями"""
     if not request.user.has_role('admin'):
         return Response({'error': 'Доступ запрещён'}, status=403)
 
@@ -237,8 +238,12 @@ def user_list(request):
         {
             'id': u.id,
             'username': u.username,
+            'first_name': u.first_name,
+            'last_name': u.last_name,
             'email': u.email,
-            'phone': u.phone,
+            'phone_number': u.phone_number,
+            'pin_code': u.pin_code,
+            'avatar': u.avatar.url if u.avatar else None,
             'roles': [
                 {'code': r.code, 'name': r.name}
                 for r in u.roles.all()

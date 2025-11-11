@@ -3,6 +3,18 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+# Модель: Role
+class Role(models.Model):
+    code = models.CharField(max_length=20, unique=True)  # admin, paramaster, masseur
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Роль'
+        verbose_name_plural = 'Роли'
+
 class CustomUser(AbstractUser):
     ROLE_CHOICES = [
         ('admin', 'Админ'),
@@ -29,12 +41,6 @@ class CustomUser(AbstractUser):
         return self.roles.filter(code=role_code).exists()
 
 
-# Модель: Role
-class Role(models.Model):
-    code = models.CharField(max_length=20, unique=True)  # admin, paramaster, masseur
-    name = models.CharField(max_length=50)
 
-    def __str__(self):
-        return self.name
 
 

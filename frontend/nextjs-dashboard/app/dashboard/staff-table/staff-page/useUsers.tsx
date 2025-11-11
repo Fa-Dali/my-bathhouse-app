@@ -2,7 +2,7 @@
 
 // Хук для работы с пользователями
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 interface User {
@@ -16,25 +16,32 @@ interface User {
   confirm_password: string;
   pin_code: string;
   avatar?: string | null; // Предположительно, возвращаемый сервером URL аватара
+  roles: { code: string; name: string }[];
 }
 
 const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await axios.get('http://localhost:8000/api/users/', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUsers(response.data);
+    } catch (error) {
+      console.error('Ошибка при получении данных:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get('http://localhost:8000/api/users/');
-        setUsers(response.data);
-      } catch (error) {
-        console.error('Ошибка при получении данных:', error);
-      }
-    };
-
     fetchUsers();
   }, []);
 
-  return { users };
+  return { users, loading, refresh: fetchUsers };
 };
 
 export default useUsers;

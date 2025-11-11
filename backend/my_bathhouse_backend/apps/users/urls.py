@@ -21,7 +21,8 @@ urlpatterns = [
     path('refresh-token', RefreshTokenAPI.as_view(), name='refresh_token_api'),
 
     # чтение пользователей из БД:
-    path('users/', UserListAPI.as_view(), name='user_list_api'),
+    # path('users/', UserListAPI.as_view(), name='user_list_api'), - заменил
+    path('users/', api_views.user_list, name='user_list_api'),
 
     # удаление пользователей из БД:
     path('delete-user/<int:pk>/', DeleteUserAPI.as_view(), name='delete_user_api'),
