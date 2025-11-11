@@ -17,6 +17,7 @@ interface User {
   pin_code: string;
   avatar?: string | null; // Предположительно, возвращаемый сервером URL аватара
   roles: { code: string; name: string }[];
+  can_edit: boolean;
 }
 
 const useUsers = () => {

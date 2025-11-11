@@ -229,9 +229,9 @@ def resize_image(image, size):
 # список пользователей и изменение ролей
 @api_view(['GET'])
 def user_list(request):
-    """Только для админа: список всех пользователей с ролями"""
-    if not request.user.has_role('admin'):
-        return Response({'error': 'Доступ запрещён'}, status=403)
+    """Все авторизованные пользователи могут просматривать список. Только админ — редактировать."""
+    if not request.user.is_authenticated:
+        return Response({'error': 'Требуется авторизация'}, status=401)
 
     users = CustomUser.objects.all().prefetch_related('roles')
     data = [
@@ -247,7 +247,9 @@ def user_list(request):
             'roles': [
                 {'code': r.code, 'name': r.name}
                 for r in u.roles.all()
-            ]
+            ],
+            'can_edit': request.user.has_role('admin')
+            # ← только админ может редактировать
         }
         for u in users
     ]
@@ -264,9 +266,22 @@ def update_user_roles(request, user_id):
     except CustomUser.DoesNotExist:
         return Response({'error': 'Пользователь не найден'}, status=404)
 
+    # === Получаем новые роли ===
     role_codes = request.data.get('roles', [])
     valid_codes = Role.objects.filter(code__in=role_codes).values_list('code',
                                                                        flat=True)
+    # === Проверка: нельзя снять admin у Fa-Dali ===
+    if user.username == 'Fa-Dali':
+        # Проверяем: был ли он админом раньше?
+        was_admin = user.roles.filter(code='admin').exists()
+        # Проверяем: будет ли админом после обновления?
+        is_becoming_admin = 'admin' in role_codes
+
+        if was_admin and not is_becoming_admin:
+            return Response(
+                {'error': 'Нельзя снять роль администратора с Fa-Dali'},
+                status=400
+            )
 
     user.roles.set(Role.objects.filter(code__in=valid_codes))
 
@@ -274,3 +289,12 @@ def update_user_roles(request, user_id):
         'success': True,
         'roles': [{'code': r.code, 'name': r.name} for r in user.roles.all()]
     })
+
+'''
+| Действие                       | Результат                    | 
+|--------------------------------|------------------------------| 
+| Fa-Dali → убираем admin        | ❌ Ошибка: "Нельзя снять..." | 
+| Fa-Dali → оставляем admin      | ✅ Разрешено                 | 
+| Ivan → снимаем admin           | ✅ Разрешено                 | 
+| Fa-Dali → добавляем paramaster | ✅ Разрешено                 |
+'''

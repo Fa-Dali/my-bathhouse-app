@@ -111,6 +111,47 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
               <td><input type="checkbox" checked={roleCodes.includes('paramaster')} onChange={e => handleRoleChange(user.id, 'paramaster', e.target.checked)} /></td>
               <td><input type="checkbox" checked={roleCodes.includes('masseur')} onChange={e => handleRoleChange(user.id, 'masseur', e.target.checked)} /></td>
 
+              {/* Чекбоксы ролей — только если можно редактировать */}
+              <td>
+                {user.can_edit ? (
+                  <input
+                    type="checkbox"
+                    checked={roleCodes.includes('admin')}
+                    onChange={e => {
+                      if (user.username === 'Fa-Dali' && !e.target.checked) {
+                        alert('Нельзя снять роль администратора с Fa-Dali');
+                        return;
+                      }
+                      handleRoleChange(user.id, 'admin', e.target.checked);
+                    }}
+                  />
+                ) : (
+                  roleCodes.includes('admin') ? '✓' : ''
+                )}
+              </td>
+              <td>
+                {user.can_edit ? (
+                  <input
+                    type="checkbox"
+                    checked={roleCodes.includes('paramaster')}
+                    onChange={e => handleRoleChange(user.id, 'paramaster', e.target.checked)}
+                  />
+                ) : (
+                  roleCodes.includes('paramaster') ? '✓' : ''
+                )}
+              </td>
+              <td>
+                {user.can_edit ? (
+                  <input
+                    type="checkbox"
+                    checked={roleCodes.includes('masseur')}
+                    onChange={e => handleRoleChange(user.id, 'masseur', e.target.checked)}
+                  />
+                ) : (
+                  roleCodes.includes('masseur') ? '✓' : ''
+                )}
+              </td>
+
 
 
               {/* Показываем кнопку "Удалить", только если username != "Fa-Dali" */}

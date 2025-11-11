@@ -18,7 +18,7 @@ class RoleAdmin(admin.ModelAdmin):
 
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ['username', 'get_roles_display', 'email', 'phone']
+    list_display = ['username', 'get_roles_display', 'email', 'phone_number']
     filter_horizontal = ['roles']
 
     def get_roles_display(self, obj):
