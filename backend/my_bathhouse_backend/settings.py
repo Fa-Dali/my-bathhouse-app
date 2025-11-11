@@ -72,6 +72,8 @@ INSTALLED_APPS = [
     'my_bathhouse_backend.apps.reports.apps.ReportsConfig',
     'django.contrib.postgres',  # ← обязательно для JSONField
     'django.contrib.humanize',
+    #     календарь
+    'my_bathhouse_backend.apps.scheduling',
 ]
 
 MIDDLEWARE = [
