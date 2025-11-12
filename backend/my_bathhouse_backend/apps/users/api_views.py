@@ -3,7 +3,7 @@
 Содержит представление (API view),
 от фронтенда и сохранять их в базу данных.
 '''
-
+import logging
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -73,13 +73,16 @@ class RegisterAPI(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 # =================================================
-
+logger = logging.getLogger(__name__)
 # ДЛЯ ЛОГИРОВАНИЯ ПОЛЬЗОВАТЕЛЯ
 class LoginAPI(APIView):
     """Авторизует пользователя и выдаёт токены."""
     permission_classes = [AllowAny]  # Доступ открыт без предварительного входа
 
     def post(self, request, *args, **kwargs):
+        logger.info("=== Запрос на вход получен ===")
+        logger.info(f"Data: {request.data}")
+
         serializer = LoginSerializer(data=request.data)
 
         if serializer.is_valid():  # Если данные валидные

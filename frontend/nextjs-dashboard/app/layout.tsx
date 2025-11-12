@@ -3,6 +3,8 @@ import '@/app/ui/global.css';
 import Header from '@/app/components/Header';
 import { inter } from '@/app/ui/fonts';
 
+import { AuthProvider } from '@/app/auth/contexts/auth-provider';
+
 export default function RootLayout({
   children,
 }: {
@@ -11,8 +13,9 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={`${inter.className} antialiased`}>
-        {/* <Header /> */}
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

@@ -190,15 +190,14 @@ LOGGING = {
         },
     },
     'loggers': {
-        # 'django': {
-        #     'handlers': ['console'],
-        #     'level': 'DEBUG',  # Уровень DEBUG для всего фреймворка Django
-        #     'propagate': True,
-        # },
         'django.db.backends': {
             'level': 'DEBUG',
             'handlers': ['console'],
             'propagate': True, ##
+        },
+        '': {
+            'handlers': ['console'],
+            'level': 'INFO',
         },
     },
 }

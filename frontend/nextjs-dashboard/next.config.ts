@@ -22,6 +22,13 @@ const nextConfig: NextConfig = {
     });
     return config;
   },
+
+  // ЯВНО отключи Turbopack
+  experimental: {
+    // Отключаем Turbopack
+    // Это заставит Next.js использовать Webpack
+    externalDir: true,
+  },
 };
 
 export default nextConfig;

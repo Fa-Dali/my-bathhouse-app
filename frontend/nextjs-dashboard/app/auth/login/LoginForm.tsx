@@ -3,7 +3,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import axios from '@/app/utils/axiosConfig'; // Импортируем настроенный Axios
+import api from '@/app/utils/axiosConfig'; // Импортируем настроенный Axios
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';  // Новый API навигации
 import LoadingPage from '@/app/auth/login/loading';
 import { useAuth } from '@/app/auth/contexts/auth-provider'; // Контекст аутентификации
@@ -25,7 +25,6 @@ type ApiError = {
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword((prevState) => !prevState);
-
   const { loginSuccess } = useAuth(); // Доступ к методу loginSuccess
 
   // Данные пользователя
@@ -43,19 +42,15 @@ const LoginForm = () => {
   const router = useRouter();
 
   // Настройка заголовка Authorization при монтировании компонента
-  useEffect(() => {
-    // ✅ Проверка: только в браузере
-    if (typeof window === 'undefined') return;
+  // useEffect(() => {
+  //   if (typeof window === 'undefined') return;
 
-    const token = localStorage.getItem('authToken');
-    console.log('Token из LoginForm.tsx:', token);
-
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    } else {
-      delete axios.defaults.headers.common['Authorization'];
-    }
-  }, []);
+  //   const token = localStorage.getItem('authToken');
+  //   if (token) {
+  //     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  //   }
+  //   console.log('Token из LoginForm.tsx:', token);
+  // }, []);
 
   // Обработчик обновления токена
   const handleRefreshToken = async () => {
@@ -63,7 +58,7 @@ const LoginForm = () => {
     console.log('Refresh token:', refreshToken); // Логирование
     if (refreshToken) {
       try {
-        const response = await axios.post('/api/refresh-token', { refresh_token: refreshToken });
+        const response = await api.post('/api/refresh-token', { refresh_token: refreshToken });
         console.log('refreshToken 2: ', refreshToken)
         if (response.status === 200) {
           localStorage.setItem('authToken', response.data.access_token);
@@ -86,50 +81,52 @@ const LoginForm = () => {
 
   // Обработчик отправки формы
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Предотвращаем стандартную отправку формы
-    setLoading(true); // Активируем режим ожидания
+    event.preventDefault();
+    setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:8000/api/login', credentials);
+
+      // ВРЕМЕННО
+      console.log('Отправляем запрос на /api/login'); // * ВРЕМЕННО
+      const response = await api.post('/api/login', credentials);
+      console.log('Ответ получен:', response.data); // * ВРЕМЕННО
 
       if (response.status === 200) {
-        // Сохраняем токен и выполняем успешную авторизацию
         localStorage.setItem('authToken', response.data.access_token);
-        localStorage.setItem('refreshToken', response.data.refresh_token); // Сохраняем refresh-токен
-        console.log('Refresh token saved:', localStorage.getItem('refreshToken')); // Логирование
+        localStorage.setItem('refreshToken', response.data.refresh_token);
+        console.log('Refresh token saved:', localStorage.getItem('refreshToken'));
         loginSuccess();
         const redirectUrl = sessionStorage.getItem('redirectUrl') || '/dashboard';
-        sessionStorage.clear(); // Очищаем всю сессионную память
-        //redirect(redirectUrl);  Переходим на новую страницу
+        sessionStorage.clear();
         router.push(redirectUrl);
       } else {
         throw new Error('Ошибка авторизации.');
       }
-    } catch (error: any & ApiError) {
-      // Логируем ошибку в консоль
+    } catch (error: any) {
+      // Убрано: console.error('Ошибка авторизации:', error.response.data);
+      // Ошибка может быть до response
+      console.error("Полная ошибка:", error); // * ВРЕМЕННО
       console.error("Ошибка авторизации:", error);
-      console.error('Ошибка авторизации:', error.response.data);
 
-      // Устанавливаем сообщение об ошибке
       let message = '';
       if (error.response) {
+        console.error('Данные ошибки:', error.response.data);
         switch (error.response.status) {
           case 401:
             message = "Ошибка авторизации. Проверьте логин и пароль.";
-            handleRefreshToken(); // Вызываем обновление токена при ошибке 401
             break;
           case 403:
-            message = "Доступ запрещён. Ваш аккаунт может быть заблокирован.";
+            message = "Доступ запрещён.";
             break;
           case 500:
-            message = "Сервис временно недоступен. Повторите попытку позже.";
+            message = "Сервис недоступен.";
             break;
           default:
-            message = "Что-то пошло не так. Повторите попытку позже.";
+            message = "Ошибка.";
         }
       } else {
-        message = "Нет соединения с сервером. Проверьте подключение и повторите попытку.";
-        console.error('Ошибка:', error.message);
+        message = "Нет связи с сервером.";
+        console.error('Ошибка:', error.message || error);
       }
       setErrorMessage(message);
     } finally {
@@ -141,7 +138,7 @@ const LoginForm = () => {
     <>
       {loading && <LoadingPage />}
       {!loading && (
-        <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6 bg-amber-50 shadow-lg rounded-xl">
+        <form onSubmit={handleSubmit} key="login-form" className="max-w-md mx-auto p-6 bg-amber-50 shadow-lg rounded-xl">
           <h2 className="text-2xl font-semibold mb-6 text-center text-cyan-950">Авторизация</h2>
 
           {/* Поле имени пользователя */}

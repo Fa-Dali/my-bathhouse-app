@@ -12,12 +12,11 @@ import { usePathname, redirect } from 'next/navigation';
 
 export default function Page() {
 
-	
+
 
 	return (
 		<div className="container mx-auto p-0">
 			<StaffPage />
-			{/* <CalculatorAdmin /> */}
 		</div>
 	);
 }
