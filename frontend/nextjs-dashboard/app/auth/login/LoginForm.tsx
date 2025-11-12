@@ -41,16 +41,6 @@ const LoginForm = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Настройка заголовка Authorization при монтировании компонента
-  // useEffect(() => {
-  //   if (typeof window === 'undefined') return;
-
-  //   const token = localStorage.getItem('authToken');
-  //   if (token) {
-  //     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  //   }
-  //   console.log('Token из LoginForm.tsx:', token);
-  // }, []);
 
   // Обработчик обновления токена
   const handleRefreshToken = async () => {

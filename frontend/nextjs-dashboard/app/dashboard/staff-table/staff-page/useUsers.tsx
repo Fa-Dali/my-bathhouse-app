@@ -3,7 +3,8 @@
 // Хук для работы с пользователями
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+// import axios from 'axios';
+import api from '@/app/utils/axiosConfig';
 
 interface User {
   id: number;
@@ -20,6 +21,10 @@ interface User {
   can_edit: boolean;
 }
 
+// ВРЕМЕННО
+
+// ВРЕМЕННО
+
 const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,9 +32,11 @@ const useUsers = () => {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await axios.get('http://localhost:8000/api/users/', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/api/users/', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
       setUsers(response.data);
     } catch (error) {
       console.error('Ошибка при получении данных:', error);

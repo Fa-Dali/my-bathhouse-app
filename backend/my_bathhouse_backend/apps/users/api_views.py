@@ -8,7 +8,7 @@ import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import LoginSerializer, UserSerializer
 # ==========================
@@ -39,10 +39,13 @@ from django.middleware.csrf import get_token
 from django.core.exceptions import SuspiciousOperation
 # ===========================
 # ДЛЯ ИЗМЕНЕНИЯ РОЛЕЙ ПОЛЬЗОВАТЕЛЯ
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework_simplejwt.authentication import JWTAuthentication
 # from rest_framework.response import Response
 # from .models import CustomUser, Role
 # ===========================
+
+
 
 # ДЛЯ РЕГИСТРАЦИИ ПОЛЬЗОВАТЕЛЯ
 class RegisterAPI(APIView):
@@ -231,10 +234,25 @@ def resize_image(image, size):
 
 # список пользователей и изменение ролей
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def user_list(request):
-    """Все авторизованные пользователи могут просматривать список. Только админ — редактировать."""
-    if not request.user.is_authenticated:
-        return Response({'error': 'Требуется авторизация'}, status=401)
+    """Все авторизованные пользователи могут просматривать список.
+    Только админ — редактировать."""
+
+    logger.info(f"Data: {request.data}")
+
+    print("🟢 user_list вызван!")
+    print("🔹 User:", request.user)
+    print("🔹 Authenticated:", request.user.is_authenticated)
+
+    print("🔹 META keys:", list(request.META.keys()))
+    print("🔹 HTTP_AUTHORIZATION:", request.META.get('HTTP_AUTHORIZATION'))
+    print("🔹 request.user:", request.user)
+    print("🔹 is_authenticated:", request.user.is_authenticated)
+
+    # if not request.user.is_authenticated:
+    #     print("🔴 Пользователь НЕ авторизован")
+    #     return Response({'error': 'Требуется авторизация'}, status=401)
 
     users = CustomUser.objects.all().prefetch_related('roles')
     data = [

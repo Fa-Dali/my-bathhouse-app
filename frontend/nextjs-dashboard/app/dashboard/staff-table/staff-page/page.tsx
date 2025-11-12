@@ -10,8 +10,8 @@ export default function Page() {
 	const [userToDelete, setUserToDelete] = useState<number | null>(null);
 
 	return (
-		<div className="container mx-auto p-0">
-			<h1 className="text-3xl font-semibold mb-4 pl-4">Коллектив</h1>
+		<div className="container">
+			<h1 className="text-3xl font-semibold mb-4 pl-1">Коллектив</h1>
 			<div className="container mx-auto p-4 beautiful-scroll overflow-y-auto h-[600px]">
 				<UserTable
 					setShowConfirm={setShowConfirm} // Передаем метод изменения состояния видимости модального окна

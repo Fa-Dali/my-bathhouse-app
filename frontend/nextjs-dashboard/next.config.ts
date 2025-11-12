@@ -13,6 +13,19 @@ const nextConfig: NextConfig = {
     ];
   },
 
+
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Authorization', value: 'Bearer dummy' }, // ← для preflight
+        ],
+      },
+    ];
+  },
+
+
   // Добавил для обработки шрифтов
   webpack(config) {
     // Добавляем новое правило для обработки шрифтов
@@ -23,10 +36,8 @@ const nextConfig: NextConfig = {
     return config;
   },
 
-  // ЯВНО отключи Turbopack
+  // ЯВНО отключил Turbopack
   experimental: {
-    // Отключаем Turbopack
-    // Это заставит Next.js использовать Webpack
     externalDir: true,
   },
 };

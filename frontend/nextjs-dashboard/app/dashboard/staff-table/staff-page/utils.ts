@@ -2,7 +2,7 @@
 
 // Вспомогательные функции
 
-import axios from 'axios';
+import api from '@/app/utils/axiosConfig';
 
 // Типы данных
 interface User {
@@ -13,21 +13,14 @@ interface User {
 // Загрузка и изменение аватара
 export const changeAvatar = async (userId: number, newAvatar: Blob) => {
   const formData = new FormData();
-  formData.append('avatar', newAvatar, `${Date.now()}.jpg`);
+  const fileExt = newAvatar.type.split('/').pop() || 'jpg';
+  const fileName = `${Date.now()}.${fileExt}`;
+  formData.append('avatar', newAvatar, fileName);
 
   try {
-    await axios.put(
-      `http://localhost:8000/api/update-avatar/${userId}/`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-
-    // После обновления отправляем новый путь к аватару
-    return `/media/avatars/${userId}_${Date.now()}.jpg`;
+    await api.put(`/api/update-avatar/${userId}/`, formData);
+    // Пока оставим угадывание пути — позже заменим на ответ с сервера
+    return `/media/avatars/${userId}_${Date.now()}.${fileExt}`;
   } catch (error) {
     console.error('Ошибка изменения аватара:', error);
   }
@@ -56,7 +49,7 @@ export const resizeAndUpload = async (file: File, userId: number) => {
 // Логика удаления пользователя
 export const deleteUser = async (userId: number) => {
   try {
-    await axios.delete(`http://localhost:8000/api/delete-user/${userId}/`);
+    await api.delete(`/api/delete-user/${userId}/`);
   } catch (error) {
     console.error('Ошибка удаления пользователя:', error);
   }

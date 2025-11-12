@@ -6,6 +6,7 @@
 import React, { useRef } from 'react';
 import useUsers from './useUsers';
 import { changeAvatar, resizeAndUpload } from './utils'; // Вспомогательные функции вынесены отдельно
+import api from '@/app/utils/axiosConfig';
 
 // Аннотируем типы props
 type TableProps = {
@@ -27,17 +28,10 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
       : currentRoles.filter(r => r !== roleCode);
 
     try {
-      const token = localStorage.getItem('access_token');
-      await fetch(`http://localhost:8000/api/users/${userId}/roles/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ roles: newRoles })
-      });
-      refresh(); // Обновить список
+      await api.post(`/api/users/${userId}/roles/`, { roles: newRoles });
+      refresh();
     } catch (err) {
+      console.error('Ошибка при сохранении роли:', err);
       alert('Ошибка при сохранении роли');
     }
   };
@@ -57,16 +51,22 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
             Имя
           </th>
           <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
-            Фамилия
-          </th>
-          <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
-            Телефон
-          </th>
-          <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
-            Email
+            Контакты
           </th>
           <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
             Пин-код
+          </th>
+          <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+            АДМИН
+          </th>
+          <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+            ПАРМАСТЕР
+          </th>
+          <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+            МАССАЖИСТ
+          </th>
+          <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+            УДАЛИТЬ
           </th>
         </tr>
       </thead>
@@ -77,8 +77,10 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
           return (
             <tr key={user.id}>
 
+              {/* Логин */}
               <td className="px-6 py-4 whitespace-pre-line break-words max-w-[80px]">{user.username}</td>
 
+              {/* Фото */}
               <td className="px-6 py-4 overflow-hidden max-w-[50px]">
                 <div onClick={() => fileInputRef.current && fileInputRef.current.click()} className="cursor-pointer">
                   {user.avatar ? (
@@ -96,20 +98,38 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
                 />
               </td>
 
+              {/* Имя и фамилия */}
               <td className="px-6 py-4 whitespace-no-wrap">
                 {user.first_name}
                 <br />
                 {user.last_name}
               </td>
 
-              <td className="px-6 py-4 whitespace-no-wrap">{user.phone_number}</td>
-              <td className="px-6 py-4 whitespace-pre-line break-words max-w-[100px]">{user.email}</td>
+              {/* Контакты */}
+              <td className="px-6 py-4 whitespace-pre-line break-words max-w-[100px]">
+                {user.phone_number}
+                <br />
+                {user.email}
+              </td>
+
+              {/* Пин-код */}
               <td className="px-6 py-4 whitespace-no-wrap">{user.pin_code}</td>
 
               {/* Чекбоксы ролей */}
-              <td><input type="checkbox" checked={roleCodes.includes('admin')} onChange={e => handleRoleChange(user.id, 'admin', e.target.checked)} /></td>
-              <td><input type="checkbox" checked={roleCodes.includes('paramaster')} onChange={e => handleRoleChange(user.id, 'paramaster', e.target.checked)} /></td>
-              <td><input type="checkbox" checked={roleCodes.includes('masseur')} onChange={e => handleRoleChange(user.id, 'masseur', e.target.checked)} /></td>
+              {/* АДМИН */}
+              <td>
+                <input type="checkbox" checked={roleCodes.includes('admin')} onChange={e => handleRoleChange(user.id, 'admin', e.target.checked)} />
+              </td>
+
+              {/* ПАРАМЕСТЕР */}
+              <td>
+                <input type="checkbox" checked={roleCodes.includes('paramaster')} onChange={e => handleRoleChange(user.id, 'paramaster', e.target.checked)} />
+              </td>
+
+              {/* МАССАЖИСТ */}
+              <td>
+                <input type="checkbox" checked={roleCodes.includes('masseur')} onChange={e => handleRoleChange(user.id, 'masseur', e.target.checked)} />
+              </td>
 
               {/* Чекбоксы ролей — только если можно редактировать */}
               <td>

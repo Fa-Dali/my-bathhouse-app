@@ -3,11 +3,14 @@
 import os
 import django
 
-# Настройка Django
+# Установка настроек Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'my_bathhouse_backend.settings')
+
+# Настройка Django
 django.setup()
 
-from .models import CustomUser
+# Импорт модели
+from my_bathhouse_backend.apps.users.models import CustomUser
 
 print("🔍 Все пользователи в БД:")
 for u in CustomUser.objects.all():
@@ -26,8 +29,8 @@ else:
 # Проверка аутентификации
 from django.contrib.auth import authenticate
 
-test_user = authenticate(username='Fa-Dali', password='12345')
+test_user = authenticate(username='Fa-Dali', password='fadaliastro')
 if test_user:
-    print("✅ Успешный вход с паролем '12345'")
+    print("✅ Успешный вход с паролем 'fadaliastro'")
 else:
-    print("❌ Не удалось войти с паролем '12345'")
+    print("❌ Не удалось войти с паролем 'fadaliastro'")
