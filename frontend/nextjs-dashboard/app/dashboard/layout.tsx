@@ -23,9 +23,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Основное содержимое, имеющее отступ сверху равный высоте шапки */}
         {/* <main className="p-6 sm:overflow-y-auto md:p-12 pt-[64px]" style={{ paddingTop: '0px' }}> */}
         <main className=" bg-gray-100">
-          {/* <AuthProvider> */}
+          <AuthProvider>
             {children}
-          {/* </AuthProvider> */}
+          </AuthProvider>
 
         </main>
       </div>

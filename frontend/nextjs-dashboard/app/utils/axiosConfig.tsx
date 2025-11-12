@@ -2,16 +2,24 @@
 
 import axios from 'axios';
 
-let axiosInstance = axios.create();
+const api = axios.create({
+  baseURL: 'http://localhost:8000',
+});
 
-// Функция для настройки заголовка Authorization
-const setAuthorizationHeader = () => {
-  const token = localStorage.getItem('authToken');
-  console.log('token из axiosConfig: ', token);
-  
-  if (token) {
-    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+// Перехватчик запросов — работает только в браузере
+api.interceptors.request.use(
+  (config) => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-};
+);
 
-export default axiosInstance;
+export default api;

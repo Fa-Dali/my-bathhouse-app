@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from '@/app/utils/axiosConfig'; // Импортируем настроенный Axios
-import { usePathname, useSearchParams, redirect } from 'next/navigation';  // Новый API навигации
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';  // Новый API навигации
 import LoadingPage from '@/app/auth/login/loading';
 import { useAuth } from '@/app/auth/contexts/auth-provider'; // Контекст аутентификации
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'; // 🔥 добавили иконки
@@ -40,19 +40,21 @@ const LoginForm = () => {
   // Хуки навигации
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Настройка заголовка Authorization при монтировании компонента
   useEffect(() => {
-    const setAuthorizationHeader = () => {
-      const token = localStorage.getItem('authToken');
+    // ✅ Проверка: только в браузере
+    if (typeof window === 'undefined') return;
 
-      console.log('Token из LoginForm.tsx:', localStorage.getItem('authToken'));
+    const token = localStorage.getItem('authToken');
+    console.log('Token из LoginForm.tsx:', token);
 
-      if (token) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      }
-    };
-    setAuthorizationHeader();
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
+    }
   }, []);
 
   // Обработчик обновления токена
@@ -88,7 +90,7 @@ const LoginForm = () => {
     setLoading(true); // Активируем режим ожидания
 
     try {
-      const response = await axios.post('/api/login', credentials);
+      const response = await axios.post('http://localhost:8000/api/login', credentials);
 
       if (response.status === 200) {
         // Сохраняем токен и выполняем успешную авторизацию
@@ -98,7 +100,8 @@ const LoginForm = () => {
         loginSuccess();
         const redirectUrl = sessionStorage.getItem('redirectUrl') || '/dashboard';
         sessionStorage.clear(); // Очищаем всю сессионную память
-        redirect(redirectUrl); // Переходим на новую страницу
+        //redirect(redirectUrl);  Переходим на новую страницу
+        router.push(redirectUrl);
       } else {
         throw new Error('Ошибка авторизации.');
       }
@@ -196,7 +199,7 @@ const LoginForm = () => {
 
             <button
               type="button"
-              onClick={() => redirect('/auth/register')} // Используем глобальную функцию redirect()
+              onClick={() => router.push('/auth/register')} // Используем глобальную функцию redirect()
               disabled={loading}
               className={`bg-slate-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
