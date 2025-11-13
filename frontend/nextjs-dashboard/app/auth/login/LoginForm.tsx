@@ -28,7 +28,10 @@ const LoginForm = () => {
   const { loginSuccess } = useAuth(); // Доступ к методу loginSuccess
 
   // Данные пользователя
-  const [credentials, setCredentials] = useState<CredentialsType>({ username: '', password: '' });
+  const [credentials, setCredentials] = useState<CredentialsType>({
+    username: '',
+    password: ''
+  });
 
   // Индикатор загрузки
   const [loading, setLoading] = useState(false);
@@ -75,11 +78,10 @@ const LoginForm = () => {
     setLoading(true);
 
     try {
-
-      // ВРЕМЕННО
-      console.log('Отправляем запрос на /api/login'); // * ВРЕМЕННО
-      const response = await api.post('/api/login', credentials);
-      console.log('Ответ получен:', response.data); // * ВРЕМЕННО
+      const response = await api.post('/api/login', {
+        username: credentials.username,
+        password: credentials.password,
+      });
 
       if (response.status === 200) {
         localStorage.setItem('authToken', response.data.access_token);
