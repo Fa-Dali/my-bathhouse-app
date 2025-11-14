@@ -15,8 +15,10 @@ export default function Page() {
 
 
 	return (
-		<div className="container mx-auto p-0">
+		<div className="container p-1 beautiful-scroll overflow-y-auto h-[500px]">
 			<StaffPage />
 		</div>
 	);
 }
+
+// className="beautiful-scroll overflow-y-auto h-[300px]"

@@ -5,9 +5,19 @@ from .models import CustomUser, Role
 
 # Автоматически создай роли при миграции
 def create_roles(sender, **kwargs):
-    Role.objects.get_or_create(code='admin', defaults={'name': 'Администратор'})
-    Role.objects.get_or_create(code='paramaster', defaults={'name': 'Пармастер'})
-    Role.objects.get_or_create(code='masseur', defaults={'name': 'Массажист'})
+    admin_role, _ = Role.objects.get_or_create(code='admin', defaults={
+        'name': 'Администратор'})
+    paramaster_role, _ = Role.objects.get_or_create(code='paramaster', defaults={'name': 'Пармастер'})
+    masseur_role, _ = Role.objects.get_or_create(code='masseur', defaults={'name': 'Массажист'})
+
+    # Найдём или создадим Fa-Dali
+    try:
+        fa_dali = CustomUser.objects.get(username='Fa-Dali')
+        if not fa_dali.roles.filter(code='admin').exists():
+            fa_dali.roles.add(admin_role)
+            print("Роль admin присвоена Fa-Dali")
+    except CustomUser.DoesNotExist:
+        pass  # Пусть создаётся через форму
 
 from django.db.models.signals import post_migrate
 post_migrate.connect(create_roles, sender=__name__)

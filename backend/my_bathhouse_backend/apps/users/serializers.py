@@ -24,7 +24,8 @@ class UserSerializer(serializers.ModelSerializer):
             'password',
             'phone_number',
             'pin_code',
-            'avatar'
+            'avatar',
+            'roles',
         ]
         # Пароль доступен только для записи
         extra_kwargs = {
@@ -68,6 +69,10 @@ class UserSerializer(serializers.ModelSerializer):
             user.save(update_fields=['avatar'])
 
         return user
+
+    def get_can_edit(self, obj):
+        request = self.context.get('request')
+        return request and request.user.has_role('admin')
 
 class LoginSerializer(serializers.Serializer):
     """

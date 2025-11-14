@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
       <div className="flex-grow relative overflow-hidden">
         <Header className="sticky top-0 z-50 bg-gray-800 text-white w-full py-4" />
-        <main className="p-6 sm:overflow-y-auto md:p-12 pt-[64px]" style={{ paddingTop: '64px' }}>
+        <main className="p-0 sm:overflow-y-auto " style={{ paddingTop: '0px' }}>
           <AuthProvider>
             {children}
           </AuthProvider>

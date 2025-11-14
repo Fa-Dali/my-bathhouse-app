@@ -39,11 +39,12 @@ from django.middleware.csrf import get_token
 from django.core.exceptions import SuspiciousOperation
 # ===========================
 # ДЛЯ ИЗМЕНЕНИЯ РОЛЕЙ ПОЛЬЗОВАТЕЛЯ
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework_simplejwt.authentication import JWTAuthentication
 # from rest_framework.response import Response
 # from .models import CustomUser, Role
 # ===========================
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 
@@ -235,20 +236,21 @@ def resize_image(image, size):
 # список пользователей и изменение ролей
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
 def user_list(request):
     """Все авторизованные пользователи могут просматривать список.
     Только админ — редактировать."""
 
     logger.info(f"Data: {request.data}")
 
-    print("🟢 user_list вызван!")
-    print("🔹 User:", request.user)
-    print("🔹 Authenticated:", request.user.is_authenticated)
-
-    print("🔹 META keys:", list(request.META.keys()))
-    print("🔹 HTTP_AUTHORIZATION:", request.META.get('HTTP_AUTHORIZATION'))
-    print("🔹 request.user:", request.user)
-    print("🔹 is_authenticated:", request.user.is_authenticated)
+    # print("🟢 user_list вызван!")
+    # print("🔹 User:", request.user)
+    # print("🔹 Authenticated:", request.user.is_authenticated)
+    #
+    # print("🔹 META keys:", list(request.META.keys()))
+    # print("🔹 HTTP_AUTHORIZATION:", request.META.get('HTTP_AUTHORIZATION'))
+    # print("🔹 request.user:", request.user)
+    # print("🔹 is_authenticated:", request.user.is_authenticated)
 
     # if not request.user.is_authenticated:
     #     print("🔴 Пользователь НЕ авторизован")
@@ -274,11 +276,33 @@ def user_list(request):
         }
         for u in users
     ]
+
+    print("🔹 User:", request.user)
+    print("🔹 Authenticated:", request.user.is_authenticated)
+
     return Response(data)
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
 def update_user_roles(request, user_id):
+
+    print("🔹 User в update_user_roles:", request.user)
+    print("🔹 User ID:", request.user.id)
+    print("🔹 Roles:", [r.code for r in request.user.roles.all()])
+
+    print("🔹 НАЧАЛО update_user_roles")
+    print("🔹 User:", request.user)
+    print("🔹 User ID:", request.user.id)
+    print("🔹 Is authenticated:", request.user.is_authenticated)
+    print("🔹 Roles:", [r.code for r in request.user.roles.all()])
+    print("🔹 Has admin:", request.user.has_role('admin'))
+
+    # 🔁 Перезагружаем пользователя из БД, чтобы избежать кэширования
+    request_user = CustomUser.objects.prefetch_related('roles').get(
+        id=request.user.id)
+
     if not request.user.has_role('admin'):
         return Response({'error': 'Доступ запрещён'}, status=403)
 
