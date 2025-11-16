@@ -4,14 +4,58 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '@/app/utils/axiosConfig';
-import { Calendar, momentLocalizer } from 'react-big-calendar';
-import moment from 'moment';
-import 'moment/dist/locale/ru';
+import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
+import { format, parse, startOfWeek, getDay } from 'date-fns';
+import { ru } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
-moment.locale('ru');
+// Настройка локализации через date-fns
+const locales = {
+  'ru': ru,
+};
 
-const localizer = momentLocalizer(moment);
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek: (date: Date) => startOfWeek(date, { weekStartsOn: 1 }), // неделя начинается с понедельника
+  getDay: (date: Date) => getDay(date),
+  locales,
+});
+
+// Дополнительные форматы для русского языка
+const formats = {
+  // Для ячеек календаря: "10 Пн"
+  dayFormat: (date: Date) => {
+    const day = format(date, 'd', { locale: ru });
+    const weekdayIndex = getDay(date);
+    const shortDays = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+    const shortDay = shortDays[weekdayIndex];
+    return `${day} ${shortDay}`;
+  },
+
+  weekdayFormat: (date: Date) => {
+    const weekdayIndex = getDay(date);
+    const shortDays = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+    return shortDays[weekdayIndex];
+  },
+
+
+  // Показывает только месяц: "Ноябрь"
+  monthHeaderFormat: (date: Date) => format(date, 'LLLL', { locale: ru }),
+
+  // Для диапазона недели: "5 – 11 ноября"
+  dayRangeHeaderFormat: ({ start, end }: { start: Date; end: Date }) =>
+    `${format(start, 'd')} – ${format(end, 'd LLLL', { locale: ru })}`,
+
+  // Для заголовка дня: "Понедельник, 11 ноября"
+  dayHeaderFormat: (date: Date) => format(date, 'EEEE, d LLLL', { locale: ru }),
+
+  // Название дня в шапке: "Пн"
+  // weekdayFormat: (date: Date) => format(date, 'EEE', { locale: ru }),
+
+  // Формат времени в слотах: "9:00"
+  timeGutterFormat: (date: Date) => format(date, 'H:mm', { locale: ru }),
+};
 
 interface Worker {
   id: number;
@@ -27,7 +71,7 @@ export default function Page() {
   });
   const [viewMode, setViewMode] = useState<'week' | 'day'>('week');
   const [workers, setWorkers] = useState<Worker[]>([]);
-  const [events, setEvents] = useState<any[]>([]); // ← будут события из БД
+  const [events, setEvents] = useState<any[]>([]);
 
   // Получаем мастеров
   useEffect(() => {
@@ -54,21 +98,13 @@ export default function Page() {
   }, []);
 
   // Горизонтальная прокрутка
-  // const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-  //   e.preventDefault();
-  //   e.currentTarget.scrollLeft += e.deltaY > 0 ? 60 : -60;
-  // };
-
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    if (e.deltaY === 0) return;
-
     e.preventDefault();
     const container = e.currentTarget;
-
-    // Увеличь значение (например, 100 вместо 60)
-    container.scrollLeft += e.deltaY * 2; // ← множитель: быстрее при большом delta
+    container.scrollLeft += e.deltaY > 0 ? 100 : -100;
   };
 
+  // Форматируем имя
   const getFullName = (worker: Worker) =>
     [worker.first_name, worker.last_name].filter(Boolean).join(' ') || worker.username;
 
@@ -80,56 +116,57 @@ export default function Page() {
         title: 'Сеанс с клиентом',
         start: new Date(),
         end: new Date(Date.now() + 60 * 60 * 1000),
-        resourceId: 1,
       },
     ]);
   }, []);
 
   return (
-    <div className="p-2">
-      <h1 className="text-lg font-semibold mb-1">Тайминг на неделю вперёд</h1>
+    <div className="p-0">
+      {/* <h1 className="text-lg font-semibold mb-1">Тайминг на неделю вперёд</h1> */}
 
       {/* ОСНОВНОЙ КОНТЕЙНЕР */}
-      <div className="border border-gray-300 rounded overflow-hidden">
+      <div className="border border-gray-400 rounded overflow-hidden">
 
         {/* 🔹 ФИКСИРОВАННАЯ ОБЛАСТЬ: Дата + Режим */}
-        <div className="flex bg-gray-50 border-b border-gray-300">
-          <div className="flex-shrink-0 border-r border-gray-300 bg-white w-32 p-1">
-            <div className="space-y-2">
+        <div className="flex bg-gray-300 border-b border-gray-300 p-1">
+          <div className="flex-shrink-0 border-r border-gray-400 bg-white w-40 p-1">
+            <div className="space-y-2 bg-gray-300 h-full w-full">
               <input
                 type="date"
-                className="w-full border border-gray-300 rounded px-0 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="text-center border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 mb-0"
                 value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
+                onChange={(e) => {
+                  setSelectedDate(e.target.value);
+                  setViewMode('day');
+                }}
               />
-              <div className="flex flex-col gap-1">
-                <button
-                  onClick={() => setViewMode('week')}
-                  className={`border p-1 text-xs ${viewMode === 'week'
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-200 hover:bg-green-600 hover:text-white'
-                    }`}
-                >
-                  Неделя
-                </button>
+              <div className="flex w-full">
                 <button
                   onClick={() => setViewMode('day')}
-                  className={`border p-1 text-xs ${viewMode === 'day'
+                  className={`w-1/2 border hover:border-slate-700 p-1 text-xs ${viewMode === 'day'
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-200 hover:bg-green-600 hover:text-white'
                     }`}
                 >
                   День
                 </button>
+                <button
+                  onClick={() => setViewMode('week')}
+                  className={`w-1/2 border hover:border-slate-700 p-1 text-xs ${viewMode === 'week'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-200 hover:bg-green-600 hover:text-white'
+                    }`}
+                >
+                  Неделя
+                </button>
               </div>
             </div>
           </div>
 
-          {/* 🔹 ПРОКРУЧИВАЕМАЯ ШАПКА (мастера + подшапка) */}
+          {/* 🔹 ПРОКРУЧИВАЕМАЯ ШАПКА (мастера) */}
           <div
             onWheel={handleWheel}
             className="flex-1 overflow-x-auto max-w-full hide-scrollbar"
-            // style={{ scrollBehavior: 'smooth' }}
             style={{ scrollBehavior: 'auto' }}
           >
             <table className="min-w-full text-center border-b border-gray-300">
@@ -139,27 +176,30 @@ export default function Page() {
                   {workers.map((worker) => (
                     <th
                       key={worker.id}
-                      className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider min-w-32 whitespace-nowrap"
+                      className="px-1 py-1 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider min-w-32 whitespace-nowrap"
                     >
-                      <div className="flex flex-col items-center space-y-1">
-                        {worker.avatar ? (
-                          <img
-                            src={`http://localhost:8000${worker.avatar}`}
-                            alt={getFullName(worker)}
-                            className="h-10 w-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-10 w-10 rounded-full bg-gray-300 flex flex-col items-center justify-center text-[10px] leading-tight">
-                            <span>{worker.first_name?.[0] || ''}</span>
-                            <span>{worker.username?.[0] || ''}</span>
+                      <div className="border border-slate-800 bg-slate-600 hover:bg-sky-800 rounded-sm">
+                        <div className="flex flex-col items-center space-y-1">
+                          {worker.avatar ? (
+                            <img
+                              src={`http://localhost:8000${worker.avatar}`}
+                              alt={getFullName(worker)}
+                              className="h-10 w-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-gray-300 flex flex-col items-center justify-center leading-tight">
+                              <span>{worker.first_name?.[0] || ''}</span>
+                              <span>{worker.username?.[0] || ''}</span>
+                            </div>
+                          )}
+                          {/* Имя и Фамилия — друг под другом */}
+                          <div className="flex flex-col text-xs text-white text-[8px] font-medium leading-tight">
+                            <span>{worker.first_name}</span>
+                            <span>{worker.last_name}</span>
                           </div>
-                        )}
-                        {/* Имя и Фамилия — друг под другом */}
-                        <div className="flex flex-col text-xs font-medium leading-tight">
-                          <span>{worker.first_name}</span>
-                          <span>{worker.last_name}</span>
                         </div>
                       </div>
+
                     </th>
                   ))}
                   {workers.length === 0 && (
@@ -167,61 +207,42 @@ export default function Page() {
                   )}
                 </tr>
 
-                {/* 2-я строка: ПОДШАПКА (пример: время начала/окончания смены) */}
-                <tr>
-                  {workers.map((worker) => (
-                    <th
-                      key={worker.id}
-                      className="px-4 py-1 bg-gray-100 text-xs text-gray-600 min-w-32 whitespace-nowrap"
-                    >
-                      <div className="flex flex-col">
-                        {/* <span>09:00</span> */}
-                        {/* <span>→</span>
-                        <span>18:00</span> */}
-                      </div>
-                    </th>
-                  ))}
-                  {workers.length === 0 && (
-                    <th className="px-4 py-1 bg-gray-100 text-gray-400">—</th>
-                  )}
-                </tr>
+                
+
               </thead>
             </table>
           </div>
         </div>
 
-        {/* 🔹 ОБЛАСТЬ ДЛЯ КАЛЕНДАРЯ (под шапкой) */}
+        {/* 🔹 ОБЛАСТЬ ДЛЯ КАЛЕНДАРЯ */}
         <div className="h-96 bg-white">
           <Calendar
             localizer={localizer}
             events={events}
             startAccessor="start"
             endAccessor="end"
-            view={viewMode}                    // ← синхронизация с состоянием
-            date={new Date(selectedDate)}      // ← текущая дата
+            view={viewMode}
+            date={new Date(selectedDate)}
             onView={(newView) => {
-              setViewMode(newView as 'week' | 'day');
+              if (newView === 'day' || newView === 'week') {
+                setViewMode(newView);
+              }
+              // Если пришёл 'month' — игнорируем (или обрабатываем отдельно)
             }}
             onNavigate={(newDate) => {
-              // При клике на "Назад", "Вперёд", "Сегодня"
-              setSelectedDate(moment(newDate).format('YYYY-MM-DD'));
+              const formatted = new Date(newDate).toISOString().split('T')[0];
+              setSelectedDate(formatted);
             }}
-            style={{ height: '100%', width: '100%' }}
+            style={{ height: '100%', width: '70%' }}
             views={['day', 'week']}
             showAllEvents={false}
-            components={{
-              event: ({ event }) => <div className="text-xs">{event.title}</div>,
-            }}
+            formats={formats}  // ← передаём кастомные форматы
             messages={{
               next: 'Вперёд',
               previous: 'Назад',
               today: 'Сегодня',
               week: 'Неделя',
               day: 'День',
-              // Дополнительные переводы
-              date: 'Дата',
-              time: 'Время',
-              event: 'Событие',
             }}
           />
         </div>
