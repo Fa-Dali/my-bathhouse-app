@@ -6,10 +6,10 @@ import Salaries from './salaries/page';
 
 export default function Page() {
   return (
-	<div className="container mx-auto p-4">
-		<p>ДОСТУПНА : КОНКРЕТНОМУ МАСТЕРУ И ВСЕМ АДМИНИСТРАТОРАМ</p>
+	<div className="container mx-auto p-1">
+		{/* <p>ДОСТУПНА : КОНКРЕТНОМУ МАСТЕРУ И ВСЕМ АДМИНИСТРАТОРАМ</p>
 		<p>.</p>
-		<p>СТРАНИЦА : ТАЙМИНГ ОДНОГО МАСТЕРА НА НЕДЕЛЮ</p>
+		<p>СТРАНИЦА : ТАЙМИНГ ОДНОГО МАСТЕРА НА НЕДЕЛЮ</p> */}
 		<WeekAhead />
 		<Salaries />
 	</div>

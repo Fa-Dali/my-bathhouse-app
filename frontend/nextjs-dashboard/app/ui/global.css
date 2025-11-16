@@ -73,6 +73,21 @@ input[type='number']::-webkit-outer-spin-button {
 
 /* ================================ */
 
+/* ГОРИЗОНТАЛЬНЫЙ КРАСИВЫЙ СКРОЛЛБАР */
+
+/* Скрываем полосу прокрутки, но оставляем прокрутку */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* для Internet Explorer и Edge */
+  scrollbar-width: none;     /* для Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;             /* для Chrome, Safari, Opera */
+}
+
+/* *** END *** ГОРИЗОНТАЛЬНЫЙ КРАСИВЫЙ СКРОЛЛБАР */
+
+/* ================================ */
+
 /* ЗАСТАВКА ЗАГРУЗКИ loadung.tsx */
 @keyframes pulse {
   0%, 100% {

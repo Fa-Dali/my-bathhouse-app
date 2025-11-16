@@ -14,14 +14,14 @@ import SalaryDay from './daily/salary-day';
 export default function Page() {
   return (
 	<div className="container mx-auto p-4">
-		<p>элемент | СТРАНИЦА : ЗАРПЛАТНАЯ КАРТОЧКА МАСТЕРА</p>
+		{/* <p>элемент | СТРАНИЦА : ЗАРПЛАТНАЯ КАРТОЧКА МАСТЕРА</p>
 		<DayService />
 		<SalaryDay />
 		<StatusPaid />
 		<StatusUnPaid />
 		<Monthly />
 		<Periodical />
-		<Yearly />
+		<Yearly /> */}
 
 	</div>
 
