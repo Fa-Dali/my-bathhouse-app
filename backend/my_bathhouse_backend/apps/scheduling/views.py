@@ -2,13 +2,15 @@
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
 from django.utils import timezone
 from .models import Availability, Booking
 from .serializers import AvailabilitySerializer, BookingSerializer
 
+# """Получить доступность мастеров (по дате)"""
 @api_view(['GET'])
 def get_availabilities(request):
-    # """Получить доступность мастеров (по дате)"""
+
     # date_str = request.GET.get('date')
     # if date_str:
     #     target_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
@@ -84,3 +86,20 @@ def create_booking(request):
         serializer.save()
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
+
+@api_view(['DELETE'])
+def delete_availability(request, availability_id):
+    """Удалить слот доступности (только для мастера или админа)"""
+    try:
+        availability = Availability.objects.get(id=availability_id)
+    except Availability.DoesNotExist:
+        return Response({"error": "Слот не найден"}, status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+
+    # Проверка: может ли удалить?
+    if user != availability.master and not user.has_role('admin'):
+        return Response({"error": "Нет прав на удаление"}, status=status.HTTP_403_FORBIDDEN)
+
+    availability.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)

@@ -9,6 +9,33 @@ import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
+// Интерфейс для мастера
+interface Worker {
+  id: number;
+  username: string;
+  first_name: string;
+  last_name: string;
+  avatar: string | null;
+  roles: Array<{ code: string; name: string }>; // Дополнительное поле для ролей ***
+}
+
+// Интерфейс для доступности ***
+interface Availability {
+  id: number;
+  master: number;
+  start: string;
+  end: string;
+  is_available: boolean;
+}
+
+interface CalendarEvent {
+  id: number;
+  title: string;
+  start: Date;
+  end: Date;
+  type: 'available' | 'unavailable';
+}
+
 // Настройка локализации через date-fns
 const locales = {
   'ru': ru,
@@ -54,24 +81,7 @@ const formats = {
   timeGutterFormat: (date: Date) => format(date, 'H:mm', { locale: ru }),
 };
 
-// Интерфейс для мастера
-interface Worker {
-  id: number;
-  username: string;
-  first_name: string;
-  last_name: string;
-  avatar: string | null;
-  roles: Array<{ code: string; name: string }>; // Дополнительное поле для ролей ***
-}
 
-// Интерфейс для доступности ***
-interface Availability {
-  id: number;
-  master: number;
-  start: string;
-  end: string;
-  is_available: boolean;
-}
 
 export default function Page() {
   const [selectedDate, setSelectedDate] = useState<string>(() => {
@@ -81,62 +91,8 @@ export default function Page() {
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null); // ***
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);  // ***
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-  // Получаем мастеров
-  useEffect(() => {
-    const fetchWorkers = async () => {
-      try {
-        const response = await api.get('/api/users/');
-        const filtered = response.data
-          .filter((u: any) =>
-            u.roles.some((r: any) => r.code === 'paramaster' || r.code === 'masseur')
-          )
-          .map((u: any) => ({
-            id: u.id,
-            username: u.username,
-            first_name: u.first_name,
-            last_name: u.last_name,
-            avatar: u.avatar,
-            roles: u.roles,
-          }));
-        setWorkers(filtered);
-        if (filtered.length > 0) {
-          setSelectedWorker(filtered[0]);
-        }
-      } catch (err) {
-        console.error('Ошибка загрузки мастеров:', err);
-      }
-    };
-    fetchWorkers();
-  }, []);
-
-  // Получаем доступность выбранного мастера
-  useEffect(() => {
-    if (!selectedWorker) return;
-
-    const fetchAvailabilities = async () => {
-      try {
-        const response = await api.get('/api/scheduling/availabilities/');
-        const filtered = response.data.filter((a: any) => a.master === selectedWorker.id);
-        setAvailabilities(filtered);
-
-        // Преобразуем в формат событий для календаря
-        const calendarEvents = filtered.map((a: any) => ({
-          id: a.id,
-          title: a.is_available ? 'Доступен' : 'Недоступен',
-          start: new Date(a.start),
-          end: new Date(a.end),
-          type: a.is_available ? 'available' : 'unavailable'
-        }));
-        setEvents(calendarEvents);
-      } catch (err) {
-        console.error('Ошибка загрузки доступности:', err);
-      }
-    };
-
-    fetchAvailabilities();
-  }, [selectedWorker]);
 
   // Обработка выбора мастера
   const handleWorkerSelect = (worker: Worker) => {
@@ -247,6 +203,63 @@ export default function Page() {
     }
   };
 
+
+  // Получаем мастеров
+  useEffect(() => {
+    const fetchWorkers = async () => {
+      try {
+        const response = await api.get('/api/users/');
+        const filtered = response.data
+          .filter((u: any) =>
+            u.roles.some((r: any) => r.code === 'paramaster' || r.code === 'masseur')
+          )
+          .map((u: any) => ({
+            id: u.id,
+            username: u.username,
+            first_name: u.first_name,
+            last_name: u.last_name,
+            avatar: u.avatar,
+            roles: u.roles,
+          }));
+        setWorkers(filtered);
+        if (filtered.length > 0) {
+          setSelectedWorker(filtered[0]);
+        }
+      } catch (err) {
+        console.error('Ошибка загрузки мастеров:', err);
+      }
+    };
+    fetchWorkers();
+  }, []);
+
+  // Получаем доступность выбранного мастера
+  useEffect(() => {
+    if (!selectedWorker) return;
+
+    const fetchAvailabilities = async () => {
+      try {
+        const response = await api.get('/api/scheduling/availabilities/');
+        const filtered = response.data.filter((a: any) => a.master === selectedWorker.id);
+        setAvailabilities(filtered);
+
+        // Преобразуем в формат событий для календаря
+        const calendarEvents = filtered.map((a: Availability): CalendarEvent => ({
+          id: a.id,
+          title: a.is_available ? 'Доступен' : 'Недоступен',
+          start: new Date(a.start),
+          end: new Date(a.end),
+          type: a.is_available ? 'available' : 'unavailable'
+        }));
+        setEvents(calendarEvents);
+      } catch (err) {
+        console.error('Ошибка загрузки доступности:', err);
+      }
+    };
+
+    fetchAvailabilities();
+  }, [selectedWorker]);
+
+
   return (
     <div className="p-0">
       {/* ОСНОВНОЙ КОНТЕЙНЕР */}
@@ -351,7 +364,7 @@ export default function Page() {
             selectable={true}
             onSelectSlot={handleSelectSlot}
             onSelectEvent={handleSelectEvent}
-            // {/* @ts-ignore */}
+            // @ts-ignore
             onEventDrop={handleEventDrop}     // ✅ Работает
             onEventResize={handleEventResize} // ✅ Работает
             resizable                         // ✅
