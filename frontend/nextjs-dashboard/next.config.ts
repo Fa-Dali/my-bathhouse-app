@@ -3,7 +3,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,     // Включаем строгий режим React
-  // experimental: {},          Здесь можно задать экспериментальные фичи
+
   async rewrites() {
     return [
       {
@@ -29,10 +29,10 @@ const nextConfig: NextConfig = {
   // Добавил для обработки шрифтов
   webpack(config) {
     // Добавляем новое правило для обработки шрифтов
-    config.module.rules.push({
-      test: /\.(ttf|eot|svg|gif)$/,
-      use: 'file-loader',
-    });
+    // config.module.rules.push({
+    //   test: /\.(ttf|eot|svg|gif)$/,
+    //   use: 'file-loader',
+    // });
     return config;
   },
 

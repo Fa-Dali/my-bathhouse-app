@@ -2,7 +2,7 @@
 import '@/app/ui/global.css';
 import Header from '@/app/components/Header';
 import { inter } from '@/app/ui/fonts';
-
+import { DnDProvider } from './DnDProvider';
 import { AuthProvider } from '@/app/auth/contexts/auth-provider';
 
 export default function RootLayout({
@@ -14,7 +14,9 @@ export default function RootLayout({
     <html lang="ru">
       <body className={`${inter.className} antialiased`}>
         <AuthProvider>
-          {children}
+          <DnDProvider>
+            {children}
+          </DnDProvider>
         </AuthProvider>
       </body>
     </html>
