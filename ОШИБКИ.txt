@@ -1,0 +1,17 @@
+
+Type '({ event, start, end }: { event: CalendarEvent; start: Date; end: Date; }) => Promise<void>' is not assignable to type '(args: EventInteractionArgs<object>) => void'.
+  Types of parameters '__0' and 'args' are incompatible.
+    Type 'EventInteractionArgs<object>' is not assignable to type '{ event: CalendarEvent; start: Date; end: Date; }'.
+      Types of property 'event' are incompatible.
+        Type '{}' is missing the following properties from type 'CalendarEvent': id, title, start, end, typets(2322)
+dragAndDrop.d.ts(30, 5): The expected type comes from property 'onEventDrop' which is declared here on type 'IntrinsicAttributes & DragAndDropCalendarProps<object, object>'
+(property) withDragAndDropProps<object, object>.onEventDrop?: ((args: EventInteractionArgs<object>) => void) | undefined
+
+Type '({ event, start, end }: { event: CalendarEvent; start: Date; end: Date; }) => Promise<void>' is not assignable to type '(args: EventInteractionArgs<object>) => void'.
+  Types of parameters '__0' and 'args' are incompatible.
+    Type 'EventInteractionArgs<object>' is not assignable to type '{ event: CalendarEvent; start: Date; end: Date; }'.
+      Types of property 'event' are incompatible.
+        Type '{}' is missing the following properties from type 'CalendarEvent': id, title, start, end, typets(2322)
+dragAndDrop.d.ts(31, 5): The expected type comes from property 'onEventResize' which is declared here on type 'IntrinsicAttributes & DragAndDropCalendarProps<object, object>'
+(property) withDragAndDropProps<object, object>.onEventResize?: ((args: EventInteractionArgs<object>) => void) | undefined
+

@@ -454,6 +454,15 @@ input[type="text"] {
     border-radius: 4px;
     padding: 2px 4px;
     font-size: 0.8em;
+
+    /* ДЛЯ ПЕРЕТАСКИВАНИЯ */
+    cursor: move !important;
+    user-select: none;
+    transition: box-shadow 0.2s;
+}
+
+.rbc-event:hover {
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
 }
 
 .rbc-day-bg {

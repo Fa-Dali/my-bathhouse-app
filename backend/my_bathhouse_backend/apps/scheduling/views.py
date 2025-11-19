@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils import timezone
+from datetime import timedelta
 from .models import Availability, Booking
 from .serializers import AvailabilitySerializer, BookingSerializer
 
@@ -20,10 +21,16 @@ def get_availabilities(request):
     # return Response(AvailabilitySerializer(availabilities, many=True).data)
     user = request.user
 
+    # Определяем диапазон: сегодня + 7 дней
+    week_from_now = timezone.now() + timedelta(days=7)
+
     if user.has_role('admin'):
-        availabilities = Availability.objects.all()
+        availabilities = Availability.objects.filter(start__lt=week_from_now)
     elif user.has_role('paramaster') or user.has_role('masseur'):
-        availabilities = Availability.objects.filter(master=user)
+        availabilities = Availability.objects.filter(
+            master=user,
+            start__lt=week_from_now
+        )
     else:
         availabilities = Availability.objects.none()
 
@@ -32,6 +39,22 @@ def get_availabilities(request):
 @api_view(['POST'])
 def create_availability(request):
     """Мастер указывает, когда может работать"""
+
+    master_id = request.data.get('master')
+    start = timezone.datetime.fromisoformat(request.data['start'])
+    end = timezone.datetime.fromisoformat(request.data['end'])
+
+    if start >= end:
+        return Response({"error": "Время окончания должно быть позже начала"}, status=400)
+
+    # Проверка на пересечение
+    if Availability.objects.filter(
+        master_id=master_id,
+        start__lt=end,
+        end__gt=start
+    ).exists():
+        return Response({"error": "Слот пересекается с существующим"}, status=400)
+    
     serializer = AvailabilitySerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -57,7 +80,7 @@ def get_bookings(request):
     else:
         bookings = Booking.objects.none()
 
-    return Response(AvailabilitySerializer(bookings, many=True).data)
+    return Response(BookingSerializer(bookings, many=True).data)
 
 @api_view(['POST'])
 def create_booking(request):
@@ -89,6 +112,7 @@ def create_booking(request):
 
 @api_view(['DELETE'])
 def delete_availability(request, availability_id):
+
     """Удалить слот доступности (только для мастера или админа)"""
     try:
         availability = Availability.objects.get(id=availability_id)
@@ -103,3 +127,47 @@ def delete_availability(request, availability_id):
 
     availability.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['PATCH'])
+def update_availability(request, availability_id):
+    """Обновить существующий слот доступности (только мастер или админ)"""
+    try:
+        availability = Availability.objects.get(id=availability_id)
+    except Availability.DoesNotExist:
+        return Response({"error": "Слот не найден"}, status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    if user != availability.master and not user.has_role('admin'):
+        return Response({"error": "Нет прав на редактирование"}, status=status.HTTP_403_FORBIDDEN)
+
+    serializer = AvailabilitySerializer(availability, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# views.py
+@api_view(['GET', 'PATCH', 'DELETE'])
+def availability_detail(request, availability_id):
+    try:
+        availability = Availability.objects.get(id=availability_id)
+    except Availability.DoesNotExist:
+        return Response({"error": "Слот не найден"}, status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    if user != availability.master and not user.has_role('admin'):
+        return Response({"error": "Нет прав"}, status=status.HTTP_403_FORBIDDEN)
+
+    if request.method == 'GET':
+        return Response(AvailabilitySerializer(availability).data)
+
+    elif request.method == 'PATCH':
+        serializer = AvailabilitySerializer(availability, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        availability.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

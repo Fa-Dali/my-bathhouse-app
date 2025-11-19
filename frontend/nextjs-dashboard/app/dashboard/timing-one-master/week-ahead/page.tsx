@@ -1,25 +1,37 @@
-// Ссылка страницы http://localhost:3000/dashboard/timing-one-master
+// Ссылка страницы: http://localhost:3000/dashboard/timing-one-master
 
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import api from '@/app/utils/axiosConfig';
-import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
+
+// 1. Основной Calendar
+import { Calendar as RBCalendar } from 'react-big-calendar';
+
+// 2. Drag & Drop
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
+
+// 3. Локализация — ОТДЕЛЬНО (важно!)
+import { dateFnsLocalizer } from 'react-big-calendar';
+
+// 4. Стили
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
+
+// 5. Работа с датами
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
 
-// Интерфейс для мастера
+// Интерфейсы
 interface Worker {
   id: number;
   username: string;
   first_name: string;
   last_name: string;
   avatar: string | null;
-  roles: Array<{ code: string; name: string }>; // Дополнительное поле для ролей ***
+  roles: Array<{ code: string; name: string }>;
 }
 
-// Интерфейс для доступности ***
 interface Availability {
   id: number;
   master: number;
@@ -34,79 +46,61 @@ interface CalendarEvent {
   start: Date;
   end: Date;
   type: 'available' | 'unavailable';
+  allDay?: boolean;
 }
 
-// Настройка локализации через date-fns
-const locales = {
-  'ru': ru,
-};
+// ✅ Создаём Calendar с DnD и указываем тип события
+const Calendar = withDragAndDrop<CalendarEvent>(RBCalendar);
 
+// ✅ Создаём localizer (ПРАВИЛЬНО!)
 const localizer = dateFnsLocalizer({
   format,
   parse,
-  startOfWeek: (date: Date) => startOfWeek(date, { weekStartsOn: 1 }), // неделя начинается с понедельника
-  getDay: (date: Date) => getDay(date),
-  locales,
+  startOfWeek: (date: Date) => startOfWeek(date, { weekStartsOn: 1 }),
+  getDay,
+  locales: {
+    ru,
+  },
 });
 
-// Дополнительные форматы для русского языка
+// Форматы для русского языка
 const formats = {
-  // Для ячеек календаря: "10 Пн"
   dayFormat: (date: Date) => {
     const day = format(date, 'd', { locale: ru });
     const weekdayIndex = getDay(date);
     const shortDays = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-    const shortDay = shortDays[weekdayIndex];
-    return `${day} ${shortDay}`;
+    return `${day} ${shortDays[weekdayIndex]}`;
   },
-
   weekdayFormat: (date: Date) => {
     const weekdayIndex = getDay(date);
     const shortDays = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
     return shortDays[weekdayIndex];
   },
-
-
-  // Показывает только месяц: "Ноябрь"
   monthHeaderFormat: (date: Date) => format(date, 'LLLL', { locale: ru }),
-
-  // Для диапазона недели: "5 – 11 ноября"
   dayRangeHeaderFormat: ({ start, end }: { start: Date; end: Date }) =>
     `${format(start, 'd')} – ${format(end, 'd LLLL', { locale: ru })}`,
-
-  // Для заголовка дня: "Понедельник, 11 ноября"
   dayHeaderFormat: (date: Date) => format(date, 'EEEE, d LLLL', { locale: ru }),
-
-  // Формат времени в слотах: "9:00"
   timeGutterFormat: (date: Date) => format(date, 'H:mm', { locale: ru }),
 };
 
-
-
 export default function Page() {
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    return new Date().toISOString().split('T')[0];
-  });
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [viewMode, setViewMode] = useState<'week' | 'day'>('week');
   const [workers, setWorkers] = useState<Worker[]>([]);
-  const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null); // ***
-  const [availabilities, setAvailabilities] = useState<Availability[]>([]);  // ***
+  const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
+  const [availabilities, setAvailabilities] = useState<Availability[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
+  // Выбор мастера
+  const handleWorkerSelect = (worker: Worker) => setSelectedWorker(worker);
 
-  // Обработка выбора мастера
-  const handleWorkerSelect = (worker: Worker) => {
-    setSelectedWorker(worker);
-  };
-
-  // Горизонтальная прокрутка
+  // Горизонтальная прокрутка шапки
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const container = e.currentTarget;
-    container.scrollLeft += e.deltaY > 0 ? 100 : -100;
+    e.currentTarget.scrollLeft += e.deltaY > 0 ? 100 : -100;
   };
 
-  // Обработка клика на ячейку календаря
+  // Клик по свободной ячейке → создать слот
   const handleSelectSlot = async ({ start, end }: { start: Date; end: Date }) => {
     if (!selectedWorker) return;
 
@@ -115,47 +109,45 @@ export default function Page() {
         master: selectedWorker.id,
         start: start.toISOString(),
         end: end.toISOString(),
-        is_available: true
+        is_available: true,
       });
 
-      // Обновляем список доступности
       const newAvailability = response.data;
       setAvailabilities([...availabilities, newAvailability]);
-      setEvents([...events, {
-        id: newAvailability.id,
-        title: 'Доступен',
-        start: new Date(newAvailability.start),
-        end: new Date(newAvailability.end),
-        type: 'available'
-      }]);
+      setEvents([
+        ...events,
+        {
+          id: Number(newAvailability.id),
+          title: 'Доступен',
+          start: new Date(newAvailability.start),
+          end: new Date(newAvailability.end),
+          type: 'available',
+          allDay: false,
+        },
+      ]);
     } catch (err) {
       console.error('Ошибка создания доступности:', err);
     }
   };
 
-  // Форматируем имя
+  // Формат имени мастера
   const getFullName = (worker: Worker) =>
     [worker.first_name, worker.last_name].filter(Boolean).join(' ') || worker.username;
 
-  // Обработка выбора события
-  const handleSelectEvent = (event: any) => {
+  // Клик по событию
+  const handleSelectEvent = (event: CalendarEvent) => {
     if (!selectedWorker) return;
 
     const confirmed = window.confirm(
       `Удалить слот "${event.title}"?\n${format(event.start, 'H:mm')} — ${format(event.end, 'H:mm')}`
     );
-
-    if (confirmed) {
-      handleDeleteEvent(event);
-    }
+    if (confirmed) handleDeleteEvent(event);
   };
 
-  // Удаление события
-  const handleDeleteEvent = async (event: any) => {
+  // Удаление слота
+  const handleDeleteEvent = async (event: CalendarEvent) => {
     try {
       await api.delete(`/api/scheduling/availabilities/${event.id}/`);
-
-      // Удаляем из состояния
       setAvailabilities(availabilities.filter(a => a.id !== event.id));
       setEvents(events.filter(e => e.id !== event.id));
     } catch (err) {
@@ -165,18 +157,21 @@ export default function Page() {
   };
 
   // Перетаскивание события
-  const handleEventDrop = async ({ event, start, end }: { event: any; start: Date; end: Date }) => {
+  const handleEventDrop = async ({ event, start, end }: { event: CalendarEvent; start: Date; end: Date }) => {
+    console.log('Перетаскивание:', { id: event.id, start, end });
+
     try {
       await api.patch(`/api/scheduling/availabilities/${event.id}/`, {
         start: start.toISOString(),
         end: end.toISOString(),
       });
 
-      // Обновляем локально
       const updatedEvent = { ...event, start, end };
       setEvents(events.map(e => (e.id === event.id ? updatedEvent : e)));
       setAvailabilities(
-        availabilities.map(a => (a.id === event.id ? { ...a, start: start.toISOString(), end: end.toISOString() } : a))
+        availabilities.map(a =>
+          a.id === event.id ? { ...a, start: start.toISOString(), end: end.toISOString() } : a
+        )
       );
     } catch (err) {
       console.error('Ошибка перетаскивания:', err);
@@ -184,8 +179,8 @@ export default function Page() {
     }
   };
 
-  // Изменение длительности события
-  const handleEventResize = async ({ event, start, end }: { event: any; start: Date; end: Date }) => {
+  // Изменение длительности
+  const handleEventResize = async ({ event, start, end }: { event: CalendarEvent; start: Date; end: Date }) => {
     try {
       await api.patch(`/api/scheduling/availabilities/${event.id}/`, {
         start: start.toISOString(),
@@ -195,7 +190,9 @@ export default function Page() {
       const updatedEvent = { ...event, start, end };
       setEvents(events.map(e => (e.id === event.id ? updatedEvent : e)));
       setAvailabilities(
-        availabilities.map(a => (a.id === event.id ? { ...a, start: start.toISOString(), end: end.toISOString() } : a))
+        availabilities.map(a =>
+          a.id === event.id ? { ...a, start: start.toISOString(), end: end.toISOString() } : a
+        )
       );
     } catch (err) {
       console.error('Ошибка изменения длительности:', err);
@@ -203,8 +200,7 @@ export default function Page() {
     }
   };
 
-
-  // Получаем мастеров
+  // Загрузка мастеров
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
@@ -222,9 +218,7 @@ export default function Page() {
             roles: u.roles,
           }));
         setWorkers(filtered);
-        if (filtered.length > 0) {
-          setSelectedWorker(filtered[0]);
-        }
+        if (filtered.length > 0) setSelectedWorker(filtered[0]);
       } catch (err) {
         console.error('Ошибка загрузки мастеров:', err);
       }
@@ -232,7 +226,7 @@ export default function Page() {
     fetchWorkers();
   }, []);
 
-  // Получаем доступность выбранного мастера
+  // Загрузка доступности
   useEffect(() => {
     if (!selectedWorker) return;
 
@@ -242,13 +236,13 @@ export default function Page() {
         const filtered = response.data.filter((a: any) => a.master === selectedWorker.id);
         setAvailabilities(filtered);
 
-        // Преобразуем в формат событий для календаря
         const calendarEvents = filtered.map((a: Availability): CalendarEvent => ({
-          id: a.id,
+          id: Number(a.id),
           title: a.is_available ? 'Доступен' : 'Недоступен',
           start: new Date(a.start),
           end: new Date(a.end),
-          type: a.is_available ? 'available' : 'unavailable'
+          type: a.is_available ? 'available' : 'unavailable',
+          allDay: false,
         }));
         setEvents(calendarEvents);
       } catch (err) {
@@ -259,12 +253,16 @@ export default function Page() {
     fetchAvailabilities();
   }, [selectedWorker]);
 
+  // Лог для отладки
+  useEffect(() => {
+    console.log('Текущие события:', events);
+  }, [events]);
 
   return (
     <div className="p-0">
-      {/* ОСНОВНОЙ КОНТЕЙНЕР */}
+      {/* Основной контейнер */}
       <div className="border border-gray-400 rounded overflow-hidden">
-        {/* Фиксированная панель: дата + режим */}
+        {/* Шапка: дата + режим */}
         <div className="flex bg-gray-300 border-b border-gray-300 p-1">
           <div className="flex-shrink-0 border-r border-gray-400 bg-white w-40 p-1">
             <div className="space-y-2 bg-gray-300 h-full w-full">
@@ -272,7 +270,7 @@ export default function Page() {
                 type="date"
                 className="text-center border border-gray-300 rounded text-sm w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
                 value={selectedDate}
-                onChange={(e) => {
+                onChange={e => {
                   setSelectedDate(e.target.value);
                   setViewMode('day');
                 }}
@@ -300,7 +298,7 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Прокручиваемая шапка: мастера */}
+          {/* Прокручиваемая шапка мастеров */}
           <div
             onWheel={handleWheel}
             className="flex-1 overflow-x-auto max-w-full hide-scrollbar"
@@ -309,7 +307,7 @@ export default function Page() {
             <table className="min-w-full text-center">
               <thead>
                 <tr>
-                  {workers.map((worker) => (
+                  {workers.map(worker => (
                     <th
                       key={worker.id}
                       className="px-1 py-1 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider min-w-32"
@@ -351,24 +349,21 @@ export default function Page() {
             endAccessor="end"
             view={viewMode}
             date={new Date(selectedDate)}
-            onView={(newView) => {
-              if (newView === 'day' || newView === 'week') {
-                setViewMode(newView);
-              }
+            onView={newView => {
+              if (newView === 'day' || newView === 'week') setViewMode(newView);
             }}
-            onNavigate={(newDate) => {
+            onNavigate={newDate => {
               setSelectedDate(new Date(newDate).toISOString().split('T')[0]);
             }}
             style={{ height: '100%', width: '100%' }}
             views={['day', 'week']}
-            selectable={true}
+            selectable="ignoreEvents"
             onSelectSlot={handleSelectSlot}
             onSelectEvent={handleSelectEvent}
-            // @ts-ignore
-            onEventDrop={handleEventDrop}     // ✅ Работает
-            onEventResize={handleEventResize} // ✅ Работает
-            resizable                         // ✅
-            draggable                         // ✅
+            onEventDrop={handleEventDrop as any}
+            onEventResize={handleEventResize as any}
+            resizable
+            // draggable
             formats={formats}
             messages={{
               next: 'Вперёд',
@@ -377,13 +372,19 @@ export default function Page() {
               week: 'Неделя',
               day: 'День',
             }}
-            eventPropGetter={(event) => ({
+            eventPropGetter={event => ({
               style: {
                 backgroundColor: event.type === 'available' ? '#d1fae5' : '#fee2e2',
                 border: '1px solid #ccc',
                 color: '#166534',
+                cursor: 'move',
               },
             })}
+            step={15}
+            timeslots={4}
+            popup
+            min={new Date(0, 0, 0, 8, 0, 0)}
+            max={new Date(0, 0, 0, 22, 0, 0)}
           />
         </div>
       </div>
