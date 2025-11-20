@@ -1,5 +1,4 @@
 // Ссылка страницы: http://localhost:3000/dashboard/timing-one-master
-
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
@@ -7,17 +6,13 @@ import api from '@/app/utils/axiosConfig';
 
 // 1. Основной Calendar
 import { Calendar as RBCalendar } from 'react-big-calendar';
-
 // 2. Drag & Drop
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
-
-// 3. Локализация — ОТДЕЛЬНО (важно!)
+// 3. Локализация
 import { dateFnsLocalizer } from 'react-big-calendar';
-
 // 4. Стили
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
-
 // 5. Работа с датами
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -49,21 +44,26 @@ interface CalendarEvent {
   allDay?: boolean;
 }
 
-// ✅ Создаём Calendar с DnD и указываем тип события
+interface BookingEvent extends CalendarEvent {
+  steamProgram?: string;
+  massage?: string;
+  masterIds: number[];
+  payments: Array<{ amount: number; method: string }>;
+}
+
+// Создаём Calendar с DnD
 const Calendar = withDragAndDrop<CalendarEvent>(RBCalendar);
 
-// ✅ Создаём localizer (ПРАВИЛЬНО!)
+// Локализация
 const localizer = dateFnsLocalizer({
   format,
   parse,
   startOfWeek: (date: Date) => startOfWeek(date, { weekStartsOn: 1 }),
   getDay,
-  locales: {
-    ru,
-  },
+  locales: { ru },
 });
 
-// Форматы для русского языка
+// Форматы
 const formats = {
   dayFormat: (date: Date) => {
     const day = format(date, 'd', { locale: ru });
@@ -84,14 +84,6 @@ const formats = {
 };
 
 export default function Page() {
-  // Тип для брони
-  interface BookingEvent extends CalendarEvent {
-    steamProgram?: string;
-    massage?: string;
-    masterIds: number[];
-    payments: Array<{ amount: number; method: string }>;
-  }
-
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [viewMode, setViewMode] = useState<'week' | 'day'>('week');
   const [workers, setWorkers] = useState<Worker[]>([]);
@@ -99,37 +91,51 @@ export default function Page() {
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-  // Состояние для модального окна
   const [selectedBooking, setSelectedBooking] = useState<BookingEvent | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const modalRef = useRef<HTMLDialogElement>(null);
 
-  // Выбор мастера
   const handleWorkerSelect = (worker: Worker) => setSelectedWorker(worker);
 
-
-  // Функция открытия модалки
   const openModal = (slotInfo: { start: Date; end: Date } | CalendarEvent) => {
     const isEvent = 'title' in slotInfo;
+    const userRole = localStorage.getItem('role');
+    const isAdmin = userRole === 'admin';
 
-    const booking: BookingEvent = {
-      id: isEvent ? slotInfo.id : Date.now(),
-      title: isEvent ? slotInfo.title : 'Новая бронь',
-      start: slotInfo.start,
-      end: slotInfo.end,
-      type: 'unavailable',
-      steamProgram: '',
-      massage: '',
-      masterIds: selectedWorker ? [selectedWorker.id] : [],
-      payments: [{ amount: 0, method: 'cash' }]
-    };
+    if (isAdmin) {
+      const booking: BookingEvent = {
+        id: isEvent ? slotInfo.id : -1,
+        title: isEvent ? slotInfo.title : 'Бронь',
+        start: slotInfo.start,
+        end: slotInfo.end,
+        type: 'unavailable',
+        steamProgram: '',
+        massage: '',
+        masterIds: selectedWorker ? [selectedWorker.id] : [],
+        payments: [{ amount: 0, method: 'cash' }],
+      };
+      setSelectedBooking(booking);
+    } else {
+      const availability: CalendarEvent = {
+        id: isEvent ? slotInfo.id : -1,
+        title: 'Недоступен',
+        start: slotInfo.start,
+        end: slotInfo.end,
+        type: 'available',
+      };
+      setSelectedBooking({
+        ...availability,
+        steamProgram: '',
+        massage: '',
+        masterIds: selectedWorker ? [selectedWorker.id] : [],
+        payments: [{ amount: 0, method: 'cash' }],
+      } as BookingEvent);
+    }
 
-    setSelectedBooking(booking);
     setModalOpen(true);
     setTimeout(() => modalRef.current?.showModal(), 0);
   };
 
-  // Обработчики формы
   const handleChange = (field: string, value: any) => {
     setSelectedBooking(prev => prev ? { ...prev, [field]: value } : null);
   };
@@ -159,77 +165,141 @@ export default function Page() {
     } : null);
   };
 
-  // Сохранение
   const saveBooking = async () => {
     if (!selectedBooking) return;
 
+    const userRole = localStorage.getItem('role');
+    const isAdmin = userRole === 'admin';
+    const isCreating = selectedBooking.id === -1;
+
     try {
-      const url = selectedBooking.id > 0
-        ? `/api/scheduling/bookings/${selectedBooking.id}/`
-        : '/api/scheduling/bookings/create/';
-      const method = selectedBooking.id > 0 ? 'patch' : 'post';
+      if (isAdmin) {
+        const url = isCreating
+          ? '/api/scheduling/bookings/create/'
+          : `/api/scheduling/bookings/${selectedBooking.id}/`;
+        const method = isCreating ? 'post' : 'patch';
 
-      await api[method](url, selectedBooking);
+        const payload = {
+          master_ids: selectedBooking.masterIds,
+          start: selectedBooking.start.toISOString(),
+          end: selectedBooking.end.toISOString(),
+          booking_type: 'client',
+          steam_program: selectedBooking.steamProgram ?? '',
+          massage: selectedBooking.massage ?? '',
+          total_cost: 0,
+          payments: selectedBooking.payments,
+        };
 
-      // Обновить события: создать слоты для всех мастеров
-      const newEvents = selectedBooking.masterIds.map(masterId => {
-        const event: CalendarEvent = {
-          id: Number(selectedBooking.id),
-          title: 'Занято',
+        const response = await api[method](url, payload);
+
+        const newEvent = {
+          id: Number(response.data.id),
+          title: 'Услуга',
           start: selectedBooking.start,
           end: selectedBooking.end,
           type: 'unavailable',
-        };
-        return event;
-      });
+        } as CalendarEvent;
 
-      setEvents(prev => [
-        ...prev.filter(e => !newEvents.some(ne => ne.id === e.id)),
-        ...newEvents
-      ]);
+        setEvents(prev => [
+          ...prev.filter(e => !(e.start.getTime() === newEvent.start.getTime() && e.end.getTime() === newEvent.end.getTime() && e.type === 'unavailable')),
+          newEvent
+        ]);
+
+      } else {
+        const url = isCreating
+          ? '/api/scheduling/availabilities/create/'
+          : `/api/scheduling/availabilities/${selectedBooking.id}/`;
+        const method = isCreating ? 'post' : 'patch';
+
+        const payload = {
+          master: selectedWorker?.id,
+          start: selectedBooking.start.toISOString(),
+          end: selectedBooking.end.toISOString(),
+          is_available: false,
+        };
+
+        const response = await api[method](url, payload);
+
+        const newEvent = {
+          id: Number(response.data.id),
+          title: 'Недоступен',
+          start: selectedBooking.start,
+          end: selectedBooking.end,
+          type: 'available',
+        } as CalendarEvent;
+
+        setEvents(prev => [
+          ...prev.filter(e => !(e.start.getTime() === newEvent.start.getTime() && e.end.getTime() === newEvent.end.getTime() && e.type === 'available')),
+          newEvent
+        ]);
+
+        if (isCreating) {
+          setAvailabilities(prev => [...prev, response.data]);
+        } else {
+          setAvailabilities(prev => prev.map(a => a.id === response.data.id ? response.data : a));
+        }
+      }
 
       setModalOpen(false);
-    } catch (err) {
-      console.error('Ошибка сохранения брони:', err);
+    } catch (err: any) {
+      console.error('Ошибка сохранения:', err);
+      alert('Не удалось сохранить: ' + (err.response?.data?.error || err.message));
     }
   };
 
-  // Горизонтальная прокрутка шапки
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.currentTarget.scrollLeft += e.deltaY > 0 ? 100 : -100;
   };
 
-  // Клик по ячейке → открыть модалку
   const handleSelectSlot = ({ start, end }: { start: Date; end: Date }) => {
+    const userRole = localStorage.getItem('role');
+    const isAdmin = userRole === 'admin';
+
+    const isBlocked = availabilities.some(a => {
+      const aStart = new Date(a.start);
+      const aEnd = new Date(a.end);
+      return a.is_available === false && start < aEnd && end > aStart;
+    });
+
+    if (isBlocked && !isAdmin) {
+      alert("Это время недоступно — вы уже отметили его как занятое");
+      return;
+    }
+
     openModal({ start, end });
   };
 
-  // Формат имени мастера
   const getFullName = (worker: Worker) =>
     [worker.first_name, worker.last_name].filter(Boolean).join(' ') || worker.username;
 
-  // Клик по событию → открыть модалку
   const handleSelectEvent = (event: CalendarEvent) => {
     openModal(event);
   };
 
-  // Удаление слота
   const handleDeleteEvent = async (event: CalendarEvent) => {
     try {
       await api.delete(`/api/scheduling/availabilities/${event.id}/`);
       setAvailabilities(availabilities.filter(a => a.id !== event.id));
       setEvents(events.filter(e => e.id !== event.id));
     } catch (err) {
-      console.error('Ошибка удаления:', err);
       alert('Не удалось удалить слот');
     }
   };
 
-  // Перетаскивание события
-  const handleEventDrop = async ({ event, start, end }: { event: CalendarEvent; start: Date; end: Date }) => {
-    console.log('Перетаскивание:', { id: event.id, start, end });
+  const handleDeleteBooking = async (event: CalendarEvent) => {
+    const confirmed = window.confirm("Удалить бронь?");
+    if (!confirmed) return;
 
+    try {
+      await api.delete(`/api/scheduling/bookings/${event.id}/`);
+      setEvents(events.filter(e => e.id !== event.id));
+    } catch (err) {
+      alert('Не удалось удалить бронь');
+    }
+  };
+
+  const handleEventDrop = async ({ event, start, end }: { event: CalendarEvent; start: Date; end: Date }) => {
     try {
       await api.patch(`/api/scheduling/availabilities/${event.id}/`, {
         start: start.toISOString(),
@@ -249,7 +319,6 @@ export default function Page() {
     }
   };
 
-  // Изменение длительности
   const handleEventResize = async ({ event, start, end }: { event: CalendarEvent; start: Date; end: Date }) => {
     try {
       await api.patch(`/api/scheduling/availabilities/${event.id}/`, {
@@ -270,7 +339,6 @@ export default function Page() {
     }
   };
 
-  // Загрузка мастеров
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
@@ -296,7 +364,6 @@ export default function Page() {
     fetchWorkers();
   }, []);
 
-  // Загрузка доступности
   useEffect(() => {
     if (!selectedWorker) return;
 
@@ -323,18 +390,13 @@ export default function Page() {
     fetchAvailabilities();
   }, [selectedWorker]);
 
-  // Лог для отладки
   useEffect(() => {
     console.log('Текущие события:', events);
   }, [events]);
 
   return (
-
-    // Контейнер для календаря
     <div className="p-0">
-      {/* Основной контейнер */}
       <div className="border border-gray-400 rounded overflow-hidden">
-        {/* Шапка: дата + режим */}
         <div className="flex bg-gray-300 border-b border-gray-300 p-1">
           <div className="flex-shrink-0 border-r border-gray-400 bg-white w-40 p-1">
             <div className="space-y-2 bg-gray-300 h-full w-full">
@@ -370,7 +432,6 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Прокручиваемая шапка мастеров */}
           <div
             onWheel={handleWheel}
             className="flex-1 overflow-x-auto max-w-full hide-scrollbar"
@@ -412,7 +473,6 @@ export default function Page() {
           </div>
         </div>
 
-        {/* Календарь */}
         <div className="h-96 bg-white">
           <Calendar
             localizer={localizer}
@@ -443,14 +503,21 @@ export default function Page() {
               week: 'Неделя',
               day: 'День',
             }}
-            eventPropGetter={event => ({
-              style: {
-                backgroundColor: event.type === 'available' ? '#d1fae5' : '#fee2e2',
-                border: '1px solid #ccc',
-                color: '#166534',
-                cursor: 'move',
-              },
-            })}
+            eventPropGetter={event => {
+              let style = {};
+              if (event.type === 'available') {
+                style = { backgroundColor: '#e5e7eb', color: '#4b5563' };
+              } else if (event.type === 'unavailable') {
+                style = { backgroundColor: '#d1fae5', color: '#166534' };
+              }
+              return {
+                style: {
+                  ...style,
+                  border: '1px solid #ddd',
+                  cursor: 'default',
+                },
+              };
+            }}
             step={15}
             timeslots={4}
             popup
@@ -459,7 +526,6 @@ export default function Page() {
           />
         </div>
 
-        {/* Модальное окно */}
         <dialog ref={modalRef} className="modal w-[500px] min-w-xs">
           <div className="modal-box max-w-3xl">
             <h3 className="text-sky-950 text-center text-lg border border-slate-400 bg-slate-300">Редактирование тайминга</h3>
@@ -576,6 +642,29 @@ export default function Page() {
               >
                 Сохранить
               </button>
+              {selectedBooking && (
+                <button
+                  type="button"
+                  className="ml-2 btn btn-sm btn-error bg-red-500 text-white"
+                  onClick={async () => {
+                    if (!selectedBooking) return;
+                    const confirmed = window.confirm(
+                      selectedBooking.type === 'available'
+                        ? "Удалить недоступность?"
+                        : "Удалить бронь?"
+                    );
+                    if (!confirmed) return;
+                    if (selectedBooking.type === 'available') {
+                      await handleDeleteEvent(selectedBooking);
+                    } else {
+                      await handleDeleteBooking(selectedBooking);
+                    }
+                    modalRef.current?.close();
+                  }}
+                >
+                  Удалить
+                </button>
+              )}
             </div>
           </div>
         </dialog>
