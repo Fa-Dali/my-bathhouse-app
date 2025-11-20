@@ -166,86 +166,92 @@ export default function Page() {
   };
 
   const saveBooking = async () => {
-    if (!selectedBooking) return;
+  if (!selectedBooking) return;
 
-    const userRole = localStorage.getItem('role');
-    const isAdmin = userRole === 'admin';
-    const isCreating = selectedBooking.id === -1;
+  const userRole = localStorage.getItem('role');
+  const isAdmin = userRole === 'admin';
+  const isCreating = selectedBooking.id === -1;
 
-    try {
-      if (isAdmin) {
-        const url = isCreating
-          ? '/api/scheduling/bookings/create/'
-          : `/api/scheduling/bookings/${selectedBooking.id}/`;
-        const method = isCreating ? 'post' : 'patch';
+  try {
+    if (isAdmin) {
+      const url = isCreating
+        ? '/api/scheduling/bookings/create/'
+        : `/api/scheduling/bookings/${selectedBooking.id}/`;
+      const method = isCreating ? 'post' : 'patch';
 
-        const payload = {
-          master_ids: selectedBooking.masterIds,
-          start: selectedBooking.start.toISOString(),
-          end: selectedBooking.end.toISOString(),
-          booking_type: 'client',
-          steam_program: selectedBooking.steamProgram ?? '',
-          massage: selectedBooking.massage ?? '',
-          total_cost: 0,
-          payments: selectedBooking.payments,
-        };
+      const payload = {
+        master_ids: selectedBooking.masterIds,
+        start: selectedBooking.start.toISOString(),
+        end: selectedBooking.end.toISOString(),
+        booking_type: 'client',
+        steam_program: selectedBooking.steamProgram ?? '',
+        massage: selectedBooking.massage ?? '',
+        total_cost: 0,
+        payments: selectedBooking.payments,
+      };
 
-        const response = await api[method](url, payload);
+      const response = await api[method](url, payload);
 
-        const newEvent = {
-          id: Number(response.data.id),
-          title: 'Услуга',
-          start: selectedBooking.start,
-          end: selectedBooking.end,
-          type: 'unavailable',
-        } as CalendarEvent;
+      const newEvent = {
+        id: Number(response.data.id),
+        title: 'Услуга',
+        start: selectedBooking.start,
+        end: selectedBooking.end,
+        type: 'unavailable',
+      } as CalendarEvent;
 
-        setEvents(prev => [
-          ...prev.filter(e => !(e.start.getTime() === newEvent.start.getTime() && e.end.getTime() === newEvent.end.getTime() && e.type === 'unavailable')),
-          newEvent
-        ]);
+      setEvents(prev => [
+        ...prev.filter(e => !(e.start.getTime() === newEvent.start.getTime() && e.end.getTime() === newEvent.end.getTime() && e.type === 'unavailable')),
+        newEvent
+      ]);
 
+    } else {
+      const url = isCreating
+        ? '/api/scheduling/availabilities/create/'
+        : `/api/scheduling/availabilities/${selectedBooking.id}/`;
+      const method = isCreating ? 'post' : 'patch';
+
+      const payload = {
+        master: selectedWorker?.id,
+        start: selectedBooking.start.toISOString(),
+        end: selectedBooking.end.toISOString(),
+        is_available: false,
+      };
+
+      const response = await api[method](url, payload);
+
+      const newEvent = {
+        id: Number(response.data.id),
+        title: 'Недоступен',
+        start: selectedBooking.start,
+        end: selectedBooking.end,
+        type: 'available',
+      } as CalendarEvent;
+
+      setEvents(prev => [
+        ...prev.filter(e => !(e.start.getTime() === newEvent.start.getTime() && e.end.getTime() === newEvent.end.getTime() && e.type === 'available')),
+        newEvent
+      ]);
+
+      if (isCreating) {
+        setAvailabilities(prev => [...prev, response.data]);
       } else {
-        const url = isCreating
-          ? '/api/scheduling/availabilities/create/'
-          : `/api/scheduling/availabilities/${selectedBooking.id}/`;
-        const method = isCreating ? 'post' : 'patch';
-
-        const payload = {
-          master: selectedWorker?.id,
-          start: selectedBooking.start.toISOString(),
-          end: selectedBooking.end.toISOString(),
-          is_available: false,
-        };
-
-        const response = await api[method](url, payload);
-
-        const newEvent = {
-          id: Number(response.data.id),
-          title: 'Недоступен',
-          start: selectedBooking.start,
-          end: selectedBooking.end,
-          type: 'available',
-        } as CalendarEvent;
-
-        setEvents(prev => [
-          ...prev.filter(e => !(e.start.getTime() === newEvent.start.getTime() && e.end.getTime() === newEvent.end.getTime() && e.type === 'available')),
-          newEvent
-        ]);
-
-        if (isCreating) {
-          setAvailabilities(prev => [...prev, response.data]);
-        } else {
-          setAvailabilities(prev => prev.map(a => a.id === response.data.id ? response.data : a));
-        }
+        setAvailabilities(prev => prev.map(a => a.id === response.data.id ? response.data : a));
       }
-
-      setModalOpen(false);
-    } catch (err: any) {
-      console.error('Ошибка сохранения:', err);
-      alert('Не удалось сохранить: ' + (err.response?.data?.error || err.message));
     }
-  };
+
+    // ✅ УСПЕШНО СОХРАНЕНО!
+    alert('Информация успешно сохранена!'); // ← Простое уведомление
+
+    // ✅ Гарантированно закрываем модалку
+    modalRef.current?.close();
+    setModalOpen(false);
+
+  } catch (err: any) {
+    console.error('Ошибка сохранения:', err);
+    alert('Не удалось сохранить: ' + (err.response?.data?.error || err.message));
+  }
+};
 
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     e.preventDefault();
