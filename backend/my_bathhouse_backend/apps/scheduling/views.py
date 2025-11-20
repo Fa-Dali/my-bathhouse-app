@@ -171,3 +171,86 @@ def availability_detail(request, availability_id):
     elif request.method == 'DELETE':
         availability.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET', 'PATCH', 'DELETE'])
+def booking_detail(request, booking_id):
+    try:
+        booking = Booking.objects.get(id=booking_id)
+    except Booking.DoesNotExist:
+        return Response({"error": "Бронь не найдена"}, status=404)
+
+    user = request.user
+    # Проверка: пользователь — мастер из брони или админ
+    if user.has_role('admin') or user.id in booking.master_ids:
+        pass
+    else:
+        return Response({"error": "Нет прав"}, status=403)
+
+    if request.method == 'GET':
+        return Response(BookingSerializer(booking).data)
+
+    elif request.method == 'PATCH':
+        serializer = BookingSerializer(booking, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    elif request.method == 'DELETE':
+        booking.delete()
+        return Response(status=204)
+
+@api_view(['GET'])
+def get_bookings(request):
+    user = request.user
+    week_from_now = timezone.now() + timedelta(days=7)
+
+    if user.has_role('admin'):
+        bookings = Booking.objects.filter(start__lt=week_from_now)
+    elif user.has_role('paramaster') or user.has_role('masseur'):
+        bookings = Booking.objects.filter(
+            master_ids__contains=[user.id],
+            start__lt=week_from_now
+        )
+    else:
+        bookings = Booking.objects.none()
+
+    return Response(BookingSerializer(bookings, many=True).data)
+
+@api_view(['POST'])
+def create_booking(request):
+    master_ids = request.data.get('master_ids', [])
+    start = timezone.datetime.fromisoformat(request.data['start'])
+    end = timezone.datetime.fromisoformat(request.data['end'])
+
+    if not master_ids:
+        return Response({"error": "Выберите хотя бы одного мастера"}, status=400)
+
+    # Проверка доступности всех мастеров
+    for master_id in master_ids:
+        if not Availability.objects.filter(
+            master_id=master_id,
+            start__lt=end,
+            end__gt=start,
+            is_available=True
+        ).exists():
+            return Response(
+                {"error": f"Мастер {master_id} недоступен в это время"},
+                status=400
+            )
+
+    serializer = BookingSerializer(data=request.data)
+    if serializer.is_valid():
+        booking = serializer.save()
+
+        # Обновляем availabilities: делаем недоступными
+        for master_id in master_ids:
+            Availability.objects.filter(
+                master_id=master_id,
+                start__gte=start,
+                end__lte=end,
+                is_available=True
+            ).update(is_available=False)
+
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)

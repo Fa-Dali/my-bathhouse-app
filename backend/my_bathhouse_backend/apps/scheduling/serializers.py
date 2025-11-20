@@ -12,4 +12,7 @@ class AvailabilitySerializer(serializers.ModelSerializer):
 class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
-        fields = ['id', 'master', 'client_name', 'start', 'end', 'booking_type', 'total_cost']
+        fields = [
+            'id', 'master_ids', 'start', 'end', 'booking_type',
+            'steam_program', 'massage', 'total_cost', 'payments'
+        ]

@@ -470,3 +470,19 @@ input[type="text"] {
 }
 
 /* === END: СТИЛИ для React Big Calendar === */
+
+
+/* === ДЛЯ МОДАЛЬНОГО ОКНА В КАЛЕНДАРЕ === */
+
+dialog.modal {
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 0;
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* === END: ДЛЯ МОДАЛЬНОГО ОКНА В КАЛЕНДАРЕ === */

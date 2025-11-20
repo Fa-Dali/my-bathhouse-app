@@ -1,17 +1,181 @@
+Теперь надо сделать, Чтобы можно было в слоте по клику появлялось модальное окно и там можно было бы записать:
+1. название программы парения (пока записывать вручную) (в будущем будет загружаться список для выбора программ, которые есть в БД)
+2. Массаж (пока записывать вручную) (в будущем будет загружаться список для выбора программ, которые есть в БД)
+3. пармастер: (из списка мастеров из БД)
+4. кнопка добавить "+" поле мастер с функциональностью 3. пункта, т.е. пармастер: (из списка мастеров из БД)
+5. кнопка удалить "-" по чекбоксу выбранное поле мастер.
+И условие: Слот копируется в календарь всем мастерам, чье имя фигурирует в слоте. И удаляется у мастера, если мастер удален из слота.
+6. поле "оплата" вручного ввода денежной суммы с дополнительным полем с выбором из списка вариантов оплаты: "Терминал", "Наличные", "Сайт", "ресепшн", "Сертификат"
+7. кнопка добавить "+" поле оплаты.
+8. кнопка удалить "-" поле оплаты.
 
-Type '({ event, start, end }: { event: CalendarEvent; start: Date; end: Date; }) => Promise<void>' is not assignable to type '(args: EventInteractionArgs<object>) => void'.
-  Types of parameters '__0' and 'args' are incompatible.
-    Type 'EventInteractionArgs<object>' is not assignable to type '{ event: CalendarEvent; start: Date; end: Date; }'.
-      Types of property 'event' are incompatible.
-        Type '{}' is missing the following properties from type 'CalendarEvent': id, title, start, end, typets(2322)
-dragAndDrop.d.ts(30, 5): The expected type comes from property 'onEventDrop' which is declared here on type 'IntrinsicAttributes & DragAndDropCalendarProps<object, object>'
-(property) withDragAndDropProps<object, object>.onEventDrop?: ((args: EventInteractionArgs<object>) => void) | undefined
+| Поле                                   | Тип                                                                       | 
+|----------------------------------------|---------------------------------------------------------------------------| 
+| 1. Программа парения                   | Текст (в будущем — выбор из БД)                                           | 
+| 2. Массаж                              | Текст (в будущем — выбор из БД)                                           | 
+| 3. Пармастер(ы)                        | Выбор из мастеров (множественный) + кнопки + / -                          | 
+| 4. Оплата                              | Сумма + способ (выбор) + кнопки + / -                                     | 
+| 5. Автоматическая синхронизация слотов | Слот появляется у всех мастеров из списка и удаляется, если мастер удалён |
 
-Type '({ event, start, end }: { event: CalendarEvent; start: Date; end: Date; }) => Promise<void>' is not assignable to type '(args: EventInteractionArgs<object>) => void'.
-  Types of parameters '__0' and 'args' are incompatible.
-    Type 'EventInteractionArgs<object>' is not assignable to type '{ event: CalendarEvent; start: Date; end: Date; }'.
-      Types of property 'event' are incompatible.
-        Type '{}' is missing the following properties from type 'CalendarEvent': id, title, start, end, typets(2322)
-dragAndDrop.d.ts(31, 5): The expected type comes from property 'onEventResize' which is declared here on type 'IntrinsicAttributes & DragAndDropCalendarProps<object, object>'
-(property) withDragAndDropProps<object, object>.onEventResize?: ((args: EventInteractionArgs<object>) => void) | undefined
 
+КУЧА ВОПРОСОВ:
+1.
+Вместо этого:
+const handleSelectSlot = (slotInfo: { start: Date; end: Date }) => {
+  openModal(slotInfo);
+};
+поставить это?
+// Клик по свободной ячейке → создать слот
+  const handleSelectSlot = async ({ start, end }: { start: Date; end: Date }) => {
+    if (!selectedWorker) return;
+
+    try {
+      const response = await api.post('/api/scheduling/availabilities/create/', {
+        master: selectedWorker.id,
+        start: start.toISOString(),
+        end: end.toISOString(),
+        is_available: true,
+      });
+
+      const newAvailability = response.data;
+      setAvailabilities([...availabilities, newAvailability]);
+      setEvents([
+        ...events,
+        {
+          id: Number(newAvailability.id),
+          title: 'Доступен',
+          start: new Date(newAvailability.start),
+          end: new Date(newAvailability.end),
+          type: 'available',
+          allDay: false,
+        },
+      ]);
+    } catch (err) {
+      console.error('Ошибка создания доступности:', err);
+    }
+  };
+
+2.Вместо этого:
+const handleSelectEvent = (event: CalendarEvent) => {
+  // Найти бронь по ID, если есть
+  openModal(event);
+};
+поставить это?
+// Клик по событию
+  const handleSelectEvent = (event: CalendarEvent) => {
+    if (!selectedWorker) return;
+
+    const confirmed = window.confirm(
+      `Удалить слот "${event.title}"?\n${format(event.start, 'H:mm')} — ${format(event.end, 'H:mm')}`
+    );
+    if (confirmed) handleDeleteEvent(event);
+  };
+
+3.
+Это не понятно куда ставить:
+<dialog ref={modalRef} className="modal">
+  <div className="modal-box max-w-3xl">
+    <h3 className="font-bold text-lg">Редактирование брони</h3>
+
+    <div className="py-4 space-y-4">
+      <div>
+        <label>Программа парения</label>
+        <textarea
+          value={selectedBooking?.steamProgram || ''}
+          onChange={e => handleChange('steamProgram', e.target.value)}
+          className="input input-bordered w-full"
+        />
+      </div>
+
+      <div>
+        <label>Массаж</label>
+        <textarea
+          value={selectedBooking?.massage || ''}
+          onChange={e => handleChange('massage', e.target.value)}
+          className="input input-bordered w-full"
+        />
+      </div>
+
+      <div>
+        <label>Пармастеры</label>
+        {selectedBooking?.masterIds.map((masterId, index) => (
+          <div key={index} className="flex gap-2 mt-2">
+            <select
+              value={masterId}
+              onChange={e => {
+                const newIds = [...selectedBooking.masterIds];
+                newIds[index] = Number(e.target.value);
+                handleChange('masterIds', newIds);
+              }}
+              className="select select-bordered"
+            >
+              {workers.map(w => (
+                <option key={w.id} value={w.id}>{w.first_name} {w.last_name}</option>
+              ))}
+            </select>
+            <button onClick={() => removeMaster(index)} className="btn btn-sm btn-error">-</button>
+          </div>
+        ))}
+        <button onClick={addMaster} className="btn btn-sm btn-success mt-2">+</button>
+      </div>
+
+      <div>
+        <label>Оплата</label>
+        {selectedBooking?.payments.map((p, index) => (
+          <div key={index} className="flex gap-2 mt-2">
+            <input
+              type="number"
+              value={p.amount}
+              onChange={e => {
+                const newPayments = [...selectedBooking.payments];
+                newPayments[index].amount = Number(e.target.value);
+                handleChange('payments', newPayments);
+              }}
+              className="input input-bordered w-32"
+            />
+            <select
+              value={p.method}
+              onChange={e => {
+                const newPayments = [...selectedBooking.payments];
+                newPayments[index].method = e.target.value;
+                handleChange('payments', newPayments);
+              }}
+              className="select select-bordered"
+            >
+              <option value="terminal">Терминал</option>
+              <option value="cash">Наличные</option>
+              <option value="website">Сайт</option>
+              <option value="reception">Ресепшн</option>
+              <option value="certificate">Сертификат</option>
+            </select>
+            <button onClick={() => removePayment(index)} className="btn btn-sm btn-error">-</button>
+          </div>
+        ))}
+        <button onClick={addPayment} className="btn btn-sm btn-success mt-2">+</button>
+      </div>
+    </div>
+
+    <div className="modal-action">
+      <button className="btn" onClick={() => modalRef.current?.close()}>Отмена</button>
+      <button className="btn btn-primary" onClick={saveBooking}>Сохранить</button>
+    </div>
+  </div>
+</dialog>
+
+Непонятно в какой части кода вставить.
+
+4.
+python manage.py makemigrations
+python manage.py migrate
+
+А это вообще выдало:
+(env) PS D:\Projects\my-bathhouse-app\backend> python manage.py makemigrations
+✅ reports/urls.py загружен! /send-report-email/ зарегистрирован
+SystemCheckError: System check identified some issues:
+
+ERRORS:
+<class 'my_bathhouse_backend.apps.scheduling.admin.BookingAdmin'>: (admin.E108) The value of 'list_display[3]' refers to 'master', which is not a callable or attribute of 'BookingAdmin', or an attribute, method, or field on 'scheduling.Booking'.
+<class 'my_bathhouse_backend.apps.scheduling.admin.BookingAdmin'>: (admin.E108) The value of 'list_display[4]' refers to 'client_name', which is not a callable or attribute of 'BookingAdmin', or an attribute, method, or field on 'scheduling.Booking'.
+<class 'my_bathhouse_backend.apps.scheduling.admin.BookingAdmin'>: (admin.E116) The value of 'list_filter[1]' refers to 'master', which does not refer to a Field.
+scheduling.Booking.payments: (fields.E904) django.contrib.postgres.fields.JSONField is removed except for support in historical migrations.
+        HINT: Use django.db.models.JSONField instead.
