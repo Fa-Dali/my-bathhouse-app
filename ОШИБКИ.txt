@@ -1,691 +1,179 @@
-D:\Projects\my-bathhouse-app\frontend\nextjs-dashboard\app\dashboard\timing-one-master\week-ahead\page.tsx:416  GET http://localhost:8000/api/scheduling/availabilities/ 500 (Internal Server Error)
-dispatchXhrRequest @ xhr.js:212
-xhr @ xhr.js:29
-dispatchRequest @ dispatchRequest.js:61
-Promise.then
-_request @ Axios.js:175
-request @ Axios.js:52
-Axios.<computed> @ Axios.js:223
-wrap @ bind.js:16
-Page.useEffect.fetchAllData @ D:\Projects\my-bathhouse-app\frontend\nextjs-dashboard\app\dashboard\timing-one-master\week-ahead\page.tsx:416
-Page.useEffect @ D:\Projects\my-bathhouse-app\frontend\nextjs-dashboard\app\dashboard\timing-one-master\week-ahead\page.tsx:464
-react_stack_bottom_frame @ react-dom-client.development.js:28011
-runWithFiberInDEV @ react-dom-client.development.js:985
-commitHookEffectListMount @ react-dom-client.development.js:13612
-commitHookPassiveMountEffects @ react-dom-client.development.js:13699
-commitPassiveMountOnFiber @ react-dom-client.development.js:16639
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16674
-flushPassiveEffects @ react-dom-client.development.js:19764
-flushPendingEffects @ react-dom-client.development.js:19690
-flushSpawnedWork @ react-dom-client.development.js:19646
-installHook.js:1 Ошибка загрузки availabilities: <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="robots" content="NONE,NOARCHIVE">
-  <title>ProgrammingError
-          at /api/scheduling/availabilities/</title>
-  <style>
-    html * { padding:0; margin:0; }
-    body * { padding:10px 20px; }
-    body * * { padding:0; }
-    body { font-family: sans-serif; background-color:#fff; color:#000; }
-    body > :where(header, main, footer) { border-bottom:1px solid #ddd; }
-    h1 { font-weight:normal; }
-    h2 { margin-bottom:.8em; }
-    h3 { margin:1em 0 .5em 0; }
-    h4 { margin:0 0 .5em 0; font-weight: normal; }
-    code, pre { font-size: 100%; white-space: pre-wrap; word-break: break-word; }
-    summary { cursor: pointer; }
-    table { border:1px solid #ccc; border-collapse: collapse; width:100%; background:white; }
-    tbody td, tbody th { vertical-align:top; padding:2px 3px; }
-    thead th {
-      padding:1px 6px 1px 3px; background:#fefefe; text-align:left;
-      font-weight:normal; font-size: 0.6875rem; border:1px solid #ddd;
-    }
-    tbody th { width:12em; text-align:right; color:#666; padding-right:.5em; }
-    table.vars { margin:5px 10px 2px 40px; width: auto; }
-    table.vars td, table.req td { font-family:monospace; }
-    table td.code { width:100%; }
-    table td.code pre { overflow:hidden; }
-    table.source th { color:#666; }
-    table.source td { font-family:monospace; white-space:pre; border-bottom:1px solid #eee; }
-    ul.traceback { list-style-type:none; color: #222; }
-    ul.traceback li.cause { word-break: break-word; }
-    ul.traceback li.frame { padding-bottom:1em; color:#4f4f4f; }
-    ul.traceback li.user { background-color:#e0e0e0; color:#000 }
-    div.context { padding:10px 0; overflow:hidden; }
-    div.context ol { padding-left:30px; margin:0 10px; list-style-position: inside; }
-    div.context ol li { font-family:monospace; white-space:pre; color:#777; cursor:pointer; padding-left: 2px; }
-    div.context ol li pre { display:inline; }
-    div.context ol.context-line li { color:#464646; background-color:#dfdfdf; padding: 3px 2px; }
-    div.context ol.context-line li span { position:absolute; right:32px; }
-    .user div.context ol.context-line li { background-color:#bbb; color:#000; }
-    .user div.context ol li { color:#666; }
-    div.commands, summary.commands { margin-left: 40px; }
-    div.commands a, summary.commands { color:#555; text-decoration:none; }
-    .user div.commands a { color: black; }
-    #summary { background: #ffc; }
-    #summary h2 { font-weight: normal; color: #666; }
-    #info { padding: 0; }
-    #info > * { padding:10px 20px; }
-    #explanation { background:#eee; }
-    #template, #template-not-exist { background:#f6f6f6; }
-    #template-not-exist ul { margin: 0 0 10px 20px; }
-    #template-not-exist .postmortem-section { margin-bottom: 3px; }
-    #unicode-hint { background:#eee; }
-    #traceback { background:#eee; }
-    #requestinfo { background:#f6f6f6; padding-left:120px; }
-    #summary table { border:none; background:transparent; }
-    #requestinfo h2, #requestinfo h3 { position:relative; margin-left:-100px; }
-    #requestinfo h3 { margin-bottom:-1em; }
-    .error { background: #ffc; }
-    .specific { color:#cc3300; font-weight:bold; }
-    h2 span.commands { font-size: 0.7rem; font-weight:normal; }
-    span.commands a:link {color:#5E5694;}
-    pre.exception_value { font-family: sans-serif; color: #575757; font-size: 1.5rem; margin: 10px 0 10px 0; }
-    .append-bottom { margin-bottom: 10px; }
-    .fname { user-select: all; }
-  </style>
-  
-  <script>
-    function hideAll(elems) {
-      for (var e = 0; e < elems.length; e++) {
-        elems[e].style.display = 'none';
-      }
-    }
-    window.onload = function() {
-      hideAll(document.querySelectorAll('ol.pre-context'));
-      hideAll(document.querySelectorAll('ol.post-context'));
-      hideAll(document.querySelectorAll('div.pastebin'));
-    }
-    function toggle() {
-      for (var i = 0; i < arguments.length; i++) {
-        var e = document.getElementById(arguments[i]);
-        if (e) {
-          e.style.display = e.style.display == 'none' ? 'block': 'none';
-        }
-      }
-      return false;
-    }
-    function switchPastebinFriendly(link) {
-      s1 = "Switch to copy-and-paste view";
-      s2 = "Switch back to interactive view";
-      link.textContent = link.textContent.trim() == s1 ? s2: s1;
-      toggle('browserTraceback', 'pastebinTraceback');
-      return false;
-    }
-  </script>
-  
-</head>
-<body>
-<header id="summary">
-  <h1>ProgrammingError
-       at /api/scheduling/availabilities/</h1>
-  <pre class="exception_value">ОШИБКА:  столбец scheduling_availability.source не существует
-LINE 1: ....&quot;end&quot;, &quot;scheduling_availability&quot;.&quot;is_available&quot;, &quot;schedulin...
-                                                             ^
-</pre>
-  <table class="meta">
+ 
+СОздал слат от имени администратора:
+программа: Сила леса
+клиент: Анна
+мастер: Ирина Затевахина
+оплата: 5000 Сайт
 
-    <tr>
-      <th scope="row">Request Method:</th>
-      <td>GET</td>
-    </tr>
-    <tr>
-      <th scope="r
-overrideMethod @ installHook.js:1
-error @ intercept-console-error.js:52
-Page.useEffect.fetchAllData @ D:\Projects\my-bathhouse-app\frontend\nextjs-dashboard\app\dashboard\timing-one-master\week-ahead\page.tsx:459
-await in Page.useEffect.fetchAllData
-Page.useEffect @ D:\Projects\my-bathhouse-app\frontend\nextjs-dashboard\app\dashboard\timing-one-master\week-ahead\page.tsx:464
-react_stack_bottom_frame @ react-dom-client.development.js:28011
-runWithFiberInDEV @ react-dom-client.development.js:985
-commitHookEffectListMount @ react-dom-client.development.js:13612
-commitHookPassiveMountEffects @ react-dom-client.development.js:13699
-commitPassiveMountOnFiber @ react-dom-client.development.js:16639
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16659
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16631
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16916
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16584
-commitPassiveMountOnFiber @ react-dom-client.development.js:16674
-flushPassiveEffects @ react-dom-client.development.js:19764
-flushPendingEffects @ react-dom-client.development.js:19690
-flushSpawnedWork @ react-dom-client.development.js:19646
-commitRoot @ react-dom-client.development.js:19240
-commitRootWhenReady @ react-dom-client.development.js:18083
-performWorkOnRoot @ react-dom-client.development.js:17959
-performSyncWorkOnRoot @ react-dom-client.development.js:20304
+create/
+Request URL
+http://localhost:8000/api/scheduling/availabilities/create/
+Request Method
+POST
+Status Code
+201 Created
+Remote Address
+127.0.0.1:8000
+Referrer Policy
+strict-origin-when-cross-origin
+access-control-allow-credentials
+true
+access-control-allow-origin
+http://localhost:3000
+allow
+OPTIONS, POST
+content-length
+102
+content-type
+application/json
+cross-origin-opener-policy
+same-origin
+date
+Sat, 22 Nov 2025 16:41:49 GMT
+referrer-policy
+same-origin
+server
+WSGIServer/0.2 CPython/3.12.6
+vary
+Accept, origin
+x-content-type-options
+nosniff
+x-frame-options
+DENY
+accept
+application/json, text/plain, */*
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7
+authorization
+Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYzODQ3NTkyLCJpYXQiOjE3NjM3NjExOTIsImp0aSI6IjQzYzM3NGVjM2YxNTQyNTI5YTFjZmM5YmYyNDlmZmI0IiwidXNlcl9pZCI6IjkifQ.ljbJGHlm3ZxIFThnb0vWcMUKuJy5YxJ0Wtph33DB5Zk
+connection
+keep-alive
+content-length
+102
+content-type
+application/json
+host
+localhost:8000
+origin
+http://localhost:3000
+referer
+http://localhost:3000/
+sec-ch-ua
+"Chromium";v="142", "Google Chrome";v="142", "Not_A Brand";v="99"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-platform
+"Windows"
+sec-fetch-dest
+empty
+sec-fetch-mode
+cors
+sec-fetch-site
+same-site
+user-agent
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36
 
+Response:
+{
+    "id": 31,
+    "master": 16,
+    "start": "2025-11-27T08:00:00Z",
+    "end": "2025-11-27T11:00:00Z",
+    "is_available": false
+}
 
+Обновляю страницу:
+availabilities/
+Request URL
+http://localhost:8000/api/scheduling/availabilities/
+Request Method
+GET
+Status Code
+200 OK
+Remote Address
+127.0.0.1:8000
+Referrer Policy
+strict-origin-when-cross-origin
+
+Response/
+[
+    {
+        "id": 26,
+        "master": 16,
+        "start": "2025-11-24T08:00:00Z",
+        "end": "2025-11-24T11:00:00Z",
+        "is_available": false
+    },
+    {
+        "id": 28,
+        "master": 16,
+        "start": "2025-11-26T06:00:00Z",
+        "end": "2025-11-26T15:00:00Z",
+        "is_available": false
+    },
+    {
+        "id": 31,
+        "master": 16,
+        "start": "2025-11-27T08:00:00Z",
+        "end": "2025-11-27T11:00:00Z",
+        "is_available": false
+    }
+]
+
+bookings/
+Request URL
+http://localhost:8000/api/scheduling/bookings/
+Request Method
+GET
+Status Code
+200 OK
+Remote Address
+127.0.0.1:8000
+Referrer Policy
+strict-origin-when-cross-origin
+
+Response/
+[]
+
+Django:
+[22/Nov/2025 19:41:49] "POST /api/scheduling/availabilities/create/ HTTP/1.1" 201 102
+Data: {}
+🔹 User: Fa-Dali
+🔹 Authenticated: True
+[22/Nov/2025 19:46:26] "GET /api/users/ HTTP/1.1" 200 2911
 🎯 Запрос от пользователя: Fa-Dali
 🎯 Имеет роли: ['admin', 'masseur']
-Internal Server Error: /api/scheduling/availabilities/
-Traceback (most recent call last):
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
-    return self.cursor.execute(sql, params)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-psycopg2.errors.UndefinedColumn: ОШИБКА:  столбец scheduling_availability.source не существует
-LINE 1: ...."end", "scheduling_availability"."is_available", "schedulin...
-                                                             ^
+[22/Nov/2025 19:46:27] "GET /api/scheduling/availabilities/ HTTP/1.1" 200 310
+🎯 get_bookings: пользователь = Fa-Dali
+🎯 Роли: ['admin', 'masseur']
+[22/Nov/2025 19:46:27] "GET /api/scheduling/bookings/ HTTP/1.1" 200 2
+🎯 Запрос от пользователя: Fa-Dali
+🎯 Имеет роли: ['admin', 'masseur']
+[22/Nov/2025 19:46:34] "GET /api/scheduling/availabilities/ HTTP/1.1" 200 310
+🎯 get_bookings: пользователь = Fa-Dali
+🎯 Роли: ['admin', 'masseur']
+[22/Nov/2025 19:46:34] "GET /api/scheduling/bookings/ HTTP/1.1" 200 2
 
+PostgreSQL_16:
+9. scheduling_availability:
+	Columns
+		id
+		start
+		end
+		is_available
+		master_id
+		source
 
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
-    response = get_response(request)
-               ^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
-    response = wrapped_callback(request, *callback_args, **callback_kwargs)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
-    return view_func(request, *args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\views\generic\base.py", line 105, in view
-    return self.dispatch(request, *args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
-    response = self.handle_exception(exc)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
-    self.raise_uncaught_exception(exc)
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
-    raise exc
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
-    response = handler(request, *args, **kwargs)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\my_bathhouse_backend\apps\scheduling\views.py", line 34, in get_availabilities
-    return Response(AvailabilitySerializer(availabilities, many=True).data)
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\serializers.py", line 797, in data
-    ret = super().data
-          ^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\serializers.py", line 251, in data
-    self._data = self.to_representation(self.instance)
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\serializers.py", line 716, in to_representation
-    self.child.to_representation(item) for item in iterable
-                                                   ^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\models\query.py", line 384, in __iter__
-    self._fetch_all()
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\models\query.py", line 1949, in _fetch_all
-    self._result_cache = list(self._iterable_class(self))
-                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
-    results = compiler.execute_sql(
-              ^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1623, in execute_sql
-    cursor.execute(sql, params)
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
-    return super().execute(sql, params)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
-    return self._execute_with_wrappers(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
-    return executor(sql, params, many, context)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
-    with self.db.wrap_database_errors:
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__     
-    raise dj_exc_value.with_traceback(traceback) from exc_value
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
-    return self.cursor.execute(sql, params)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-django.db.utils.ProgrammingError: ОШИБКА:  столбец scheduling_availability.source не существует
-LINE 1: ...."end", "scheduling_availability"."is_available", "schedulin...
-                                                             ^
-
-Internal Server Error: /api/scheduling/availabilities/
-Traceback (most recent call last):
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
-    return self.cursor.execute(sql, params)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-psycopg2.errors.UndefinedColumn: ОШИБКА:  столбец scheduling_availability.source не существует
-LINE 1: ...."end", "scheduling_availability"."is_available", "schedulin...
-                                                             ^
-
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
-    response = get_response(request)
-               ^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
-    response = wrapped_callback(request, *callback_args, **callback_kwargs)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
-    return view_func(request, *args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\views\generic\base.py", line 105, in view
-    return self.dispatch(request, *args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
-    response = self.handle_exception(exc)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
-    self.raise_uncaught_exception(exc)
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
-    raise exc
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
-    response = handler(request, *args, **kwargs)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\my_bathhouse_backend\apps\scheduling\views.py", line 34, in get_availabilities
-    return Response(AvailabilitySerializer(availabilities, many=True).data)
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\serializers.py", line 797, in data
-    ret = super().data
-          ^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\serializers.py", line 251, in data
-    self._data = self.to_representation(self.instance)
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\rest_framework\serializers.py", line 716, in to_representation
-    self.child.to_representation(item) for item in iterable
-                                                   ^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\models\query.py", line 384, in __iter__
-    self._fetch_all()
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\models\query.py", line 1949, in _fetch_all
-    self._result_cache = list(self._iterable_class(self))
-                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
-    results = compiler.execute_sql(
-              ^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1623, in execute_sql
-    cursor.execute(sql, params)
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
-    return super().execute(sql, params)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
-    return self._execute_with_wrappers(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
-    return executor(sql, params, many, context)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
-    with self.db.wrap_database_errors:
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__     
-    raise dj_exc_value.with_traceback(traceback) from exc_value
-  File "D:\Projects\my-bathhouse-app\backend\env\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
-    return self.cursor.execute(sql, params)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-django.db.utils.ProgrammingError: ОШИБКА:  столбец scheduling_availability.source не существует
-LINE 1: ...."end", "scheduling_availability"."is_available", "schedulin...
-                                                             ^
-
-[22/Nov/2025 05:19:21] "GET /api/scheduling/availabilities/ HTTP/1.1" 500 175807
+10. scheduling_booking:
+	Columns
+		id
+		start
+		end
+		booking_type
+		total_cost
+		massage
+		master_ids
+		payments
+		steam_program

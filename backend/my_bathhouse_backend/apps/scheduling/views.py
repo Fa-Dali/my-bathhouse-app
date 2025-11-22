@@ -60,6 +60,9 @@ def create_availability(request):
 
 @api_view(['POST'])
 def create_booking(request):
+    print("🎯 create_booking вызван")  # 🔥
+    print("Данные:", request.data)  # 🔥
+
     master_ids = request.data.get('master_ids', [])
     start = timezone.datetime.fromisoformat(request.data['start'])
     end = timezone.datetime.fromisoformat(request.data['end'])
@@ -186,13 +189,36 @@ def booking_detail(request, booking_id):
         return Response(serializer.errors, status=400)
 
     elif request.method == 'DELETE':
-        booking.delete()
-        return Response(status=204)
+        with transaction.atomic():
+            # Сохраним данные до удаления
+            master_ids = booking.master_ids
+            start = booking.start
+            end = booking.end
+
+            # Удаляем бронь
+            booking.delete()
+
+            # Восстанавливаем Availability
+            for master_id in master_ids:
+                Availability.objects.update_or_create(
+                    master_id=master_id,
+                    start=start,
+                    end=end,
+                    defaults={
+                        'is_available': True,
+                        'source': 'user'
+                    }
+                )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
 def get_bookings(request):
     user = request.user
     week_from_now = timezone.now() + timedelta(days=7)
+
+    print("🎯 get_bookings: пользователь =", user.username)  # 🔥
+    print("🎯 Роли:", [r.code for r in user.roles.all()])  # 🔥
 
     if user.has_role('admin'):
         bookings = Booking.objects.filter(start__lt=week_from_now)
@@ -205,3 +231,41 @@ def get_bookings(request):
         bookings = Booking.objects.none()
 
     return Response(BookingSerializer(bookings, many=True).data)
+
+@api_view(['DELETE'])
+def delete_booking(request, booking_id):
+    """
+    Удалить бронь и восстановить Availability мастеров
+    """
+    try:
+        booking = Booking.objects.get(id=booking_id)
+    except Booking.DoesNotExist:
+        return Response({"error": "Бронь не найдена"}, status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    # Проверка прав: только админ или мастер из брони
+    if not user.has_role('admin') and user.id not in booking.master_ids:
+        return Response({"error": "Нет прав на удаление"}, status=status.HTTP_403_FORBIDDEN)
+
+    with transaction.atomic():
+        # 1. Сохраним master_ids и время до удаления
+        master_ids = booking.master_ids
+        start = booking.start
+        end = booking.end
+
+        # 2. Удаляем бронь
+        booking.delete()
+
+        # 3. Восстанавливаем Availability для каждого мастера
+        for master_id in master_ids:
+            Availability.objects.update_or_create(
+                master_id=master_id,
+                start=start,
+                end=end,
+                defaults={
+                    'is_available': True,
+                    'source': 'user'  # ⬅ снова "мастер указал"
+                }
+            )
+
+    return Response(status=status.HTTP_204_NO_CONTENT)

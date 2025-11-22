@@ -45,11 +45,12 @@ interface CalendarEvent {
 }
 
 interface BookingEvent extends CalendarEvent {
-  isBooking: true; // ⬅ ЯВНЫЙ ФЛАГ
+  isBooking: true;
   steamProgram?: string;
   massage?: string;
   masterIds: number[];
   payments: Array<{ amount: number; method: string }>;
+  mode: 'booking' | 'availability';
 }
 
 // Создаём Calendar с DnD
@@ -100,40 +101,22 @@ export default function Page() {
 
   const openModal = (slotInfo: { start: Date; end: Date } | CalendarEvent) => {
     const isEvent = 'title' in slotInfo;
-    const userRole = localStorage.getItem('role');
-    const isAdmin = userRole === 'admin';
 
-    if (isAdmin) {
-      const booking: BookingEvent = {
-        id: isEvent ? slotInfo.id : -1,
-        title: isEvent ? slotInfo.title : 'Бронь',
-        start: slotInfo.start,
-        end: slotInfo.end,
-        type: 'unavailable',
-        steamProgram: '',
-        massage: '',
-        masterIds: selectedWorker ? [selectedWorker.id] : [],
-        payments: [{ amount: 0, method: 'cash' }],
-        isBooking: true,
-      };
-      setSelectedBooking(booking);
-    } else {
-      const availability: CalendarEvent = {
-        id: isEvent ? slotInfo.id : -1,
-        title: 'Недоступен',
-        start: slotInfo.start,
-        end: slotInfo.end,
-        type: 'available',
-      };
-      setSelectedBooking({
-        ...availability,
-        steamProgram: '',
-        massage: '',
-        masterIds: selectedWorker ? [selectedWorker.id] : [],
-        payments: [{ amount: 0, method: 'cash' }],
-      } as BookingEvent);
-    }
+    const booking: BookingEvent = {
+      id: isEvent ? slotInfo.id : -1,
+      title: isEvent ? slotInfo.title : 'Бронь',
+      start: slotInfo.start,
+      end: slotInfo.end,
+      type: 'unavailable',
+      steamProgram: '',
+      massage: '',
+      masterIds: selectedWorker ? [selectedWorker.id] : [],
+      payments: [{ amount: 0, method: 'cash' }],
+      isBooking: true,
+      mode: isEvent ? (isEvent as any).mode || 'booking' : 'booking',
+    };
 
+    setSelectedBooking(booking);
     setModalOpen(true);
     setTimeout(() => modalRef.current?.showModal(), 0);
   };
@@ -170,12 +153,11 @@ export default function Page() {
   const saveBooking = async () => {
     if (!selectedBooking) return;
 
-    const userRole = localStorage.getItem('role');
-    const isAdmin = userRole === 'admin';
+    const isBooking = selectedBooking.mode === 'booking';
     const isCreating = selectedBooking.id === -1;
 
     try {
-      if (isAdmin) {
+      if (isBooking) {
         const url = isCreating
           ? '/api/scheduling/bookings/create/'
           : `/api/scheduling/bookings/${selectedBooking.id}/`;
@@ -194,19 +176,21 @@ export default function Page() {
 
         const response = await api[method](url, payload);
 
-        const newEvent = {
+        const newEvent: BookingEvent = {
           id: Number(response.data.id),
           title: 'Услуга',
           start: selectedBooking.start,
           end: selectedBooking.end,
           type: 'unavailable',
-        } as CalendarEvent;
+          isBooking: true,
+          steamProgram: selectedBooking.steamProgram || '',
+          massage: selectedBooking.massage || '',
+          masterIds: selectedBooking.masterIds,
+          payments: selectedBooking.payments,
+          mode: 'booking',
+        };
 
-        setEvents(prev => [
-          ...prev.filter(e => !(e.start.getTime() === newEvent.start.getTime() && e.end.getTime() === newEvent.end.getTime() && e.type === 'unavailable')),
-          newEvent
-        ]);
-
+        setEvents(prev => [...prev.filter(e => e.id !== newEvent.id), newEvent]);
       } else {
         const url = isCreating
           ? '/api/scheduling/availabilities/create/'
@@ -222,13 +206,13 @@ export default function Page() {
 
         const response = await api[method](url, payload);
 
-        const newEvent = {
+        const newEvent: CalendarEvent = {
           id: Number(response.data.id),
           title: 'Недоступен',
           start: selectedBooking.start,
           end: selectedBooking.end,
           type: 'available',
-        } as CalendarEvent;
+        };
 
         setEvents(prev => [
           ...prev.filter(e => !(e.start.getTime() === newEvent.start.getTime() && e.end.getTime() === newEvent.end.getTime() && e.type === 'available')),
@@ -242,13 +226,9 @@ export default function Page() {
         }
       }
 
-      // ✅ УСПЕШНО СОХРАНЕНО!
-      alert('Информация успешно сохранена!'); // ← Простое уведомление
-
-      // ✅ Гарантированно закрываем модалку
+      alert('Информация успешно сохранена!');
       modalRef.current?.close();
       setModalOpen(false);
-
     } catch (err: any) {
       console.error('Ошибка сохранения:', err);
       alert('Не удалось сохранить: ' + (err.response?.data?.error || err.message));
@@ -347,13 +327,9 @@ export default function Page() {
     }
   };
 
-  // Кастомное отображение событий
   const EventComponent = ({ event }: { event: CalendarEvent }) => {
-    // Сначала проверяем: это бронь?
     if ('isBooking' in event) {
       const booking = event as BookingEvent;
-
-      // Теперь безопасно извлекаем имена мастеров
       const masterNames = booking.masterIds
         .map(id => workers.find(w => w.id === id))
         .filter((w): w is Worker => w !== undefined)
@@ -374,7 +350,6 @@ export default function Page() {
       );
     }
 
-    // Если это обычный "недоступен" от мастера
     if (event.type === 'unavailable') {
       return <div>Недоступен</div>;
     }
@@ -383,13 +358,28 @@ export default function Page() {
   };
 
   useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await api.get('/api/users/me/');
+        const user = response.data;
+        const role = user.roles.find((r: any) => r.code === 'admin')?.code ||
+          user.roles[0]?.code ||
+          'user';
+        localStorage.setItem('role', role);
+        console.log('🔐 Роль сохранена в localStorage:', role);
+      } catch (err) {
+        console.error('❌ Ошибка получения профиля:', err);
+      }
+    };
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
     const fetchWorkers = async () => {
       try {
         const response = await api.get('/api/users/');
         const filtered = response.data
-          .filter((u: any) =>
-            u.roles.some((r: any) => r.code === 'paramaster' || r.code === 'masseur')
-          )
+          .filter((u: any) => u.roles.some((r: any) => r.code === 'paramaster' || r.code === 'masseur'))
           .map((u: any) => ({
             id: u.id,
             username: u.username,
@@ -409,16 +399,12 @@ export default function Page() {
 
   useEffect(() => {
     if (!selectedWorker) return;
-
     const fetchAllData = async () => {
       try {
-        // Загружаем доступность мастера
         const availResponse = await api.get('/api/scheduling/availabilities/');
-        console.log('Доступность:', availResponse.data);
-
         const filteredAvail = availResponse.data
           .filter((a: any) => a.master === selectedWorker.id)
-          .filter((a: any) => a.source !== 'system');  //⬅ ИГНОРИРУЕМ системные
+          .filter((a: any) => a.source !== 'system');
 
         const availEvents = filteredAvail.map((a: Availability): CalendarEvent => ({
           id: Number(a.id),
@@ -429,38 +415,29 @@ export default function Page() {
           allDay: false,
         }));
 
-        // Загружаем брони
         const bookingResponse = await api.get('/api/scheduling/bookings/');
-        console.log('Все брони с API:', bookingResponse.data); // 🔥
-        const filteredBookings = bookingResponse.data.filter((b: any) =>
-          b.master_ids.includes(selectedWorker.id)
-        );
-        console.log('Отфильтрованные брони:', filteredBookings); // 🔥
-
+        const filteredBookings = bookingResponse.data.filter((b: any) => b.master_ids.includes(selectedWorker.id));
         const bookingEvents = filteredBookings.map((b: any): BookingEvent => ({
           id: b.id,
           title: 'Услуга',
           start: new Date(b.start),
           end: new Date(b.end),
           type: 'unavailable',
-          isBooking: true, // ✅ Явный признак
+          isBooking: true,
           steamProgram: b.steam_program || '',
           massage: b.massage || '',
           masterIds: b.master_ids,
           payments: b.payments || [],
+          mode: 'booking',
         }));
 
-        // Объединяем события
         setEvents([...availEvents, ...bookingEvents]);
-
-        // Сохраняем только availabilities для редактирования
         setAvailabilities(filteredAvail);
       } catch (err: any) {
-        console.error('Ошибка загрузки availabilities:', err.response?.data || err.message);
+        console.error('Ошибка загрузки данных:', err.response?.data || err.message);
         alert('Ошибка загрузки данных. Проверь консоль и сервер.');
       }
     };
-
     fetchAllData();
   }, [selectedWorker]);
 
@@ -506,23 +483,13 @@ export default function Page() {
             </div>
           </div>
 
-          <div
-            onWheel={handleWheel}
-            className="flex-1 overflow-x-auto max-w-full hide-scrollbar"
-            style={{ scrollBehavior: 'auto' }}
-          >
+          <div onWheel={handleWheel} className="flex-1 overflow-x-auto max-w-full hide-scrollbar" style={{ scrollBehavior: 'auto' }}>
             <table className="min-w-full text-center">
               <thead>
                 <tr>
                   {workers.map(worker => (
-                    <th
-                      key={worker.id}
-                      className="px-1 py-1 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider min-w-32"
-                    >
-                      <div
-                        className="flex flex-col items-center space-y-1 cursor-pointer"
-                        onClick={() => handleWorkerSelect(worker)}
-                      >
+                    <th key={worker.id} className="px-1 py-1 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider min-w-32">
+                      <div className="flex flex-col items-center space-y-1 cursor-pointer" onClick={() => handleWorkerSelect(worker)}>
                         {worker.avatar ? (
                           <img
                             src={`http://localhost:8000${worker.avatar}`}
@@ -577,29 +544,19 @@ export default function Page() {
               week: 'Неделя',
               day: 'День',
             }}
-            eventPropGetter={event => {
-              let style = {};
-              if (event.type === 'available') {
-                style = { backgroundColor: '#e5e7eb', color: '#4b5563' };
-              } else if (event.type === 'unavailable') {
-                style = { backgroundColor: '#d1fae5', color: '#166534' };
-              }
-              return {
-                style: {
-                  ...style,
-                  border: '1px solid #ddd',
-                  cursor: 'default',
-                },
-              };
-            }}
+            eventPropGetter={event => ({
+              style: {
+                ...(event.type === 'available' ? { backgroundColor: '#e5e7eb', color: '#4b5563' } : { backgroundColor: '#d1fae5', color: '#166534' }),
+                border: '1px solid #ddd',
+                cursor: 'default',
+              },
+            })}
             step={15}
             timeslots={4}
             popup
             min={new Date(0, 0, 0, 8, 0, 0)}
             max={new Date(0, 0, 0, 22, 0, 0)}
-            components={{
-              event: EventComponent,
-            }}
+            components={{ event: EventComponent }}
           />
         </div>
 
@@ -646,10 +603,7 @@ export default function Page() {
                           </option>
                         ))}
                       </select>
-                      <button
-                        onClick={() => removeMaster(index)}
-                        className="btn btn-sm btn-error border rounded px-2 bg-red-300"
-                      >
+                      <button onClick={() => removeMaster(index)} className="btn btn-sm btn-error border rounded px-2 bg-red-300">
                         -
                       </button>
                     </div>
@@ -689,10 +643,7 @@ export default function Page() {
                         <option value="reception">Ресепшн</option>
                         <option value="certificate">Сертификат</option>
                       </select>
-                      <button
-                        onClick={() => removePayment(index)}
-                        className="btn btn-sm btn-error border rounded px-2 bg-red-300"
-                      >
+                      <button onClick={() => removePayment(index)} className="btn btn-sm btn-error border rounded px-2 bg-red-300">
                         -
                       </button>
                     </div>
@@ -703,6 +654,34 @@ export default function Page() {
                 </div>
               </div>
             )}
+
+            <div className="m-2 p-2 border rounded bg-gray-50">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Режим:</label>
+              <div className="flex gap-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="mode"
+                    value="booking"
+                    checked={selectedBooking?.mode === 'booking'}
+                    onChange={() => handleChange('mode', 'booking')}
+                    className="mr-1"
+                  />
+                  <span className="text-sm">Создать бронь</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="mode"
+                    value="availability"
+                    checked={selectedBooking?.mode === 'availability'}
+                    onChange={() => handleChange('mode', 'availability')}
+                    className="mr-1"
+                  />
+                  <span className="text-sm">Отметить как недоступно</span>
+                </label>
+              </div>
+            </div>
 
             <div className="modal-action">
               <button

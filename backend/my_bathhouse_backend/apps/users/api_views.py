@@ -335,11 +335,33 @@ def update_user_roles(request, user_id):
         'roles': [{'code': r.code, 'name': r.name} for r in user.roles.all()]
     })
 
-'''
-| Действие                       | Результат                    | 
-|--------------------------------|------------------------------| 
-| Fa-Dali → убираем admin        | ❌ Ошибка: "Нельзя снять..." | 
-| Fa-Dali → оставляем admin      | ✅ Разрешено                 | 
-| Ivan → снимаем admin           | ✅ Разрешено                 | 
-| Fa-Dali → добавляем paramaster | ✅ Разрешено                 |
-'''
+
+# =================================================
+# ВОЗВРАЩАЕТ ПРОФИЛЬ ТЕКУЩЕГО ПОЛЬЗОВАТЕЛЯ (с ролями)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
+def get_current_user(request):
+    """
+    Возвращает профиль текущего авторизованного пользователя.
+    Используется фронтендом, чтобы определить роль (админ/мастер).
+    """
+    user = request.user  # ← берётся из JWT-токена
+
+    # Сериализуем пользователя
+    data = {
+        'id': user.id,
+        'username': user.username,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'email': user.email,
+        'phone_number': user.phone_number,
+        'pin_code': user.pin_code,
+        'avatar': user.avatar.url if user.avatar else None,
+        'roles': [
+            {'code': role.code, 'name': role.name}
+            for role in user.roles.all()
+        ]
+    }
+
+    return Response(data)

@@ -31,4 +31,6 @@ urlpatterns = [
     path('update-avatar/<int:pk>/', UpdateAvatarAPI.as_view(), name='update_avatar_api'),
 
     path('users/<int:user_id>/roles/', api_views.update_user_roles, name='update_user_roles'),
+
+    path('me/', api_views.get_current_user, name='get_current_user'),
 ]
