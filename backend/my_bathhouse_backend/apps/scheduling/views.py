@@ -169,7 +169,10 @@ def booking_detail(request, booking_id):
     try:
         booking = Booking.objects.get(id=booking_id)
     except Booking.DoesNotExist:
+        print(f"❌ Бронь {booking_id} не найдена!")  # 🔥
         return Response({"error": "Бронь не найдена"}, status=404)
+
+    print(f"✅ Нашли бронь: {booking_id}, метод: {request.method}")  # 🔥
 
     user = request.user
     # Проверка: пользователь — мастер из брони или админ

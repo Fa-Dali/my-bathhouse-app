@@ -276,13 +276,11 @@ export default function Page() {
   };
 
   const handleDeleteBooking = async (event: CalendarEvent) => {
-    const confirmed = window.confirm("Удалить бронь?");
-    if (!confirmed) return;
-
     try {
       await api.delete(`/api/scheduling/bookings/${event.id}/`);
       setEvents(events.filter(e => e.id !== event.id));
     } catch (err) {
+      console.error('Ошибка удаления брони:', err);
       alert('Не удалось удалить бронь');
     }
   };
@@ -360,7 +358,7 @@ export default function Page() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await api.get('/api/users/me/');
+        const response = await api.get('/api/me/');
         const user = response.data;
         const role = user.roles.find((r: any) => r.code === 'admin')?.code ||
           user.roles[0]?.code ||
@@ -704,17 +702,22 @@ export default function Page() {
                   className="ml-2 btn btn-sm btn-error bg-red-500 text-white"
                   onClick={async () => {
                     if (!selectedBooking) return;
+
+                    // 🔁 Используем mode, а не type
                     const confirmed = window.confirm(
-                      selectedBooking.type === 'available'
-                        ? "Удалить недоступность?"
+                      selectedBooking.mode === 'availability'
+                        ? "Удалить недоступность мастера?"
                         : "Удалить бронь?"
                     );
                     if (!confirmed) return;
-                    if (selectedBooking.type === 'available') {
+
+                    // 🔁 Используем mode, а не type
+                    if (selectedBooking.mode === 'availability') {
                       await handleDeleteEvent(selectedBooking);
                     } else {
                       await handleDeleteBooking(selectedBooking);
                     }
+
                     modalRef.current?.close();
                   }}
                 >
