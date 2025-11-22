@@ -7,19 +7,16 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Availability, Booking
 from .serializers import AvailabilitySerializer, BookingSerializer
+from django.db import transaction
 
 # """Получить доступность мастеров (по дате)"""
 @api_view(['GET'])
 def get_availabilities(request):
 
-    # date_str = request.GET.get('date')
-    # if date_str:
-    #     target_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
-    #     availabilities = Availability.objects.filter(start__date=target_date)
-    # else:
-    #     availabilities = Availability.objects.filter(start__gte=timezone.now())
-    # return Response(AvailabilitySerializer(availabilities, many=True).data)
     user = request.user
+
+    print("🎯 Запрос от пользователя:", user.username)
+    print("🎯 Имеет роли:", [r.code for r in user.roles.all()])
 
     # Определяем диапазон: сегодня + 7 дней
     week_from_now = timezone.now() + timedelta(days=7)
@@ -54,59 +51,51 @@ def create_availability(request):
         end__gt=start
     ).exists():
         return Response({"error": "Слот пересекается с существующим"}, status=400)
-    
+
     serializer = AvailabilitySerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 
-@api_view(['GET'])
-def get_bookings(request):
-    # """Получить все брони (по дате)"""
-    # date_str = request.GET.get('date')
-    # if date_str:
-    #     target_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
-    #     bookings = Booking.objects.filter(start__date=target_date)
-    # else:
-    #     bookings = Booking.objects.all()
-    # return Response(BookingSerializer(bookings, many=True).data)
-    user = request.user
-
-    if user.has_role('admin'):
-        bookings = Booking.objects.all()
-    elif user.has_role('paramaster') or user.has_role('masseur'):
-        bookings = Booking.objects.filter(master=user)
-    else:
-        bookings = Booking.objects.none()
-
-    return Response(BookingSerializer(bookings, many=True).data)
-
 @api_view(['POST'])
 def create_booking(request):
-    """Админ создаёт бронь — с проверкой доступности мастера"""
+    master_ids = request.data.get('master_ids', [])
     start = timezone.datetime.fromisoformat(request.data['start'])
     end = timezone.datetime.fromisoformat(request.data['end'])
-    master_id = request.data.get('master')
 
-    # Проверка: мастер доступен?
-    if master_id:
-        overlaps = Availability.objects.filter(
+    if not master_ids:
+        return Response({"error": "Выберите хотя бы одного мастера"}, status=400)
+
+    # Проверка доступности всех мастеров
+    for master_id in master_ids:
+        if not Availability.objects.filter(
             master_id=master_id,
             start__lt=end,
             end__gt=start,
             is_available=True
-        ).exists()
-
-        if not overlaps:
+        ).exists():
             return Response(
-                {"error": "Мастер не доступен в это время"},
+                {"error": f"Мастер {master_id} недоступен в это время"},
                 status=400
             )
 
     serializer = BookingSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
+        booking = serializer.save()
+
+        # Помечаем пересекающиеся Availability как системные
+        with transaction.atomic():
+            for master_id in master_ids:
+                Availability.objects.filter(
+                    master_id=master_id,
+                    start__lt=end,
+                    end__gt=start,
+                ).update(
+                    is_available=False,
+                    source='system'
+                )
+
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 
@@ -216,41 +205,3 @@ def get_bookings(request):
         bookings = Booking.objects.none()
 
     return Response(BookingSerializer(bookings, many=True).data)
-
-@api_view(['POST'])
-def create_booking(request):
-    master_ids = request.data.get('master_ids', [])
-    start = timezone.datetime.fromisoformat(request.data['start'])
-    end = timezone.datetime.fromisoformat(request.data['end'])
-
-    if not master_ids:
-        return Response({"error": "Выберите хотя бы одного мастера"}, status=400)
-
-    # Проверка доступности всех мастеров
-    for master_id in master_ids:
-        if not Availability.objects.filter(
-            master_id=master_id,
-            start__lt=end,
-            end__gt=start,
-            is_available=True
-        ).exists():
-            return Response(
-                {"error": f"Мастер {master_id} недоступен в это время"},
-                status=400
-            )
-
-    serializer = BookingSerializer(data=request.data)
-    if serializer.is_valid():
-        booking = serializer.save()
-
-        # Обновляем availabilities: делаем недоступными
-        for master_id in master_ids:
-            Availability.objects.filter(
-                master_id=master_id,
-                start__gte=start,
-                end__lte=end,
-                is_available=True
-            ).update(is_available=False)
-
-        return Response(serializer.data, status=201)
-    return Response(serializer.errors, status=400)

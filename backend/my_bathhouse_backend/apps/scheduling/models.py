@@ -17,6 +17,8 @@ class Availability(models.Model):
     end = models.DateTimeField()
     is_available = models.BooleanField(default=True)
 
+    source = models.CharField(max_length=10, choices=[('user', 'Мастер'), ('system', 'Бронь')], default='user') # ***
+
     def __str__(self):
         return f"{self.master.username} — {self.start} до {self.end}"
 
@@ -43,6 +45,13 @@ class Booking(models.Model):
     massage = models.TextField(blank=True, help_text="Описание массажа")
     total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
     payments = JSONField(default=list, help_text="Список оплат: [{amount, method}, ...]")
+
+    # вычислять total_cost на бэкенде при сохранении
+    def save(self, *args, **kwargs):
+        # Пересчитываем total_cost из payments
+        total = sum(item.get('amount', 0) for item in self.payments)
+        self.total_cost = Decimal(str(total))
+        super().save(*args, **kwargs)
 
 
 def __str__(self):

@@ -45,6 +45,7 @@ interface CalendarEvent {
 }
 
 interface BookingEvent extends CalendarEvent {
+  isBooking: true; // ⬅ ЯВНЫЙ ФЛАГ
   steamProgram?: string;
   massage?: string;
   masterIds: number[];
@@ -113,6 +114,7 @@ export default function Page() {
         massage: '',
         masterIds: selectedWorker ? [selectedWorker.id] : [],
         payments: [{ amount: 0, method: 'cash' }],
+        isBooking: true,
       };
       setSelectedBooking(booking);
     } else {
@@ -347,48 +349,36 @@ export default function Page() {
 
   // Кастомное отображение событий
   const EventComponent = ({ event }: { event: CalendarEvent }) => {
-    // Это Booking (админ) → показываем полезную информацию
-    if (event.type === 'unavailable' && 'payments' in event) {
-      const booking = event as unknown as BookingEvent;
-      const isWeekView = viewMode === 'week';
+    // Сначала проверяем: это бронь?
+    if ('isBooking' in event) {
+      const booking = event as BookingEvent;
 
-      if (isWeekView) {
-        return (
-          <div className="truncate text-xs leading-tight">
-            <div>{booking.steamProgram || 'Услуга'}</div>
-            <div className="text-gray-600">
-              {booking.masterIds
-                .map(id => workers.find(w => w.id === id))
-                .filter((w): w is Worker => Boolean(w))
-                .map(w => `${w.first_name} ${w.last_name[0]}.`)
-                .join(', ')}
+      // Теперь безопасно извлекаем имена мастеров
+      const masterNames = booking.masterIds
+        .map(id => workers.find(w => w.id === id))
+        .filter((w): w is Worker => w !== undefined)
+        .map(w => `${w.first_name} ${w.last_name ? w.last_name[0] + '.' : ''}`)
+        .join(', ');
+
+      return (
+        <div title={`Услуга: ${booking.steamProgram}\nКлиент: ${booking.massage}`}>
+          <div className="text-xs leading-tight">
+            <div><strong>{booking.steamProgram || 'Услуга'}</strong></div>
+            <div>{booking.massage || 'Клиент'}</div>
+            <div className="text-blue-700">{masterNames}</div>
+            <div className="text-green-700">
+              {booking.payments.reduce((sum, p) => sum + p.amount, 0)} ₽
             </div>
           </div>
-        );
-      } else {
-        return (
-          <div className="text-xs leading-tight">
-            <div><strong>Программа:</strong> {booking.steamProgram || '—'}</div>
-            <div><strong>Клиент:</strong> {booking.massage || '—'}</div>
-            <div><strong>Мастера:</strong></div>
-            <ul className="list-disc list-inside ml-2">
-              {booking.masterIds.map(id => {
-                const w = workers.find(worker => worker.id === id);
-                return w ? <li key={id}>{getFullName(w)}</li> : null;
-              })}
-            </ul>
-            <div><strong>Оплата:</strong></div>
-            <ul className="list-disc list-inside ml-2">
-              {booking.payments.map((p, i) => (
-                <li key={i}>{p.amount} ₽, {p.method}</li>
-              ))}
-            </ul>
-          </div>
-        );
-      }
+        </div>
+      );
     }
 
-    // Это Availability (мастер) → просто "Недоступен"
+    // Если это обычный "недоступен" от мастера
+    if (event.type === 'unavailable') {
+      return <div>Недоступен</div>;
+    }
+
     return <div>{event.title}</div>;
   };
 
@@ -424,7 +414,11 @@ export default function Page() {
       try {
         // Загружаем доступность мастера
         const availResponse = await api.get('/api/scheduling/availabilities/');
-        const filteredAvail = availResponse.data.filter((a: any) => a.master === selectedWorker.id);
+        console.log('Доступность:', availResponse.data);
+
+        const filteredAvail = availResponse.data
+          .filter((a: any) => a.master === selectedWorker.id)
+          .filter((a: any) => a.source !== 'system');  //⬅ ИГНОРИРУЕМ системные
 
         const availEvents = filteredAvail.map((a: Availability): CalendarEvent => ({
           id: Number(a.id),
@@ -449,6 +443,7 @@ export default function Page() {
           start: new Date(b.start),
           end: new Date(b.end),
           type: 'unavailable',
+          isBooking: true, // ✅ Явный признак
           steamProgram: b.steam_program || '',
           massage: b.massage || '',
           masterIds: b.master_ids,
@@ -460,8 +455,9 @@ export default function Page() {
 
         // Сохраняем только availabilities для редактирования
         setAvailabilities(filteredAvail);
-      } catch (err) {
-        console.error('Ошибка загрузки данных:', err);
+      } catch (err: any) {
+        console.error('Ошибка загрузки availabilities:', err.response?.data || err.message);
+        alert('Ошибка загрузки данных. Проверь консоль и сервер.');
       }
     };
 
@@ -531,7 +527,7 @@ export default function Page() {
                           <img
                             src={`http://localhost:8000${worker.avatar}`}
                             alt={getFullName(worker)}
-                            className="h-10 w-10 rounded-full object-cover border-2 border-slate-600"
+                            className={`h-10 w-10 rounded-full object-cover border-2 border-slate-600 ${selectedWorker?.id === worker.id ? 'ring-1 ring-teal-300 rounded' : ''}`}
                           />
                         ) : (
                           <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold">
