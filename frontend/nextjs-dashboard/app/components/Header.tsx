@@ -14,9 +14,9 @@ const logoPath = "/static-images/logos/logo.png";
 
 const Header: React.FC<HeaderProps> = ({ className }) => {
   return (
-    <header className={`rounded-md flex items-center justify-between p-4 bg-sky-900 text-white ${className || ''}`}>
+    <header className={`rounded-md flex items-center justify-between px-4 py-1 bg-sky-900 text-white ${className || ''}`}>
       <Link href="/">
-        <Image src={logoPath} alt="Logo" width={50} height={50} className="mr-4 shadow-inner" />
+        <Image src={logoPath} alt="Logo" width={50} height={50} className="mr-1 shadow-inner" />
       </Link>
       <nav className="flex items-center">
         <ul className="flex gap-4">

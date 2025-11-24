@@ -604,9 +604,9 @@ export default function Page() {
   return (
     <div className="p-0">
       <div className="border border-gray-400 rounded overflow-hidden">
-        <div className="flex bg-gray-300 border-b border-gray-300 p-1">
+        <div className="flex bg-gray-300 border-b border-gray-300 p-0">
           <div className="flex-shrink-0 border-r border-gray-400 bg-white w-40 p-1">
-            <div className="space-y-2 bg-gray-300 h-full w-full">
+            <div className="space-y-2 bg-gray-50 h-full w-full">
               <input
                 type="date"
                 className="text-center border border-gray-300 rounded text-sm w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -619,7 +619,7 @@ export default function Page() {
               <div className="flex w-full">
                 <button
                   onClick={() => setViewMode('day')}
-                  className={`w-1/2 border hover:border-slate-700 p-1 text-xs ${viewMode === 'day'
+                  className={`w-1/2 border rounded hover:border-slate-700 p-0.5 text-xs ${viewMode === 'day'
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-200 hover:bg-green-600 hover:text-white'
                     }`}
@@ -628,7 +628,7 @@ export default function Page() {
                 </button>
                 <button
                   onClick={() => setViewMode('week')}
-                  className={`w-1/2 border hover:border-slate-700 p-1 text-xs ${viewMode === 'week'
+                  className={`w-1/2 border rounded  hover:border-slate-700 p-0.5 text-xs ${viewMode === 'week'
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-200 hover:bg-green-600 hover:text-white'
                     }`}
@@ -644,7 +644,7 @@ export default function Page() {
               <thead>
                 <tr>
                   {workers.map(worker => (
-                    <th key={worker.id} className="px-1 py-1 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider min-w-32">
+                    <th key={worker.id} className="px-1 py-1 bg-slate-100 text-xs font-medium text-gray-500 uppercase tracking-wider min-w-32">
                       <div className="flex flex-col items-center space-y-1 cursor-pointer" onClick={() => handleWorkerSelect(worker)}>
                         {worker.avatar ? (
                           <img
@@ -657,7 +657,7 @@ export default function Page() {
                             {worker.first_name?.[0] || 'M'}
                           </div>
                         )}
-                        <div className="text-xs font-medium text-gray-700 leading-tight">
+                        <div className="text-[10px] font-medium text-gray-700 leading-tight">
                           <div>{worker.first_name}</div>
                           <div>{worker.last_name}</div>
                         </div>
@@ -739,8 +739,8 @@ export default function Page() {
             step={15}
             timeslots={4}
             popup
-            min={new Date(0, 0, 0, 8, 0, 0)}
-            max={new Date(0, 0, 0, 22, 0, 0)}
+            min={new Date(0, 0, 0, 0, 0, 0)}
+            max={new Date(0, 0, 0, 23, 59, 59)}
             components={{ event: EventComponent }}
           />
         </div>
