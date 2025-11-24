@@ -700,13 +700,42 @@ export default function Page() {
               week: 'Неделя',
               day: 'День',
             }}
-            eventPropGetter={event => ({
-              style: {
-                ...(event.type === 'available' ? { backgroundColor: '#e5e7eb', color: '#4b5563' } : { backgroundColor: '#d1fae5', color: '#166534' }),
-                border: '1px solid #ddd',
-                cursor: 'default',
-              },
-            })}
+            eventPropGetter={event => {
+              // Если это бронь (услуга)
+              if ('isBooking' in event && event.isBooking) {
+                return {
+                  style: {
+                    backgroundColor: '#d1fae5', // зелёный
+                    color: '#166534',
+                    border: '1px solid #ddd',
+                    cursor: 'default',
+                  },
+                };
+              }
+
+              // Если это недоступность
+              if (event.type === 'unavailable') {
+                return {
+                  style: {
+                    backgroundColor: '#fee2e2', // красный фон
+                    color: '#b91c1c',           // тёмно-красный текст
+                    border: '1px solid #ddd',
+                    fontWeight: '500',
+                    cursor: 'default',
+                  },
+                };
+              }
+
+              // Остальные (доступен — серый)
+              return {
+                style: {
+                  backgroundColor: '#e5e7eb',
+                  color: '#4b5563',
+                  border: '1px solid #ddd',
+                  cursor: 'default',
+                },
+              };
+            }}
             step={15}
             timeslots={4}
             popup
