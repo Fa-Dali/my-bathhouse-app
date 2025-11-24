@@ -60,8 +60,8 @@ def create_availability(request):
 
 @api_view(['POST'])
 def create_booking(request):
-    print("🎯 create_booking вызван")  # 🔥
-    print("Данные:", request.data)  # 🔥
+    print("🎯 create_booking вызван")
+    print("Данные:", request.data)
 
     master_ids = request.data.get('master_ids', [])
     start = timezone.datetime.fromisoformat(request.data['start'])
@@ -70,24 +70,40 @@ def create_booking(request):
     if not master_ids:
         return Response({"error": "Выберите хотя бы одного мастера"}, status=400)
 
-    # Проверка доступности всех мастеров
-    for master_id in master_ids:
-        if not Availability.objects.filter(
-            master_id=master_id,
-            start__lt=end,
-            end__gt=start,
-            is_available=True
-        ).exists():
-            return Response(
-                {"error": f"Мастер {master_id} недоступен в это время"},
-                status=400
-            )
+    user = request.user
+
+    # Проверка для не-админа: нельзя, если пересекается с "недоступно от мастера"
+    if not user.has_role('admin'):
+        for master_id in master_ids:
+            if Availability.objects.filter(
+                master_id=master_id,
+                start__lt=end,
+                end__gt=start,
+                is_available=False,
+                source='user'
+            ).exists():
+                return Response(
+                    {"error": f"Мастер {master_id} недоступен в это время"},
+                    status=400
+                )
+    else:
+        # Проверка для админа: нельзя, если мастер уже в другой брони
+        for master_id in master_ids:
+            if Booking.objects.filter(
+                master_ids__contains=[master_id],
+                start__lt=end,
+                end__gt=start
+            ).exists():
+                return Response(
+                    {"error": f"Мастер {master_id} уже занят в это время"},
+                    status=400
+                )
 
     serializer = BookingSerializer(data=request.data)
     if serializer.is_valid():
         booking = serializer.save()
 
-        # Помечаем пересекающиеся Availability как системные
+        # Помечаем пересекающиеся Availability как занятые (системой)
         with transaction.atomic():
             for master_id in master_ids:
                 Availability.objects.filter(

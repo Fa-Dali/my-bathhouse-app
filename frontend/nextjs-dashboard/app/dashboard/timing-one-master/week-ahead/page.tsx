@@ -17,6 +17,20 @@ import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
+type FormBookingData = {
+  id: number;
+  title: string;
+  start: Date;
+  end: Date;
+  type: 'available' | 'unavailable';
+  steamProgram?: string;
+  massage?: string;
+  masterIds: number[];
+  payments: Array<{ amount: number; method: string }>;
+  mode: 'booking' | 'availability';
+  isBooking: boolean;
+};
+
 // Интерфейсы
 interface Worker {
   id: number;
@@ -50,7 +64,7 @@ interface BookingEvent extends CalendarEvent {
   massage?: string;
   masterIds: number[];
   payments: Array<{ amount: number; method: string }>;
-  mode: 'booking' | 'availability';
+  mode: 'booking' | 'availability'; //
 }
 
 // Создаём Calendar с DnD
@@ -93,7 +107,7 @@ export default function Page() {
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-  const [selectedBooking, setSelectedBooking] = useState<BookingEvent | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<FormBookingData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const modalRef = useRef<HTMLDialogElement>(null);
 
@@ -101,28 +115,105 @@ export default function Page() {
 
   const openModal = (slotInfo: { start: Date; end: Date } | CalendarEvent) => {
     const isEvent = 'title' in slotInfo;
+    const userRole = localStorage.getItem('role');
+    const isAdmin = userRole === 'admin';
 
-    const booking: BookingEvent = {
-      id: isEvent ? slotInfo.id : -1,
-      title: isEvent ? slotInfo.title : 'Бронь',
-      start: slotInfo.start,
-      end: slotInfo.end,
-      type: 'unavailable',
-      steamProgram: '',
-      massage: '',
-      masterIds: selectedWorker ? [selectedWorker.id] : [],
-      payments: [{ amount: 0, method: 'cash' }],
-      isBooking: true,
-      mode: isEvent ? (isEvent as any).mode || 'booking' : 'booking',
-    };
+    if (isEvent) {
+      // Редактирование
+      let formData: FormBookingData;
 
-    setSelectedBooking(booking);
+      if ('isBooking' in slotInfo && slotInfo.isBooking) {
+        const b = slotInfo as BookingEvent;
+        formData = {
+          id: b.id,
+          title: b.title,
+          start: b.start,
+          end: b.end,
+          type: b.type,
+          steamProgram: b.steamProgram || '',
+          massage: b.massage || '',
+          masterIds: b.masterIds,
+          payments: b.payments,
+          mode: 'booking',
+          isBooking: true,
+        };
+      } else {
+        formData = {
+          id: slotInfo.id,
+          title: slotInfo.title,
+          start: slotInfo.start,
+          end: slotInfo.end,
+          type: slotInfo.type,
+          steamProgram: '',
+          massage: '',
+          masterIds: [],
+          payments: [],
+          mode: 'availability',
+          isBooking: false,
+        };
+      }
+
+      setSelectedBooking(formData);
+      setModalOpen(true);
+      setTimeout(() => modalRef.current?.showModal(), 0);
+      return;
+    }
+
+    const { start, end } = slotInfo;
+
+    if (isAdmin) {
+      // Админ создаёт бронь
+      const newEvent: FormBookingData = {
+        id: -1,
+        title: 'Услуга',
+        start,
+        end,
+        type: 'unavailable',
+        steamProgram: '',
+        massage: '',
+        masterIds: selectedWorker ? [selectedWorker.id] : [],
+        payments: [{ amount: 0, method: 'cash' }],
+        mode: 'booking',
+        isBooking: true,
+      };
+      setSelectedBooking(newEvent);
+    } else {
+      // Мастер создаёт недоступность
+      const newEvent: FormBookingData = {
+        id: -1,
+        title: 'Недоступен',
+        start,
+        end,
+        type: 'unavailable',
+        steamProgram: '',
+        massage: '',
+        masterIds: [],
+        payments: [],
+        mode: 'availability',
+        isBooking: false,
+      };
+      setSelectedBooking(newEvent);
+    }
+
     setModalOpen(true);
     setTimeout(() => modalRef.current?.showModal(), 0);
   };
 
   const handleChange = (field: string, value: any) => {
-    setSelectedBooking(prev => prev ? { ...prev, [field]: value } : null);
+    setSelectedBooking(prev => {
+      if (!prev) return null;
+
+      let updated = { ...prev, [field]: value };
+
+      // Синхронизация mode и isBooking
+      if (field === 'mode') {
+        updated.isBooking = value === 'booking';
+        updated.type = value === 'booking' ? 'unavailable' : 'available';
+        updated.title = value === 'booking' ? 'Услуга' : 'Недоступен';
+      }
+
+      return updated;
+    });
   };
 
   const addMaster = () => {
@@ -153,14 +244,14 @@ export default function Page() {
   const saveBooking = async () => {
     if (!selectedBooking) return;
 
-    const isBooking = selectedBooking.mode === 'booking';
+    const userRole = localStorage.getItem('role');
+    const isAdmin = userRole === 'admin';
     const isCreating = selectedBooking.id === -1;
 
     try {
-      if (isBooking) {
-        const url = isCreating
-          ? '/api/scheduling/bookings/create/'
-          : `/api/scheduling/bookings/${selectedBooking.id}/`;
+      if (isAdmin) {
+        // Админ: бронь
+        const url = isCreating ? '/api/scheduling/bookings/create/' : `/api/scheduling/bookings/${selectedBooking.id}/`;
         const method = isCreating ? 'post' : 'patch';
 
         const payload = {
@@ -176,8 +267,8 @@ export default function Page() {
 
         const response = await api[method](url, payload);
 
-        const newEvent: BookingEvent = {
-          id: Number(response.data.id),
+        const event: BookingEvent = {
+          id: response.data.id,
           title: 'Услуга',
           start: selectedBooking.start,
           end: selectedBooking.end,
@@ -190,8 +281,9 @@ export default function Page() {
           mode: 'booking',
         };
 
-        setEvents(prev => [...prev.filter(e => e.id !== newEvent.id), newEvent]);
+        setEvents(prev => [...prev.filter(e => e.id !== event.id), event]);
       } else {
+        // Мастер: недоступность
         const url = isCreating
           ? '/api/scheduling/availabilities/create/'
           : `/api/scheduling/availabilities/${selectedBooking.id}/`;
@@ -202,22 +294,20 @@ export default function Page() {
           start: selectedBooking.start.toISOString(),
           end: selectedBooking.end.toISOString(),
           is_available: false,
+          source: 'user',
         };
 
         const response = await api[method](url, payload);
 
-        const newEvent: CalendarEvent = {
-          id: Number(response.data.id),
+        const event: CalendarEvent = {
+          id: response.data.id,
           title: 'Недоступен',
           start: selectedBooking.start,
           end: selectedBooking.end,
-          type: 'available',
+          type: 'unavailable',
         };
 
-        setEvents(prev => [
-          ...prev.filter(e => !(e.start.getTime() === newEvent.start.getTime() && e.end.getTime() === newEvent.end.getTime() && e.type === 'available')),
-          newEvent
-        ]);
+        setEvents(prev => [...prev.filter(e => e.id !== event.id), event]);
 
         if (isCreating) {
           setAvailabilities(prev => [...prev, response.data]);
@@ -226,12 +316,11 @@ export default function Page() {
         }
       }
 
-      alert('Информация успешно сохранена!');
+      alert('Сохранено');
       modalRef.current?.close();
       setModalOpen(false);
     } catch (err: any) {
-      console.error('Ошибка сохранения:', err);
-      alert('Не удалось сохранить: ' + (err.response?.data?.error || err.message));
+      alert('Ошибка: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -262,66 +351,135 @@ export default function Page() {
     [worker.first_name, worker.last_name].filter(Boolean).join(' ') || worker.username;
 
   const handleSelectEvent = (event: CalendarEvent) => {
+    const userRole = localStorage.getItem('role');
+    const isAdmin = userRole === 'admin';
+    const isBooking = 'isBooking' in event;
+
+    if (isBooking && !isAdmin) {
+      alert('Вы не можете редактировать бронь');
+      return;
+    }
+    if (!isBooking && isAdmin) {
+      alert('Админ не может редактировать статус недоступности');
+      return;
+    }
+
     openModal(event);
   };
 
   const handleDeleteEvent = async (event: CalendarEvent) => {
+    const userRole = localStorage.getItem('role');
+    if (userRole === 'admin') {
+      alert('Админ не может удалять статус недоступности');
+      return;
+    }
+    if (!window.confirm('Удалить слот недоступности?')) return;
+
     try {
       await api.delete(`/api/scheduling/availabilities/${event.id}/`);
       setAvailabilities(availabilities.filter(a => a.id !== event.id));
       setEvents(events.filter(e => e.id !== event.id));
-    } catch (err) {
-      alert('Не удалось удалить слот');
+    } catch {
+      alert('Не удалось удалить');
     }
   };
 
-  const handleDeleteBooking = async (event: CalendarEvent) => {
+  const handleDeleteBooking = async (event: BookingEvent) => {
+    const userRole = localStorage.getItem('role');
+    if (userRole !== 'admin') {
+      alert('Только админ может удалять брони');
+      return;
+    }
+    if (!window.confirm('Удалить бронь?')) return;
+
     try {
       await api.delete(`/api/scheduling/bookings/${event.id}/`);
       setEvents(events.filter(e => e.id !== event.id));
-    } catch (err) {
-      console.error('Ошибка удаления брони:', err);
-      alert('Не удалось удалить бронь');
+    } catch {
+      alert('Не удалось удалить');
     }
   };
 
-  const handleEventDrop = async ({ event, start, end }: { event: CalendarEvent; start: Date; end: Date }) => {
-    try {
-      await api.patch(`/api/scheduling/availabilities/${event.id}/`, {
-        start: start.toISOString(),
-        end: end.toISOString(),
-      });
+  const onEventDrop = async ({ event, start, end }: { event: CalendarEvent; start: Date | string; end: Date | string }) => {
+    const updatedStart = new Date(start);
+    const updatedEnd = new Date(end);
+    const userRole = localStorage.getItem('role');
 
-      const updatedEvent = { ...event, start, end };
-      setEvents(events.map(e => (e.id === event.id ? updatedEvent : e)));
-      setAvailabilities(
-        availabilities.map(a =>
-          a.id === event.id ? { ...a, start: start.toISOString(), end: end.toISOString() } : a
-        )
-      );
-    } catch (err) {
-      console.error('Ошибка перетаскивания:', err);
-      alert('Не удалось переместить слот');
+    if ('isBooking' in event) {
+      if (userRole === 'admin') {
+        await api.patch(`/api/scheduling/bookings/${event.id}/`, {
+          start: updatedStart.toISOString(),
+          end: updatedEnd.toISOString(),
+        });
+        setEvents(events.map(e =>
+          e.id === event.id
+            ? { ...e, start: updatedStart, end: updatedEnd }
+            : e
+        ));
+      }
+    } else {
+      if (userRole !== 'admin') {
+        // ✅ Преобразуем Date → string для совместимости с Availability
+        await api.patch(`/api/scheduling/availabilities/${event.id}/`, {
+          start: updatedStart.toISOString(),
+          end: updatedEnd.toISOString(),
+        });
+        setAvailabilities(availabilities.map(a =>
+          a.id === event.id
+            ? {
+              ...a,
+              start: updatedStart.toISOString(),
+              end: updatedEnd.toISOString(),
+            }
+            : a
+        ));
+        setEvents(events.map(e =>
+          e.id === event.id
+            ? { ...e, start: updatedStart, end: updatedEnd }
+            : e
+        ));
+      }
     }
   };
 
-  const handleEventResize = async ({ event, start, end }: { event: CalendarEvent; start: Date; end: Date }) => {
-    try {
-      await api.patch(`/api/scheduling/availabilities/${event.id}/`, {
-        start: start.toISOString(),
-        end: end.toISOString(),
-      });
+  const onEventResize = async ({ event, start, end }: { event: CalendarEvent; start: Date | string; end: Date | string }) => {
+    const updatedStart = new Date(start);
+    const updatedEnd = new Date(end);
+    const userRole = localStorage.getItem('role');
 
-      const updatedEvent = { ...event, start, end };
-      setEvents(events.map(e => (e.id === event.id ? updatedEvent : e)));
-      setAvailabilities(
-        availabilities.map(a =>
-          a.id === event.id ? { ...a, start: start.toISOString(), end: end.toISOString() } : a
-        )
-      );
-    } catch (err) {
-      console.error('Ошибка изменения длительности:', err);
-      alert('Не удалось изменить длительность');
+    if ('isBooking' in event) {
+      if (userRole === 'admin') {
+        await api.patch(`/api/scheduling/bookings/${event.id}/`, {
+          start: updatedStart.toISOString(),
+          end: updatedEnd.toISOString(),
+        });
+        setEvents(events.map(e =>
+          e.id === event.id
+            ? { ...e, start: updatedStart, end: updatedEnd }
+            : e
+        ));
+      }
+    } else {
+      if (userRole !== 'admin') {
+        await api.patch(`/api/scheduling/availabilities/${event.id}/`, {
+          start: updatedStart.toISOString(),
+          end: updatedEnd.toISOString(),
+        });
+        setAvailabilities(availabilities.map(a =>
+          a.id === event.id
+            ? {
+              ...a,
+              start: updatedStart.toISOString(),
+              end: updatedEnd.toISOString(),
+            }
+            : a
+        ));
+        setEvents(events.map(e =>
+          e.id === event.id
+            ? { ...e, start: updatedStart, end: updatedEnd }
+            : e
+        ));
+      }
     }
   };
 
@@ -531,8 +689,8 @@ export default function Page() {
             selectable="ignoreEvents"
             onSelectSlot={handleSelectSlot}
             onSelectEvent={handleSelectEvent}
-            onEventDrop={handleEventDrop as any}
-            onEventResize={handleEventResize as any}
+            onEventDrop={onEventDrop}
+            onEventResize={onEventResize}
             resizable
             formats={formats}
             messages={{
@@ -713,9 +871,27 @@ export default function Page() {
 
                     // 🔁 Используем mode, а не type
                     if (selectedBooking.mode === 'availability') {
-                      await handleDeleteEvent(selectedBooking);
+                      await handleDeleteEvent({
+                        id: selectedBooking.id,
+                        title: selectedBooking.title,
+                        start: selectedBooking.start,
+                        end: selectedBooking.end,
+                        type: selectedBooking.type
+                      });
                     } else {
-                      await handleDeleteBooking(selectedBooking);
+                      await handleDeleteBooking({
+                        id: selectedBooking.id,
+                        title: selectedBooking.title,
+                        start: selectedBooking.start,
+                        end: selectedBooking.end,
+                        type: selectedBooking.type,
+                        isBooking: true,
+                        steamProgram: selectedBooking.steamProgram || '',
+                        massage: selectedBooking.massage || '',
+                        masterIds: selectedBooking.masterIds,
+                        payments: selectedBooking.payments,
+                        mode: 'booking'
+                      });
                     }
 
                     modalRef.current?.close();
