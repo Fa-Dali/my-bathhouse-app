@@ -29,6 +29,7 @@ type FormBookingData = {
   payments: Array<{ amount: number; method: string }>;
   mode: 'booking' | 'availability';
   isBooking: boolean;
+  hall?: string;
 };
 
 // Интерфейсы
@@ -65,6 +66,7 @@ interface BookingEvent extends CalendarEvent {
   masterIds: number[];
   payments: Array<{ amount: number; method: string }>;
   mode: 'booking' | 'availability'; //
+  hall?: string;
 }
 
 // Создаём Calendar с DnD
@@ -96,7 +98,9 @@ const formats = {
   dayRangeHeaderFormat: ({ start, end }: { start: Date; end: Date }) =>
     `${format(start, 'd')} – ${format(end, 'd LLLL', { locale: ru })}`,
   dayHeaderFormat: (date: Date) => format(date, 'EEEE, d LLLL', { locale: ru }),
-  timeGutterFormat: (date: Date) => format(date, 'H:mm', { locale: ru }),
+  timeGutterFormat: (date: Date) => format(date, 'HH:mm', { locale: ru }),
+  eventTimeRangeFormat: ({ start, end }: { start: Date; end: Date }) =>
+    `${format(start, 'HH:mm', { locale: ru })} – ${format(end, 'HH:mm', { locale: ru })}`,
 };
 
 export default function Page() {
@@ -210,6 +214,7 @@ export default function Page() {
         updated.isBooking = value === 'booking';
         updated.type = value === 'booking' ? 'unavailable' : 'available';
         updated.title = value === 'booking' ? 'Услуга' : 'Недоступен';
+        if (value !== 'booking') updated.hall = '';
       }
 
       return updated;
@@ -263,6 +268,7 @@ export default function Page() {
           massage: selectedBooking.massage ?? '',
           total_cost: 0,
           payments: selectedBooking.payments,
+          hall: selectedBooking.hall || 'muromets',
         };
 
         const response = await api[method](url, payload);
@@ -486,6 +492,7 @@ export default function Page() {
   const EventComponent = ({ event }: { event: CalendarEvent }) => {
     if ('isBooking' in event) {
       const booking = event as BookingEvent;
+      console.log('🔍 Booking hall:', booking.hall);
       const masterNames = booking.masterIds
         .map(id => workers.find(w => w.id === id))
         .filter((w): w is Worker => w !== undefined)
@@ -495,9 +502,27 @@ export default function Page() {
       return (
         <div title={`Услуга: ${booking.steamProgram}\nКлиент: ${booking.massage}`}>
           <div className="text-xs leading-tight">
+
+            {/* 🔥 НОВАЯ СТРОКА: отображение зала */}
+            {booking.hall && (
+              <div className="text-xs font-medium text-blue-700 bg-blue-50 px-1 py-0.5 rounded border border-blue-100 mt-1">
+                {{
+                  muromets: 'Муромец',
+                  nikitich: 'Никитич',
+                  popovich: 'Попович',
+                  massage_l: 'Массаж Л',
+                  massage_p: 'Массаж П',
+                }[booking.hall]}
+              </div>
+            )}
+
             <div><strong>{booking.steamProgram || 'Услуга'}</strong></div>
-            <div>{booking.massage || 'Клиент'}</div>
-            <div className="text-blue-700">{masterNames}</div>
+            <div><span className="font-medium text-gray-700 underline">Клиент:</span><br />{' '}
+              {booking.massage || 'Клиент'}</div>
+            <div className="text-blue-700">
+              <span className="font-medium text-gray-700 underline">Мастер:</span><br />{' '}
+              {masterNames || 'Не назначен'}
+            </div>
             <div className="text-green-700">
               {booking.payments.reduce((sum, p) => sum + p.amount, 0)} ₽
             </div>
@@ -585,6 +610,7 @@ export default function Page() {
           masterIds: b.master_ids,
           payments: b.payments || [],
           mode: 'booking',
+          hall: b.hall || undefined,
         }));
 
         setEvents([...availEvents, ...bookingEvents]);
@@ -839,6 +865,23 @@ export default function Page() {
                 </div>
               </div>
             )}
+
+            <div className="m-2">
+              <label className="block text-gray-500 text-sm font-medium">Аудитория:</label>
+              <select
+                value={selectedBooking?.hall || ''}
+                onChange={e => handleChange('hall', e.target.value)}
+                className="select select-bordered w-full text-sm rounded"
+                disabled={selectedBooking?.mode !== 'booking'} // только для брони
+              >
+                <option value="" disabled>Выберите аудиторию</option>
+                <option value="muromets">Муромец</option>
+                <option value="nikitich">Никитич</option>
+                <option value="popovich">Попович</option>
+                <option value="massage_l">Массаж Л</option>
+                <option value="massage_p">Массаж П</option>
+              </select>
+            </div>
 
             <div className="m-2 p-2 border rounded bg-gray-50">
               <label className="block text-sm font-medium text-gray-700 mb-1">Режим:</label>

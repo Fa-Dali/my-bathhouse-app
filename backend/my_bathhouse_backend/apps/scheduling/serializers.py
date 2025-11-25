@@ -14,5 +14,5 @@ class BookingSerializer(serializers.ModelSerializer):
         model = Booking
         fields = [
             'id', 'master_ids', 'start', 'end', 'booking_type',
-            'steam_program', 'massage', 'total_cost', 'payments'
+            'steam_program', 'massage', 'total_cost', 'payments', 'hall'
         ]

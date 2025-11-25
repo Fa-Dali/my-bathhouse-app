@@ -23,10 +23,18 @@ class Availability(models.Model):
         return f"{self.master.username} — {self.start} до {self.end}"
 
 class Booking(models.Model):
-    """Бронирование: клиент или аренда"""
+    """Бронирование: аудитория, клиент, мастер"""
     BOOKING_TYPE_CHOICES = [
         ('client', 'Клиент'),
         ('rent', 'Аренда бани'),
+    ]
+
+    HALL_CHOICES = [
+        ('muromets', 'Муромец'),
+        ('nikitich', 'Никитич'),
+        ('popovich', 'Попович'),
+        ('massage_l', 'Массаж Л'),
+        ('massage_p', 'Массаж П'),
     ]
 
     PAYMENT_METHOD_CHOICES = [
@@ -45,6 +53,13 @@ class Booking(models.Model):
     massage = models.TextField(blank=True, help_text="Описание массажа")
     total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
     payments = JSONField(default=list, help_text="Список оплат: [{amount, method}, ...]")
+    hall = models.CharField(
+        max_length=20,
+        choices=HALL_CHOICES,
+        help_text="Зал, где проходит услуга",
+        default='muromets'
+    )
+
 
     # вычислять total_cost на бэкенде при сохранении
     def save(self, *args, **kwargs):
@@ -55,4 +70,4 @@ class Booking(models.Model):
 
 
 def __str__(self):
-        return f"Бронь — {self.start}"
+        return f"Бронь — {self.start} ({self.get_hall_display()})"
