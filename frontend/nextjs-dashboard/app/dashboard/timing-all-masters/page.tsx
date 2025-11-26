@@ -2,19 +2,19 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import api from '@/app/utils/axiosConfig';
-
-import { format, parseISO, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
+import { Calendar as RBCalendar, dateFnsLocalizer } from 'react-big-calendar';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import api from '@/app/utils/axiosConfig';
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop'
 
-// Интерфейсы (скопированы из timing-one-master)
+// Интерфейсы
 interface Worker {
   id: number;
-  username: string;
   first_name: string;
   last_name: string;
   avatar: string | null;
-  roles: Array<{ code: string; name: string }>;
 }
 
 interface Booking {
@@ -24,8 +24,8 @@ interface Booking {
   end: string;
   steam_program: string;
   massage: string;
-  payments: Array<{ amount: number; method: string }>;
   hall: string;
+  payments: Array<{ amount: number; method: string }>;
 }
 
 interface Availability {
@@ -42,48 +42,68 @@ interface CalendarEvent {
   start: Date;
   end: Date;
   type: 'available' | 'unavailable';
-  isBooking?: boolean;
+  isBooking: boolean;
   hall?: string;
   steamProgram?: string;
   massage?: string;
   masterIds?: number[];
+  resourceId?: number; // ← ID мастера
 }
+
+// Создаём календарь с DnD
+const Calendar = withDragAndDrop<CalendarEvent, Worker>(RBCalendar);
+
+// Локализация
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek: (date: Date) => startOfWeek(date, { weekStartsOn: 1 }),
+  getDay,
+  locales: { ru },
+});
 
 export default function Page() {
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Получаем мастеров
-        const workersRes = await api.get('/api/users/');
-        const masters = workersRes.data.filter((u: any) =>
-          u.roles.some((r: any) => r.code === 'paramaster' || r.code === 'masseur')
-        );
-        setWorkers(masters);
-
-        // Получаем брони и недоступности
-        const [bookingsRes, availRes] = await Promise.all([
+        const [usersRes, bookingsRes, availRes] = await Promise.all([
+          api.get('/api/users/'),
           api.get('/api/scheduling/bookings/'),
           api.get('/api/scheduling/availabilities/'),
         ]);
 
-        const start = startOfDay(new Date(selectedDate));
-        const end = endOfDay(new Date(selectedDate));
+        // Фильтруем мастеров
+        const masters = usersRes.data
+          .filter((u: any) => u.roles.some((r: any) => r.code === 'paramaster' || r.code === 'masseur'))
+          .map((u: any) => ({
+            id: u.id,
+            first_name: u.first_name,
+            last_name: u.last_name,
+            avatar: u.avatar,
+          }));
+        setWorkers(masters);
 
-        const dayEvents: CalendarEvent[] = [];
+        const startOfDay = new Date(selectedDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(selectedDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const filteredEvents: CalendarEvent[] = [];
 
         // Брони
         bookingsRes.data.forEach((b: Booking) => {
           const bStart = new Date(b.start);
           const bEnd = new Date(b.end);
-          if (!isWithinInterval(bStart, { start, end })) return;
+          if (bStart > endOfDay || bEnd < startOfDay) return;
 
           b.master_ids.forEach((masterId) => {
-            dayEvents.push({
+            if (!masters.find((m: Worker) => m.id === masterId)) return;
+            filteredEvents.push({
               id: b.id,
               title: 'Услуга',
               start: bStart,
@@ -94,31 +114,34 @@ export default function Page() {
               steamProgram: b.steam_program,
               massage: b.massage,
               masterIds: b.master_ids,
+              resourceId: masterId,
             });
           });
         });
 
         // Недоступности
         availRes.data
-          .filter((a: Availability) => a.is_available === false)
+          .filter((a: Availability) => !a.is_available)
           .forEach((a: Availability) => {
             const aStart = new Date(a.start);
             const aEnd = new Date(a.end);
-            if (!isWithinInterval(aStart, { start, end })) return;
+            if (aStart > endOfDay || aEnd < startOfDay) return;
+            if (!masters.find((m: Worker) => m.id === a.master)) return;
 
-            dayEvents.push({
+            filteredEvents.push({
               id: a.id,
               title: 'Недоступен',
               start: aStart,
               end: aEnd,
               type: 'unavailable',
               isBooking: false,
+              resourceId: a.master,
             });
           });
 
-        setEvents(dayEvents);
+        setEvents(filteredEvents);
       } catch (err) {
-        console.error('Ошибка загрузки данных:', err);
+        console.error('Ошибка загрузки:', err);
       } finally {
         setLoading(false);
       }
@@ -127,132 +150,123 @@ export default function Page() {
     fetchData();
   }, [selectedDate]);
 
-  const getWorkerName = (w: Worker) =>
-    [w.first_name, w.last_name].filter(Boolean).join(' ') || w.username;
+  const eventPropGetter = (event: CalendarEvent) => {
+    if (event.isBooking) {
+      return {
+        style: {
+          backgroundColor: '#d1fae5',
+          color: '#166534',
+          border: '1px solid #b2f3d0',
+        },
+      };
+    }
+    return {
+      style: {
+        backgroundColor: '#fee2e2',
+        color: '#b91c1c',
+        border: '1px solid #fecaca',
+      },
+    };
+  };
 
-  if (loading) return <p>Загрузка...</p>;
+  const EventComponent = ({ event }: { event: CalendarEvent }) => {
+    if (event.isBooking) {
+      const masterNames = event.masterIds
+        ?.map(id => workers.find(w => w.id === id))
+        .filter((w): w is Worker => w !== undefined) // ✅ Явная типизация
+        .map(w => `${w.first_name} ${w.last_name ? w.last_name[0] + '.' : ''}`)
+        .join(', ') || '—';
+
+      return (
+        <div title={`Клиент: ${event.massage}`}>
+          <strong>{event.steamProgram}</strong>
+          <div>Клиент: {event.massage}</div>
+          <div>Мастер: {masterNames}</div>
+          {event.hall && (
+            <div className="text-xs text-blue-700">
+              {{
+                muromets: 'Муромец',
+                nikitich: 'Никитич',
+                popovich: 'Попович',
+                massage_l: 'Массаж Л',
+                massage_p: 'Массаж П',
+              }[event.hall]}
+            </div>
+          )}
+        </div>
+      );
+    }
+    return <div>Недоступен</div>;
+  };
+
+  if (loading) return <p className="p-4">Загрузка...</p>;
 
   return (
-    <div className="p-4 h-[80%]">
-      <h1 className="text-2xl font-bold mb-4">ТАЙМИНГ ВСЕХ МАСТЕРОВ НА ДЕНЬ</h1>
+    <div className="p-4">
 
-      {/* Выбор даты */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium mb-2">Выберите дату:</label>
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="input input-bordered"
-        />
+      {/* ЗАГОЛОВОК И ТАЙМИНГ ВСЕХ МАСТЕРОВ НА ДЕНЬ */}
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-4">
+        {/* Левая часть: метка + дата */}
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium">Дата:</label>
+          <input
+            type="date"
+            value={selectedDate.toISOString().split('T')[0]}
+            onChange={(e) => setSelectedDate(new Date(e.target.value))}
+            className="input input-bordered h-10"
+          />
+        </div>
+
+        {/* Заголовок — остаётся как есть, но теперь в строке */}
+        <h1 className="text-2xl font-bold text-gray-800 whitespace-nowrap">
+          ТАЙМИНГ ВСЕХ МАСТЕРОВ НА ДЕНЬ
+        </h1>
       </div>
 
-      {/* Вертикальный и горизонтальный скролл */}
-      <div className="border border-gray-400 rounded overflow-hidden">
-        {/* Заголовки — мастера */}
-        <div className="bg-gray-200 overflow-x-auto hide-scrollbar" style={{ width: '100%' }}>
-          <div style={{ minWidth: '1200px' }} className="flex">
-            {workers.map((worker) => (
-              <div
-                key={worker.id}
-                className="min-w-60 border-r border-gray-300 p-2 text-center text-xs font-medium bg-white"
-              >
-                <div className="flex flex-col items-center space-y-1">
-                  {worker.avatar ? (
+      <div className="beautiful-scroll overflow-auto" style={{ height: '86vh' }}>
+        <div style={{ minWidth: '1200px' }}>
+          <Calendar
+            localizer={localizer}
+            events={events}
+            startAccessor="start"
+            endAccessor="end"
+            view="day"
+            date={selectedDate}
+            views={['day']}
+            resources={workers}
+            resourceIdAccessor="id"
+            resourceTitleAccessor={(r) => `${r.first_name} ${r.last_name}`}
+            style={{ height: '100%', width: '100%' }}
+            formats={{
+              timeGutterFormat: (date) => format(date, 'HH:mm', { locale: ru }),
+              eventTimeRangeFormat: ({ start, end }) =>
+                `${format(start, 'HH:mm', { locale: ru })} – ${format(end, 'HH:mm', { locale: ru })}`,
+            }}
+            components={{
+              event: EventComponent,
+              resourceHeader: ({ resource }) => (
+                <div className="flex flex-col items-center p-2 text-xs">
+                  {resource.avatar ? (
                     <img
-                      src={`http://localhost:8000${worker.avatar}`}
-                      alt={getWorkerName(worker)}
+                      src={`http://localhost:8000${resource.avatar}`}
+                      alt=""
                       className="h-10 w-10 rounded-full object-cover border"
                     />
                   ) : (
-                    <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold">
-                      {worker.first_name?.[0] || 'M'}
+                    <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center font-bold">
+                      {resource.first_name?.[0]}
                     </div>
                   )}
-                  <div>
-                    <div>{worker.first_name}</div>
-                    <div>{worker.last_name}</div>
-                  </div>
+                  <div>{resource.first_name}</div>
+                  <div>{resource.last_name}</div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Календарь — время */}
-        <div className="bg-white overflow-auto" style={{ height: '70vh', width: '100%' }}>
-          <div style={{ minWidth: '1200px', display: 'flex' }}>
-            {workers.map((worker) => (
-              <div
-                key={worker.id}
-                className="min-w-60 border-r border-gray-300 relative"
-                style={{ height: '100%' }}
-              >
-                {/* Сетка времени — 24 часа */}
-                <div className="relative h-full">
-                  {/* Часы слева */}
-                  <div className="absolute left-0 top-0 w-12 h-full bg-gray-50 border-r border-gray-300 text-xs text-gray-600">
-                    {Array.from({ length: 24 }, (_, h) => (
-                      <div
-                        key={h}
-                        className="h-16 border-b border-gray-200 flex items-center justify-center"
-                      >
-                        {h.toString().padStart(2, '0')}:00
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Слоты времени — основная область */}
-                  <div className="ml-12 h-full">
-                    {Array.from({ length: 24 }, (_, h) => (
-                      <div
-                        key={h}
-                        className="h-16 border-b border-gray-200 relative hover:bg-gray-50"
-                      />
-                    ))}
-
-                    {/* События */}
-                    {events
-                      .filter((e) =>
-                        'masterIds' in e
-                          ? e.masterIds?.includes(worker.id)
-                          : false
-                      )
-                      .map((event) => {
-                        const top = ((event.start.getHours() * 60 + event.start.getMinutes()) / 60) * 16; // 16px на час
-                        const height = ((event.end.getTime() - event.start.getTime()) / (1000 * 60)) * (16 / 60); // px per minute
-
-                        return (
-                          <div
-                            key={event.id}
-                            className={`absolute left-1 right-1 text-xs rounded border px-1 ${
-                              event.isBooking
-                                ? 'bg-green-100 border-green-300 text-green-800'
-                                : 'bg-red-100 border-red-300 text-red-800'
-                            }`}
-                            style={{ top: `${top}px`, height: `${height}px` }}
-                            title={event.isBooking ? event.massage || '' : 'Недоступен'}
-                          >
-                            <strong>{event.isBooking ? event.steamProgram : 'Недоступен'}</strong>
-                            {event.isBooking && event.hall && (
-                              <div className="text-blue-700 text-[10px]">
-                                {{
-                                  muromets: 'Муромец',
-                                  nikitich: 'Никитич',
-                                  popovich: 'Попович',
-                                  massage_l: 'Массаж Л',
-                                  massage_p: 'Массаж П',
-                                }[event.hall]}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ),
+            }}
+            eventPropGetter={eventPropGetter}
+            resizable
+            selectable
+          // onEventDrop={...} если нужен DnD
+          />
         </div>
       </div>
     </div>
