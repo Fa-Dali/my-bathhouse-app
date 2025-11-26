@@ -339,7 +339,7 @@ input[type="text"] {
   @apply text-sm font-medium px-2 py-1 border border-slate-200 rounded-md bg-white text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-200 focus:border-blue-300 transition-colors;
 }
 
-/* === СТИЛИ ТАБЛИЦЫ === */
+/* === СТИЛИ ТАБЛИЦЫ ОТЧЕТА АДМИНИСТРАТОРА === */
 
 /* Общий стиль таблицы */
 #admin-report-table table {
@@ -486,3 +486,42 @@ dialog::backdrop {
 }
 
 /* === END: ДЛЯ МОДАЛЬНОГО ОКНА В КАЛЕНДАРЕ === */
+
+
+
+
+/* === СИНХРОНИЗАЦИЯ КОЛОНОК МАСТЕРОВ — 120px === */
+* {
+  box-sizing: border-box;
+}
+
+/* Фиксируем ширину колонок */
+.custom-resource-calendar .rbc-header,
+.custom-resource-calendar .rbc-day-slot,
+.custom-resource-calendar .rbc-time-content .rbc-day-slot {
+  min-width: 120px !important;
+  max-width: 120px !important;
+  width: 120px !important;
+  flex: 0 0 120px !important;
+  box-sizing: border-box;
+}
+
+/* Убираем шапку ресурсов */
+.custom-resource-calendar .rbc-resource-header {
+  display: none !important;
+}
+
+.custom-resource-calendar .rbc-header.rbc-resource-header {
+  min-width: 120px !important;
+  width: 120px !important;
+  flex: 0 0 120px !important;
+  padding: 0 !important;
+}
+
+.custom-resource-calendar .rbc-time-header-content,
+.custom-resource-calendar .rbc-time-content {
+  min-width: fit-content !important;
+  flex: 1;
+}
+
+/* === END: СИНХРОНИЗАЦИЯ === */

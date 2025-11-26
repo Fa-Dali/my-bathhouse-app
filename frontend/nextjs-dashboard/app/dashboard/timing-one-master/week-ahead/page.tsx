@@ -629,8 +629,14 @@ export default function Page() {
 
   return (
     <div className="p-0">
+
+
       <div className="border border-gray-400 rounded overflow-hidden">
-        <div className="flex bg-gray-300 border-b border-gray-300 p-0">
+
+
+        <div className="flex bg-gray-500 border-b border-gray-300 p-0">
+
+          {/* 🔥 НОВАЯ СТРОКА: выбор мастера */}
           <div className="flex-shrink-0 border-r border-gray-400 bg-white w-40 p-1">
             <div className="space-y-2 bg-gray-50 h-full w-full">
               <input
@@ -696,7 +702,7 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="h-96 bg-white">
+        <div className="bg-white beautiful-scroll overflow-y-auto h-[500px]">
           <Calendar
             localizer={localizer}
             events={events}

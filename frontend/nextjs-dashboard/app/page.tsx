@@ -6,61 +6,77 @@ import Link from 'next/link';
 import { lusitana } from '@/app/ui/fonts';
 import Image from 'next/image';
 
+const logoPath = "/static-images/logos/logo.png";
+
 export default function Page() {
   return (
-    <main className="flex min-h-screen flex-col p-6">
-      {/* <div className={styles.shape} /> */}
-      <div className="flex h-20 shrink-0 items-end rounded-lg bg-blue-500 p-4 md:h-52">
-        <AcmeLogo />
-      </div>
-      <div className="mt-4 flex grow flex-col gap-4 md:flex-row">
-        <div className="flex flex-col justify-center gap-6 rounded-lg bg-gray-50 px-6 py-10 md:w-2/5 md:px-20">
-        {/* <div
-          className="relative w-0 h-0 border-l-[15px] border-r-[15px] border-b-[26px] border-l-transparent border-r-transparent border-b-black"
-        /> */}
-
-          <p className={`${lusitana.className} text-xl text-gray-800 md:text-3xl md:leading-normal`}
+    <main
+      className="flex min-h-screen flex-col p-2 relative"
+      style={{
+        backgroundImage: "url('/hero-bg.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed', // фон остаётся на месте при скролле
+      }}
     >
-            frontend/nextjs-dashboard/app/page.tsx <br />
-            Главный табель проекта
-          </p>
 
-          <p className={`${lusitana.className} text-xl text-gray-800 md:text-3xl md:leading-normal`}
-    >
-            <strong>Добро пожаловать в Acme.</strong> Вот пример для{' '}
-            <a href="https://nextjs.org/learn/" className="text-blue-500">
-              Next.js Learn Course
-            </a>
-            , brought to you by Vercel.
-          </p>
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-5 self-start rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-400 md:text-base"
-          >
-            <span>Log in</span> <ArrowRightIcon className="w-5 md:w-6" />
+      {/* Затемнение фона */}
+      <div className="absolute inset-0 bg-black/10"></div>
+
+      <div className="relative z-10">
+
+        {/* <div className={styles.shape} /> */}
+        <div className="flex w-[99%] h-20 shrink-0 items-end rounded-lg bg-cyan-950/70 p-2 md:h-20 ">
+          <Link href="/">
+            <Image src={logoPath} alt="Logo" width={50} height={50} className="mr-5 shadow-inner" />
           </Link>
-        </div>
-        <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
-          {/* Добавьте изображения героя здесь */}
-          {/* hiddenдля - удаления изображения из DOM на мобильных экранах и */}
-          {/* md:blockдля - отображения изображения на экранах настольных компьютеров */}
-          {/* ВИДИМОСТЬ НА КОМПЬЮТЕРЕ */}
-          <Image
-            src="/hero-desktop.png"
-            width={1000}
-            height={760}
-            className="hidden md:block"
-            alt="Скриншоты проекта панели управления, показывающие версию для настольного компьютера"
-          />
-           {/* ВИДИМОСТЬ НА МОБИЛЬНОМ */}
-          <Image
-            src="/hero-mobile.png"
-            width={560}
-            height={620}
-            className="block md:hidden"
-            alt="Снимок экрана проекта панели управления, показывающий мобильную версию"
-          />
+          <div className="text-lime-100 font-serif text-2xl md:text-5xl mt-5">Тайминг Бани АПД</div>
 
+        </div>
+        <div className="mt-4 flex grow flex-col gap-4 md:flex-row">
+          <div className="flex flex-col justify-center gap-6 rounded-lg bg-gray-950/50 px-6 py-8 md:w-2/5 md:px-20">
+
+            <p className={`${lusitana.className} text-xl text-gray-400 md:text-3xl md:leading-normal`}
+            >
+              <br />
+              Сисьтема управления организацией
+            </p>
+
+            <p className={`${lusitana.className} text-xl text-gray-400 md:text-3xl md:leading-normal`}
+            >
+              Поповские Бани отель: <br /> {' '}
+              <a href="https://ap-dvor.ru/" className="text-yellow-500">"Алёша Попович Двор"
+              </a>
+            </p>
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-5 self-start rounded-lg bg-lime-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-sky-300 md:text-base"
+            >
+              <span>Вход</span> <ArrowRightIcon className="w-5 md:w-6" />
+            </Link>
+          </div>
+          <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
+            {/* Добавьте изображения героя здесь */}
+            {/* hiddenдля - удаления изображения из DOM на мобильных экранах и */}
+            {/* md:blockдля - отображения изображения на экранах настольных компьютеров */}
+            {/* ВИДИМОСТЬ НА КОМПЬЮТЕРЕ */}
+            {/* <Image
+              src="/hero-desktop.png"
+              width={1000}
+              height={760}
+              className="hidden md:block"
+              alt="Скриншоты проекта панели управления, показывающие версию для настольного компьютера"
+            /> */}
+            {/* ВИДИМОСТЬ НА МОБИЛЬНОМ */}
+            {/* <Image
+              src="/hero-mobile.png"
+              width={560}
+              height={620}
+              className="block md:hidden"
+              alt="Снимок экрана проекта панели управления, показывающий мобильную версию"
+            /> */}
+
+          </div>
         </div>
       </div>
     </main>

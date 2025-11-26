@@ -11,10 +11,31 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { usePathname, useSearchParams, redirect } from 'next/navigation';  // Новые хуки
 
+// ✅ Хук useMediaQuery — для удаления аналоговых часов на маленьких экранах
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    setMatches(media.matches);
+
+    const handleChange = (e: MediaQueryListEvent) => setMatches(e.matches);
+    media.addEventListener('change', handleChange);
+
+    return () => media.removeEventListener('change', handleChange);
+  }, [query]);
+
+  return matches;
+}
+
 export default function SideNav() {
 
   const [loading, setLoading] = useState(false);
   const pathname = usePathname();  // Хук для получения текущего пути
+
+  // ✅ Показывать часы только на md и больше (≥768px)
+  const showClock = useMediaQuery('(min-width: 768px)');
+
 
   const handleLoginClick = () => {
     setLoading(true);
@@ -23,17 +44,19 @@ export default function SideNav() {
   };
 
   return (
-    <div className="bg-slate-600 flex h-auto flex-col px-3 py-4 md:px-2">
+    <div className="bg-slate-600 flex h-auto flex-col px-2 py-4 md:px-2">
 
-      <Link
-        className="mb- flex h-20 items-center justify-center rounded-md bg-zinc-100 p-4 md:h-40"
-        href="/" // ссылка на часах
-      >
-        <div className="w-32 text-white md:w-40">
-          {/* <AcmeLogo /> */}
-          <Clock />
-        </div>
-      </Link>
+      {/* 🔽 Условный рендер: только если showClock = true */}
+      {showClock && (
+        <Link
+          className=" flex h-20 items-center justify-center rounded-md bg-stone-300 p-4 md:h-40"
+          href="/"
+        >
+          <div className="w-32 text-white md:w-40">
+            <Clock />
+          </div>
+        </Link>
+      )}
 
       <div className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2">
 
@@ -46,7 +69,7 @@ export default function SideNav() {
 
 
         {/* Горизонтальная прокрутка только на маленьких экранах */}
-        <div className="flex overflow-x-auto snap-x snap-mandatory touch-pan-x whitespace-nowrap pb-5 block md:hidden max-w-full">
+        <div className="flex overflow-x-auto snap-x snap-mandatory touch-pan-x whitespace-nowrap pb-5 md:hidden max-w-full">
           <div className="flex-shrink-0 w-max pr-2 flex">
             <NavLinks />
           </div>

@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <SideNav />
       </div>
       <div className="flex-grow relative overflow-hidden">
-        <Header className="sticky top-0 z-50 bg-gray-800 text-white w-full py-1" />
+        {/* <Header className="sticky top-0 z-50 bg-gray-800 text-white w-full py-1" /> */}
         <main className="p-0 sm:overflow-y-auto " style={{ paddingTop: '0px' }}>
           <AuthProvider>
             {children}
