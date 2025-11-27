@@ -635,6 +635,9 @@ dialog::backdrop {
 .custom-resource-calendar .rbc-header {
   padding: 0 !important;
   margin: 0 !important;
+  min-width: 110px !important;
+  width: 110px !important;
+  flex: 0 0 110px !important;
 }
 
 /* Колонки мастеров — ширина */
@@ -646,6 +649,22 @@ dialog::backdrop {
   box-sizing: border-box;
 }
 
+/* Только колонки мастеров — НЕ первую */
+.custom-resource-calendar .rbc-time-header-content .rbc-header + .rbc-header {
+  min-width: 110px !important;
+  width: 110px !important;
+  flex: 0 0 110px !important;
+  box-sizing: border-box;
+  padding: 0 !important;
+  margin: 0 !important;
+}
 
+/* Каждая ячейка времени в теле */
+.custom-resource-calendar .rbc-time-content .rbc-day-slot {
+  min-width: 110px !important;
+  width: 110px !important;
+  flex: 0 0 110px !important;
+  box-sizing: border-box;
+}
 
 /* === КОНЕЦ: СТИЛИ ЯЧЕЕК ВРЕМЕНИ === */

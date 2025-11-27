@@ -274,80 +274,94 @@ export default function Page() {
       </div>
 
       {/* Основной контейнер: шапка + тело */}
-    <div className="border border-gray-300 rounded overflow-hidden">
+      <div className="border border-gray-300 rounded overflow-hidden">
 
-      {/* Шапка мастеров — фиксирована */}
-      <div className="bg-gray-50 border-b border-gray-300">
-        <div className="overflow-x-auto hide-scrollbar">
-          <table className="min-w-full">
-            <thead>
-              <tr>
-                {/* Пустая ячейка для времени — 50px */}
-                <th className="w-12 bg-slate-100 border-r border-gray-300"></th>
+        {/* Шапка мастеров — фиксирована */}
+        <div className="bg-gray-50 border-b border-gray-300">
+          <div className="overflow-x-auto hide-scrollbar">
 
-                {/* Колонки мастеров */}
-                {workers.map((worker) => (
-                  <th
-                    key={worker.id}
-                    className="px-1 py-1 bg-slate-100 text-xs font-medium text-gray-500 uppercase tracking-wider min-w-28 border-r border-gray-200"
-                  >
-                    <div className="flex flex-col items-center space-y-1">
-                      {worker.avatar ? (
-                        <img
-                          src={`http://localhost:8000${worker.avatar}`}
-                          alt=""
-                          className="h-10 w-10 rounded-full object-cover border"
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center font-bold text-white">
-                          {worker.first_name?.[0]}
+            {/* Настройка ширины колонок шапки и тела календаря + CSS */}
+            <div style={{ display: 'table', tableLayout: 'fixed', width: 'fit-content' }} className="w-full">
+              <table className="w-full" style={{ tableLayout: 'fixed', width: 'fit-content' }}>
+                <colgroup>
+                  <col style={{ width: '50px' }} />
+                  {workers.map(() => (
+                    <col style={{ width: '110px' }} />
+                  ))}
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th className="w-12 bg-slate-100 border-r border-gray-300 p-0"></th>
+                    {workers.map((worker) => (
+                      <th
+                        key={worker.id}
+                        className="w-[110px] bg-slate-100 text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 p-0"
+                        style={{ width: '110px', minWidth: '110px', maxWidth: '110px' }}
+                      >
+                        <div className="flex flex-col items-center space-y-1">
+                          {worker.avatar ? (
+                            <img
+                              src={`http://localhost:8000${worker.avatar}`}
+                              alt=""
+                              className="h-10 w-10 rounded-full object-cover border"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center font-bold text-white">
+                              {worker.first_name?.[0]}
+                            </div>
+                          )}
+                          <div>{worker.first_name}</div>
+                          <div>{worker.last_name}</div>
                         </div>
-                      )}
-                      <div>{worker.first_name}</div>
-                      <div>{worker.last_name}</div>
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-          </table>
-        </div>
-      </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
 
-      {/* Тело календаря — прокручивается */}
-      <div className="beautiful-scroll h-[70vh] overflow-y-auto overflow-x-auto">
-        <div style={{ minWidth: 'fit-content' }}>
-          <Calendar
-            className="custom-resource-calendar"
-            localizer={localizer}
-            events={events}
-            startAccessor="start"
-            endAccessor="end"
-            view="day"
-            date={selectedDate}
-            views={['day']}
-            resources={workers}
-            resourceIdAccessor="id"
-            resourceTitleAccessor={(r) => `${r.first_name} ${r.last_name}`}
-            step={30}
-            formats={{
-              timeGutterFormat: (date) => format(date, 'HH:mm', { locale: ru }),
-              eventTimeRangeFormat: ({ start, end }) =>
-                `${format(start, 'HH:mm', { locale: ru })} – ${format(end, 'HH:mm', { locale: ru })}`,
-            }}
-            components={{
-              event: EventComponent,
-              resourceHeader: () => null, // ❌ Важно: шапка выключена
-            }}
-            eventPropGetter={eventPropGetter}
-            resizable
-            selectable
-            messages={{ next: 'Вперёд', previous: 'Назад', today: 'Сегодня' }}
-            style={{ height: '100%', width: '100%' }}
-          />
+              </table>
+            </div>
+
+
+
+
+
+          </div>
+        </div>
+
+        {/* Тело календаря — прокручивается */}
+        <div className="beautiful-scroll h-[70vh] overflow-y-auto overflow-x-auto">
+          <div style={{ minWidth: 'fit-content' }}>
+            <Calendar
+              className="custom-resource-calendar"
+              localizer={localizer}
+              events={events}
+              startAccessor="start"
+              endAccessor="end"
+              view="day"
+              date={selectedDate}
+              views={['day']}
+              resources={workers}
+              resourceIdAccessor="id"
+              resourceTitleAccessor={(r) => `${r.first_name} ${r.last_name}`}
+              step={30}
+              formats={{
+                timeGutterFormat: (date) => format(date, 'HH:mm', { locale: ru }),
+                eventTimeRangeFormat: ({ start, end }) =>
+                  `${format(start, 'HH:mm', { locale: ru })} – ${format(end, 'HH:mm', { locale: ru })}`,
+              }}
+              components={{
+                event: EventComponent,
+                resourceHeader: () => null, // ❌ Важно: шапка выключена
+              }}
+              eventPropGetter={eventPropGetter}
+              resizable
+              selectable
+              messages={{ next: 'Вперёд', previous: 'Назад', today: 'Сегодня' }}
+              style={{ height: '100%', width: '100%' }}
+            />
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
 }
