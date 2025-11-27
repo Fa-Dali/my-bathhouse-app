@@ -490,20 +490,55 @@ dialog::backdrop {
 
 
 
-/* === СИНХРОНИЗАЦИЯ КОЛОНОК МАСТЕРОВ — 120px === */
+/* === СИНХРОНИЗАЦИЯ КОЛОНОК МАСТЕРОВ И ШАПКИ — 110px === */
 * {
   box-sizing: border-box;
 }
 
-/* Фиксируем ширину колонок */
-.custom-resource-calendar .rbc-header,
-.custom-resource-calendar .rbc-day-slot,
-.custom-resource-calendar .rbc-time-content .rbc-day-slot {
-  min-width: 120px !important;
-  max-width: 120px !important;
-  width: 120px !important;
-  flex: 0 0 120px !important;
+.custom-resource-calendar .rbc-header {
+  padding: 0 !important;
+}
+/* ============================================ */
+/* Гарантируем одинаковую ширину — ШАПКА */
+/* Гарантируем одинаковую ширину — ШАПКА */
+.custom-resource-calendar .rbc-header {
+  min-width: 110px !important;
+  max-width: 110px !important;
+  width: 110px !important;
+  flex: 0 0 110px !important;
+  padding: 0 !important;
+  margin: 0 !important;
   box-sizing: border-box;
+}
+
+/* Гарантируем одинаковую ширину — ТЕЛО (каждая ячейка времени) */
+.custom-resource-calendar .rbc-day-slot {
+  min-width: 110px !important;
+  max-width: 110px !important;
+  width: 110px !important;
+  flex: 0 0 110px !important;
+  box-sizing: border-box;
+}
+
+/* Дополнительно: ячейки в .rbc-time-content */
+.custom-resource-calendar .rbc-time-content .rbc-day-slot {
+  min-width: 110px !important;
+  flex: 0 0 110px !important;
+}
+
+/* На всякий случай — если используется table-layout */
+.custom-resource-calendar .rbc-time-header-content {
+  flex: none !important; /* Отключаем растяжение */
+}
+
+.custom-resource-calendar .rbc-time-content > div {
+  flex: none !important;
+}
+/* ================================================ */
+.custom-resource-calendar .rbc-header {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin: 0 !important;
 }
 
 /* Убираем шапку ресурсов */
@@ -519,9 +554,89 @@ dialog::backdrop {
 }
 
 .custom-resource-calendar .rbc-time-header-content,
-.custom-resource-calendar .rbc-time-content {
+.custom-resource-calendar {
   min-width: fit-content !important;
   flex: 1;
 }
 
 /* === END: СИНХРОНИЗАЦИЯ === */
+
+/* === ЗАМЕНА ГОЛУБОГО-ТЕКУЩЕГО ДНЯ В КАЛЕНДАРЕ НА ДРУГОЙ ЦВЕТ === */
+
+  /* Линия текущего времени — станет оранжевой */
+.rbc-current-time {
+  background-color: #f97316 !important; /* orange-500 */
+  height: 2px !important;
+  /* Можно добавить тень */
+  box-shadow: 0 0 4px rgba(249, 115, 22, 0.4);
+}
+
+/* Сегодняшний день — светло-оранжевый фон */
+.rbc-today {
+  background-color: #fff7ed !important; /* orange-50 */
+  border-bottom: 1px solid #fdba74 !important; /* orange-300 */
+}
+
+/* Заголовок "сегодня" — оранжевый текст */
+.rbc-today.rbc-header {
+  background-color: #fff7ed !important;
+  font-weight: 700 !important;
+  color: #c2410c !important; /* orange-700 */
+}
+
+/* Прокрутка */
+.rbc-time-content {
+  overflow-x: auto !important;
+}
+
+ /* END === ЗАМЕНА ГОЛУБОГО-ТЕКУЩЕГО ДНЯ В КАЛЕНДАРЕ НА ДРУГОЙ ЦВЕТ === */
+
+
+ /* === СТИЛИ ДЛЯ ЯЧЕЕК ВРЕМЕНИ (слева) === */
+
+/* Левая колонка времени */
+.custom-resource-calendar .rbc-time-gutter {
+  min-width: 50px !important;
+  width: 50px !important;
+  flex: 0 0 50px !important;
+  background-color: #f8fafc !important;
+  padding: 0 !important;
+  border-right: 1px solid #e2e8f0 !important;
+}
+
+/* Ячейки времени (например, "08:00") */
+.custom-resource-calendar .rbc-time-gutter .rbc-time-slot {
+  border-bottom: 1px solid #e2e8f0 !important;
+  height: 60px !important; /* Высота строки — должна совпадать с ячейками */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Текст времени */
+.custom-resource-calendar .rbc-time-gutter .rbc-time-slot span {
+  font-size: 0.65rem !important;
+  color: #203450 !important;
+}
+
+/* === ШАПКА: СИНХРОНИЗАЦИЯ ПЕРВОЙ КОЛОНКИ === */
+
+/* Первая колонка в шапке (должна соответствовать .rbc-time-gutter) */
+.custom-resource-calendar .rbc-time-header-content > .rbc-header:first-child {
+  min-width: 50px !important;
+  width: 50px !important;
+  flex: 0 0 50px !important;
+  background-color: #f8fafc !important;
+  border-right: 1px solid #e2e8f0 !important;
+  padding: 0 !important;
+}
+
+/* Убираем padding */
+.custom-resource-calendar .rbc-header {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+
+
+/* === КОНЕЦ: СТИЛИ ЯЧЕЕК ВРЕМЕНИ === */
