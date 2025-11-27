@@ -637,6 +637,15 @@ dialog::backdrop {
   margin: 0 !important;
 }
 
+/* Колонки мастеров — ширина */
+.custom-resource-calendar .rbc-header + .rbc-header,
+.custom-resource-calendar .rbc-day-slot {
+  min-width: 110px !important;
+  width: 110px !important;
+  flex: 0 0 110px !important;
+  box-sizing: border-box;
+}
+
 
 
 /* === КОНЕЦ: СТИЛИ ЯЧЕЕК ВРЕМЕНИ === */

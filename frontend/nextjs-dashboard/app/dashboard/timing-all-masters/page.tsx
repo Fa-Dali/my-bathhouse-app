@@ -70,49 +70,49 @@ export default function Page() {
 
 
   // =======================================================================================
-  const calendarRef = React.useRef<HTMLDivElement>(null);
+  // const calendarRef = React.useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const container = calendarRef.current;
-    if (!container) return;
+  // useEffect(() => {
+  //   const container = calendarRef.current;
+  //   if (!container) return;
 
-    // Ждём, пока календарь отрендерится
-    const observer = new MutationObserver(() => {
-      const headerCells = container.querySelectorAll('.rbc-row:first-child .rbc-header');
-      if (headerCells.length === 0) return;
+  //   // Ждём, пока календарь отрендерится
+  //   const observer = new MutationObserver(() => {
+  //     const headerCells = container.querySelectorAll('.rbc-row:first-child .rbc-header');
+  //     if (headerCells.length === 0) return;
 
-      const handleWheel = (e: WheelEvent) => {
-        // Проверяем, что колесико — над шапкой
-        const isOverHeader = [...headerCells].some(cell => cell.contains(e.target as Node));
-        if (!isOverHeader) return;
+  //     const handleWheel = (e: WheelEvent) => {
+  //       // Проверяем, что колесико — над шапкой
+  //       const isOverHeader = [...headerCells].some(cell => cell.contains(e.target as Node));
+  //       if (!isOverHeader) return;
 
-        e.preventDefault();
-        const timeContent = container.querySelector('.rbc-time-content') as HTMLElement | null;
-        if (timeContent) {
-          timeContent.scrollLeft += e.deltaY;
-        }
-      };
+  //       e.preventDefault();
+  //       const timeContent = container.querySelector('.rbc-time-content') as HTMLElement | null;
+  //       if (timeContent) {
+  //         timeContent.scrollLeft += e.deltaY;
+  //       }
+  //     };
 
-      // Убираем старый обработчик, если был
-      const wrapper = container.closest('.rbc-calendar');
-      if ((wrapper as any)._wheelAttached) return;
-      (wrapper as any)._wheelAttached = true;
+  //     // Убираем старый обработчик, если был
+  //     const wrapper = container.closest('.rbc-calendar');
+  //     if ((wrapper as any)._wheelAttached) return;
+  //     (wrapper as any)._wheelAttached = true;
 
-      container.addEventListener('wheel', handleWheel, { passive: false });
+  //     container.addEventListener('wheel', handleWheel, { passive: false });
 
-      observer.disconnect(); // Убираем observer
+  //     observer.disconnect(); // Убираем observer
 
-      // Очистка
-      return () => {
-        container.removeEventListener('wheel', handleWheel);
-        if (wrapper) (wrapper as any)._wheelAttached = false;
-      };
-    });
+  //     // Очистка
+  //     return () => {
+  //       container.removeEventListener('wheel', handleWheel);
+  //       if (wrapper) (wrapper as any)._wheelAttached = false;
+  //     };
+  //   });
 
-    observer.observe(container, { childList: true, subtree: true });
+  //   observer.observe(container, { childList: true, subtree: true });
 
-    return () => observer.disconnect();
-  }, []);
+  //   return () => observer.disconnect();
+  // }, []);
   // =======================================================================================
 
 
@@ -273,121 +273,81 @@ export default function Page() {
         </h1>
       </div>
 
-      <div ref={calendarRef} className="beautiful-scroll overflow-auto" style={{ height: '86vh' }}>
-        <div>
+      {/* Основной контейнер: шапка + тело */}
+    <div className="border border-gray-300 rounded overflow-hidden">
+
+      {/* Шапка мастеров — фиксирована */}
+      <div className="bg-gray-50 border-b border-gray-300">
+        <div className="overflow-x-auto hide-scrollbar">
+          <table className="min-w-full">
+            <thead>
+              <tr>
+                {/* Пустая ячейка для времени — 50px */}
+                <th className="w-12 bg-slate-100 border-r border-gray-300"></th>
+
+                {/* Колонки мастеров */}
+                {workers.map((worker) => (
+                  <th
+                    key={worker.id}
+                    className="px-1 py-1 bg-slate-100 text-xs font-medium text-gray-500 uppercase tracking-wider min-w-28 border-r border-gray-200"
+                  >
+                    <div className="flex flex-col items-center space-y-1">
+                      {worker.avatar ? (
+                        <img
+                          src={`http://localhost:8000${worker.avatar}`}
+                          alt=""
+                          className="h-10 w-10 rounded-full object-cover border"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center font-bold text-white">
+                          {worker.first_name?.[0]}
+                        </div>
+                      )}
+                      <div>{worker.first_name}</div>
+                      <div>{worker.last_name}</div>
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+          </table>
+        </div>
+      </div>
+
+      {/* Тело календаря — прокручивается */}
+      <div className="beautiful-scroll h-[70vh] overflow-y-auto overflow-x-auto">
+        <div style={{ minWidth: 'fit-content' }}>
           <Calendar
             className="custom-resource-calendar"
-            // Подключает локализацию (язык, форматы дат) через date-fns
-            // Без этого — даты будут на английском, а нам нужен русский
             localizer={localizer}
-
-            // Список событий, которые отображаются в календаре
-            // Каждое событие — бронь или недоступность с start/end и resourceId
             events={events}
-
-            // Говорит календарю: "начало события" хранится в поле `event.start`
             startAccessor="start"
-
-            // Говорит календарю: "конец события" хранится в поле `event.end`
             endAccessor="end"
-
-            // Режим отображения: "день" — одна строка времени, разбитая по часам
             view="day"
-
-            // Какая дата сейчас отображается (управляет через input type="date")
             date={selectedDate}
-
-            // Доступные режимы просмотра (здесь только 'day', других нет)
             views={['day']}
-
-            // Список "ресурсов" — в нашем случае это мастера
-            // Каждый мастер = своя колонка в календаре
             resources={workers}
-
-            // Говорит: ID ресурса (мастера) хранится в `resource.id`
-            // Используется, чтобы связать событие с конкретным мастером через `resourceId`
             resourceIdAccessor="id"
-
-            // Как отображать имя ресурса (мастера) в шапке
-            // По умолчанию — просто текст, а мы делаем "Имя Фамилия"
             resourceTitleAccessor={(r) => `${r.first_name} ${r.last_name}`}
-
-            // Стили: календарь должен занять 100% ширины и высоты родителя
-            // Чтобы не обрезался и растягивался правильно
-            style={{ height: '100%', width: '100%' }}
-
             step={30}
-
-            // Настройки форматов отображения времени и дат
             formats={{
-              // Формат времени в левой колонке (например: "08:00", "09:00")
               timeGutterFormat: (date) => format(date, 'HH:mm', { locale: ru }),
-
-              // Формат времени внутри события (например: "09:00 – 10:00")
               eventTimeRangeFormat: ({ start, end }) =>
                 `${format(start, 'HH:mm', { locale: ru })} – ${format(end, 'HH:mm', { locale: ru })}`,
             }}
-
-            // Кастомизация отображения компонентов календаря
             components={{
               event: EventComponent,
-              resourceHeader: ({ resource }) => (
-                <div
-                  className="flex flex-col items-center p-0 text-xs cursor-ew-resize relative"
-                  style={{
-                    userSelect: 'none',
-                    width: '100px',
-                    minWidth: '100px',
-                    maxWidth: '100px',
-                    boxSizing: 'border-box',
-                  }}
-                  title="Прокручивайте колесиком для перемещения по времени"
-                >
-                  {resource.avatar ? (
-                    <img
-                      src={`http://localhost:8000${resource.avatar}`}
-                      alt=""
-                      className="h-10 w-10 rounded-full object-cover border"
-                    />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center font-bold">
-                      {resource.first_name?.[0]}
-                    </div>
-                  )}
-                  <div>{resource.first_name}</div>
-                  <div>{resource.last_name}</div>
-                  <div className="absolute inset-0 pointer-events-none border border-dashed border-blue-300 rounded opacity-0 hover:opacity-30 transition-opacity" />
-                </div>
-              ),
+              resourceHeader: () => null, // ❌ Важно: шапка выключена
             }}
-
-
-
-            // Функция, которая возвращает стили для события
-            // Например: зелёный для брони, красный для недоступности
             eventPropGetter={eventPropGetter}
-
-            // Разрешает тянуть за края события, чтобы изменить его длительность
-            // (если включить DnD — будет работать)
             resizable
-
-            // Разрешает выделять время мышкой (например, чтобы создать новое событие)
-            // Работает с onSelectSlot
             selectable
-
-            // onEventDrop={...} — заглушка
-            // Нужна для drag-and-drop, но сейчас закомментирована
-            // Если раскомментировать — можно будет перетаскивать события
-            messages={{
-              next: 'Вперёд',
-              previous: 'Назад',
-              today: 'Сегодня',
-            }}
+            messages={{ next: 'Вперёд', previous: 'Назад', today: 'Сегодня' }}
+            style={{ height: '100%', width: '100%' }}
           />
         </div>
-
-
       </div>
     </div>
-  );
+  </div>
+);
 }
