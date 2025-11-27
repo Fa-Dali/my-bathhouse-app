@@ -607,7 +607,7 @@ dialog::backdrop {
 /* Ячейки времени (например, "08:00") */
 .custom-resource-calendar .rbc-time-gutter .rbc-time-slot {
   border-bottom: 1px solid #e2e8f0 !important;
-  height: 60px !important; /* Высота строки — должна совпадать с ячейками */
+  height: 50px !important; /* Высота строки — должна совпадать с ячейками */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -668,3 +668,32 @@ dialog::backdrop {
 }
 
 /* === КОНЕЦ: СТИЛИ ЯЧЕЕК ВРЕМЕНИ === */
+
+
+/* === СИНХРОНИЗАЦИЯ ШИРИНЫ КОЛОНОК: ВРЕМЯ === */
+
+/* Колонка времени — ГАРАНТИРОВАННАЯ ШИРИНА */
+.custom-resource-calendar .rbc-time-gutter {
+  min-width: 50px !important;
+  width: 50px !important;
+  flex: 0 0 50px !important;
+  max-width: 50px !important;
+}
+
+/* Шапка: первая колонка — время */
+.custom-resource-calendar .rbc-time-header-content > .rbc-header:first-child {
+  min-width: 50px !important;
+  width: 50px !important;
+  flex: 0 0 50px !important;
+  max-width: 50px !important;
+  background-color: #f8fafc !important;
+  border-right: 1px solid #e2e8f0 !important;
+  padding: 0 !important;
+}
+
+/* Отключаем растяжение для контейнера шапки */
+.custom-resource-calendar .rbc-time-header-content {
+  flex: none !important; /* ⚠️ Ключевое: не надо растягиваться */
+}
+
+/* === КОНЕЦ: СИНХРОНИЗАЦИЯ === */

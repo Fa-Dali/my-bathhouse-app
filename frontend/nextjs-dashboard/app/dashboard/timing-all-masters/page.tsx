@@ -321,57 +321,57 @@ export default function Page() {
 
     {/* === СТИКИ ТУЛБАР: КНОПКИ И ДАТА === */}
     <div
-      className="sticky top-0 z-30 bg-white border-t border-b border-gray-300 px-4 py-2 flex items-center justify-between"
-      style={{ width: 'fit-content' }}
+  className="sticky top-0 z-30 bg-white border-t border-b border-gray-300 px-4 py-2 flex items-center justify-between"
+  style={{ width: '100%' }}
+>
+  {/* Кнопки слева */}
+  <div className="flex items-center gap-1">
+    <button
+      type="button"
+      onClick={() => setSelectedDate(new Date())}
+      className="btn btn-sm bg-slate-500 text-white hover:bg-cyan-700 rounded px-2"
     >
-      {/* Кнопки навигации */}
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setSelectedDate(new Date())}
-          className="btn btn-sm bg-blue-600 text-white hover:bg-blue-700"
-        >
-          Сегодня
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            setSelectedDate((prev) => {
-              const newDate = new Date(prev);
-              newDate.setDate(newDate.getDate() - 1);
-              return newDate;
-            })
-          }
-          className="btn btn-sm border"
-        >
-          Назад
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            setSelectedDate((prev) => {
-              const newDate = new Date(prev);
-              newDate.setDate(newDate.getDate() + 1);
-              return newDate;
-            })
-          }
-          className="btn btn-sm border"
-        >
-          Вперёд
-        </button>
-      </div>
-
-      {/* Текст: четверг, 27 ноября */}
-      <div className="text-lg font-semibold text-gray-800">
-        {new Intl.DateTimeFormat('ru', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'short',
+      Сегодня
+    </button>
+    <button
+      type="button"
+      onClick={() =>
+        setSelectedDate((prev) => {
+          const newDate = new Date(prev);
+          newDate.setDate(newDate.getDate() - 1);
+          return newDate;
         })
-          .format(selectedDate)
-          .replace('.', '')}
-      </div>
-    </div>
+      }
+      className="btn btn-sm border rounded px-2"
+    >
+      Назад
+    </button>
+    <button
+      type="button"
+      onClick={() =>
+        setSelectedDate((prev) => {
+          const newDate = new Date(prev);
+          newDate.setDate(newDate.getDate() + 1);
+          return newDate;
+        })
+      }
+      className="btn btn-sm border rounded px-2"
+    >
+      Вперёд
+    </button>
+  </div>
+
+  {/* Дата — справа, растягивается */}
+  <div className="ml-4 text-lg font-semibold text-gray-800">
+    {new Intl.DateTimeFormat('ru', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'short',
+    })
+      .format(selectedDate)
+      .replace('.', '')}
+  </div>
+</div>
 
     {/* ОСНОВНОЙ КОНТЕЙНЕР: ШАПКА МАСТЕРОВ + КАЛЕНДАРЬ */}
     <div className="border border-gray-300 rounded overflow-hidden mt-0">
@@ -439,7 +439,7 @@ export default function Page() {
             resourceIdAccessor="id"
             resourceTitleAccessor={(r) => `${r.first_name} ${r.last_name}`}
             step={30}
-
+            timeslots={2}
             formats={{
               timeGutterFormat: (date) => format(date, 'HH:mm', { locale: ru }),
               eventTimeRangeFormat: ({ start, end }) =>
