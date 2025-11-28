@@ -65,9 +65,18 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
           <th className="px-2 py-1 bg-gray-50 text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
             МАССАЖИСТ
           </th>
-          <th className="px-2 py-1 bg-gray-50 text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+
+
+          {/* <th className="px-2 py-1 bg-gray-50 text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
             УДАЛИТЬ
+          </th> */}
+
+
+          <th className="px-2 py-1 bg-gray-50 text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+            {users.some(u => u.can_edit) ? 'УДАЛИТЬ' : ''}
           </th>
+
+
         </tr>
       </thead>
 
@@ -115,39 +124,9 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
               {/* Пин-код */}
               <td className="px-2 py-1 whitespace-no-wrap">{user.pin_code}</td>
 
-              {/* Чекбоксы ролей */}
-              {/* АДМИН */}
-              <td>
-                <input className="rounded" type="checkbox" checked={roleCodes.includes('admin')} onChange={e => handleRoleChange(user.id, 'admin', e.target.checked)} />
-              </td>
-
-              {/* ПАРАМЕСТЕР */}
-              <td>
-                <input className="rounded" type="checkbox" checked={roleCodes.includes('paramaster')} onChange={e => handleRoleChange(user.id, 'paramaster', e.target.checked)} />
-              </td>
-
-              {/* МАССАЖИСТ */}
-              <td>
-                <input className="rounded" type="checkbox" checked={roleCodes.includes('masseur')} onChange={e => handleRoleChange(user.id, 'masseur', e.target.checked)} />
-              </td>
-
-              {/* Показываем кнопку "Удалить", только если username != "Fa-Dali" */}
-              <td className="px-6 py-4 whitespace-no-wrap">
-                {user.username !== 'Fa-Dali' && (
-                  <button
-                    onClick={() => {
-                      setShowConfirm(true); // Показываем модал
-                      setUserToDelete(user.id); // Сохраняем ID пользователя
-                    }}
-                    className="rounded-lg px-4 py-2 bg-red-500 text-white hover:bg-red-600"
-                  >
-                    Удалить
-                  </button>
-                )}
-
-              </td>
 
               {/* Чекбоксы ролей — только если можно редактировать */}
+              {/* АДМИН */}
               <td>
                 {user.can_edit ? (
                   <input
@@ -168,6 +147,7 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
                 )}
               </td>
 
+              {/* ПАРАМЕСТЕР */}
               <td>
                 {user.can_edit ? (
                   <input
@@ -180,6 +160,7 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
                 )}
               </td>
 
+              {/* МАССАЖИСТ */}
               <td>
                 {user.can_edit ? (
                   <input
@@ -193,6 +174,21 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
               </td>
 
 
+              <td>
+                {user.can_edit ? user.username !== 'Fa-Dali' && (
+                  <button
+                    onClick={() => {
+                      setShowConfirm(true); // Показываем модал
+                      setUserToDelete(user.id); // Сохраняем ID пользователя
+                    }}
+                    className="rounded-lg px-4 py-2 bg-red-500 text-white hover:bg-red-600"
+                  >
+                    Удалить
+                  </button>
+                ) : (
+                  roleCodes.includes('masseur') ? '' : ''
+                )}
+              </td>
 
 
             </tr>
