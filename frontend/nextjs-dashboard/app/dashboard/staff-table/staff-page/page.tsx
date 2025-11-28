@@ -12,7 +12,7 @@ export default function Page() {
 	return (
 		<div className="container">
 			<h1 className="text-3xl font-semibold mb-2 pl-1">Коллектив</h1>
-			<div className="container mx-auto p-0 beautiful-scroll overflow-y-auto h-[600px]">
+			<div className="container mx-auto p-0">
 				<UserTable
 					setShowConfirm={setShowConfirm} // Передаем метод изменения состояния видимости модального окна
 					setUserToDelete={setUserToDelete} // Передаем метод сохранения выбранного пользователя
