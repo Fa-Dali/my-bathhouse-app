@@ -8,14 +8,33 @@ import useUsers from './useUsers';
 import { changeAvatar, resizeAndUpload } from './utils'; // Вспомогательные функции вынесены отдельно
 import api from '@/app/utils/axiosConfig';
 
+interface User {
+  id: number;
+  username: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+  email: string;
+  pin_code: string;
+  avatar?: string | null;
+  roles: { code: string; name: string }[];
+  can_edit: boolean;
+}
+
 // Аннотируем типы props
 type TableProps = {
+  users: User[];
+  refresh: () => void;
   setShowConfirm: (value: boolean) => void; // Точно определяем тип функции
   setUserToDelete: (id: number | null) => void; // Точно определяем тип функции
 };
 
-export default function UserTable({ setShowConfirm, setUserToDelete }: TableProps) {
-  const { users, refresh } = useUsers(); // Используем хук для получения списка пользователей
+export default function UserTable({
+  users,
+  refresh,
+  setShowConfirm,
+  setUserToDelete,
+}: TableProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null); // Реф для выбора файла
 
   const handleRoleChange = async (userId: number, roleCode: string, checked: boolean) => {
@@ -86,13 +105,13 @@ export default function UserTable({ setShowConfirm, setUserToDelete }: TableProp
 
                 {/* Фото */}
                 <td className="px-2 py-1 overflow-hidden max-w-[50px]">
-                  <div onClick={() => fileInputRef.current && fileInputRef.current.click()} className="cursor-pointer">
-                    {user.avatar ? (
-                      <img src={`http://localhost:8000${user.avatar}`} alt={`${user.first_name} ${user.last_name}`} className="h-10 w-10 rounded-full object-cover" />
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center cursor-pointer">+</div>
-                    )}
-                  </div>
+                  <div onClick={() => fileInputRef.current?.click()} className="cursor-pointer">
+                  {user.avatar ? (
+                    <img src={`http://localhost:8000${user.avatar}`} alt={`${user.first_name} ${user.last_name}`} className="h-10 w-10 rounded-full object-cover" />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center cursor-pointer">+</div>
+                  )}
+                </div>
                   <input
                     ref={fileInputRef}
                     type="file"

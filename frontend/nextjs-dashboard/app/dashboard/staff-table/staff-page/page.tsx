@@ -7,9 +7,9 @@ import DeleteModal from './DeleteModal'; // Импортируем модаль�
 import useUsers from './useUsers';
 
 export default function Page() {
+	const { users, refresh } = useUsers(); // ✅ Один источник правды
 	const [showConfirm, setShowConfirm] = useState(false);
 	const [userToDelete, setUserToDelete] = useState<number | null>(null);
-	const { refresh } = useUsers(); // ✅ Получаем refresh здесь
 
 
 	return (
@@ -17,6 +17,8 @@ export default function Page() {
 			<h1 className="text-3xl font-semibold mb-2 pl-1">Коллектив</h1>
 			<div className="container mx-auto p-0">
 				<UserTable
+					users={users}
+					refresh={refresh}
 					setShowConfirm={setShowConfirm} // Передаем метод изменения состояния видимости модального окна
 					setUserToDelete={setUserToDelete} // Передаем метод сохранения выбранного пользователя
 				/>
