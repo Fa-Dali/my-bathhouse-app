@@ -44,7 +44,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 # from rest_framework.response import Response
 # from .models import CustomUser, Role
 # ===========================
-from rest_framework_simplejwt.authentication import JWTAuthentication
+# from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 
@@ -186,42 +186,47 @@ class DeleteUserAPI(DestroyAPIView):
 class UpdateAvatarAPI(UpdateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
-    parser_classes = [MultiPartParser,
-                      FormParser]  # Необходимо для обработки файлов
+    parser_classes = [MultiPartParser, FormParser]
     lookup_field = 'pk'
 
     def update(self, request, *args, **kwargs):
-        '''
-        Решение готово к работе и поддержит работу с любыми изображениями
-        независимо от расширения (.jpg/.png и т.д.).
-        '''
-        user = self.get_object()
-        avatar = request.FILES.get('avatar')
+        instance = self.get_object()
+        user = request.user
 
+        if user != instance and not user.has_role('admin'):
+            return Response(
+                {'error': 'Нет прав на изменение аватара этого пользователя'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        partial = True
+
+        # Логируем, что пришло
+        print("Данные в update:", request.data)
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)  # ← будет показывать ошибки
+        self.perform_update(serializer)
+
+        # === Логика изменения аватара ===
+        avatar = request.FILES.get('avatar')
         if avatar:
-            # Удаляем старое изображение, если оно существовало
-            if user.avatar:
-                old_avatar_path = os.path.join(settings.MEDIA_ROOT,
-                                               user.avatar.name)
+            if instance.avatar:
+                old_avatar_path = os.path.join(settings.MEDIA_ROOT, instance.avatar.name)
                 if os.path.exists(old_avatar_path):
                     os.remove(old_avatar_path)
 
-            # Определим расширение файла
             extension = avatar.name.split('.')[-1].lower()
-            filename = f'{user.id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}_avatar.{extension}'
-
-            # Изменяем размер аватара до 250x250
-            resized_avatar = resize_image(avatar, size=(250, 250))
-
-            # Сохраняем измененный аватар
+            filename = f'{instance.id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}_avatar.{extension}'
             save_path = os.path.join(settings.MEDIA_ROOT, 'avatars', filename)
+
+            resized_avatar = resize_image(avatar, size=(250, 250))
             resized_avatar.save(save_path)
 
-            # Обновляем запись пользователя
-            user.avatar = os.path.join('avatars', filename)
-            user.save()
+            instance.avatar = os.path.join('avatars', filename)
+            instance.save(update_fields=['avatar'])
 
-        return super().update(request, *args, **kwargs)
+        return Response(serializer.data)
 
 
 # Функционал для изменения размера изображения

@@ -5,13 +5,23 @@
 '''
 
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser, Role
 from django.contrib.auth import authenticate
 
 class UserSerializer(serializers.ModelSerializer):
 
     # Сделаем поле аватара необязательным
     avatar = serializers.ImageField(use_url=True, required=False, allow_null=True)
+
+    # Сделать поля необязательными при update
+    username = serializers.CharField(required=False)
+    first_name = serializers.CharField(required=False)
+    last_name = serializers.CharField(required=False)
+    email = serializers.EmailField(required=False)
+    phone_number = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    pin_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    roles = serializers.PrimaryKeyRelatedField(queryset=Role.objects.all(), many=True, required=False)
+
 
     class Meta:
         model = CustomUser
@@ -29,7 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
         ]
         # Пароль доступен только для записи
         extra_kwargs = {
-            'password': {'write_only': True},
+            'password': {'write_only': True, 'required': False},
             # 'avatar': {'allow_null': True, 'required': False}
         }
 

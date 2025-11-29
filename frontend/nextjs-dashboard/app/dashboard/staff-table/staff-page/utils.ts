@@ -18,7 +18,7 @@ export const changeAvatar = async (userId: number, newAvatar: Blob) => {
   formData.append('avatar', newAvatar, fileName);
 
   try {
-    await api.put(`/api/update-avatar/${userId}/`, formData);
+    await api.patch(`/api/update-avatar/${userId}/`, formData);
     // Пока оставим угадывание пути — позже заменим на ответ с сервера
     return `/media/avatars/${userId}_${Date.now()}.${fileExt}`;
   } catch (error) {
