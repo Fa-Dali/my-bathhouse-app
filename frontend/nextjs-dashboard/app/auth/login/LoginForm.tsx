@@ -85,14 +85,27 @@ const LoginForm = () => {
 
       if (response.status === 200) {
         localStorage.setItem('authToken', response.data.access_token);
-        localStorage.setItem('refreshToken', response.data.refresh_token);
-        console.log('Refresh token saved:', localStorage.getItem('refreshToken'));
-        loginSuccess();
-        const redirectUrl = sessionStorage.getItem('redirectUrl') || '/dashboard';
+
+        // ✅ Установка токена в axios defaults (один раз)
+        api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
+
+        try {
+          const userResponse = await api.get('/api/me/');
+
+          console.log('✅ Успешно загружен /api/me/:', userResponse.data);
+          
+          loginSuccess(userResponse.data); // ✅ Передаём user
+        } catch (err) {
+          console.error('Не удалось загрузить профиль:', err);
+          loginSuccess({
+            id: 0,
+            username: credentials.username,
+            roles: [],
+          });
+        }
+
         sessionStorage.clear();
-        router.push(redirectUrl);
-      } else {
-        throw new Error('Ошибка авторизации.');
+        router.push('/dashboard'); // ✅ Исправлено: не redirect
       }
     } catch (error: any) {
       // Убрано: console.error('Ошибка авторизации:', error.response.data);

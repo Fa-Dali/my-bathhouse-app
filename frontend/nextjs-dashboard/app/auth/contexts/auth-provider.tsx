@@ -1,42 +1,83 @@
 // app/auth/contexts/auth-provider.tsx
 'use client';
 
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import api from '@/app/utils/axiosConfig';
 
-// Интерфейс нашего контекста авторизации
-interface IAuthContext {
-	authenticated: boolean;
-	loginSuccess: () => void;
-	logout: () => void;
+export interface IUser {
+  id: number;
+  username: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone_number?: string;
+  pin_code?: string;
+  avatar?: string;
+  roles: { id: number; code: string; name: string }[];
 }
 
-// Создаем контекст авторизации
+interface IAuthContext {
+  authenticated: boolean;
+  user: IUser | null;
+  loginSuccess: (userData: IUser) => void;
+  logout: () => void;
+}
+
 const AuthContext = createContext<IAuthContext>({
-	authenticated: false,
-	loginSuccess: () => { },
-	logout: () => { },
+  authenticated: false,
+  user: null,
+  loginSuccess: () => {},
+  logout: () => {},
 });
 
-// Основной провайдер авторизации
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-	const [authenticated, setAuthenticated] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [user, setUser] = useState<IUser | null>(null);
 
-	const loginSuccess = () => {
-		setAuthenticated(true);
-	};
+  // 🔁 При загрузке проверяем токен и восстанавливаем пользователя
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      setAuthenticated(true);
 
-	const logout = () => {
-		setAuthenticated(false);
-	};
+      // Подгружаем данные пользователя
+      api
+        .get('/api/me/')
+        .then((res) => {
+          setUser(res.data);
+          console.log('✅ Восстановлен пользователь:', res.data);
+        })
+        .catch((err) => {
+          console.error('❌ Не удалось загрузить /api/me/', err);
+          setAuthenticated(false);
+          setUser(null);
+          localStorage.removeItem('authToken');
+          delete api.defaults.headers.common['Authorization'];
+        });
+    }
+  }, []);
 
-	return (
-		<AuthContext.Provider value={{ authenticated, loginSuccess, logout }}>
-			{children}
-		</AuthContext.Provider>
-	);
+  const loginSuccess = (userData: IUser) => {
+    console.log('🔐 loginSuccess получил:', userData);
+    setAuthenticated(true);
+    setUser(userData);
+  };
+
+  const logout = () => {
+    setAuthenticated(false);
+    setUser(null);
+    localStorage.removeItem('authToken');
+    delete api.defaults.headers.common['Authorization'];
+  };
+
+  return (
+    <AuthContext.Provider value={{ authenticated, user, loginSuccess, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
-// Hook для удобного использования контекста
 export function useAuth() {
-	return useContext(AuthContext);
+  return useContext(AuthContext);
 }

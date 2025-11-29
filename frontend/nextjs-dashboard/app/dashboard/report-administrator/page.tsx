@@ -6,7 +6,7 @@ import AdminTable from './calculator/AdminTable2';
 
 export default function Page() {
 	return (
-		<div className="container p-2">
+		<div className="container p-2 bg-violet-50">
 			{/* <p>ДОСТУПНА : ТОЛЬКО АДМИНИСТРАТОРАМ</p>
 			<p>.</p>
 			<p>Страница : администратора</p> */}
