@@ -15,7 +15,7 @@ export default function Page() {
 
 
 	return (
-		<div className="container w-[98%] m-2 border border-gray-200 rounded-lg p-1 beautiful-scroll overflow-y-auto h-[570px]">
+		<div className="container w-[98%] m-2 border border-gray-200 rounded-lg p-1 beautiful-scroll overflow-y-auto h-[540px]">
 			<StaffPage />
 		</div>
 	);

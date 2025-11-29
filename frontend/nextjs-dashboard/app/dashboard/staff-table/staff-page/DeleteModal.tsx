@@ -9,22 +9,22 @@ type Props = {
   show: boolean;
   handleClose: () => void;
   userId: number | null;
+  refresh: () => void;
 };
 
-export default function DeleteModal({ show, handleClose, userId }: Props) {
-  const closeModal = useCallback(() => {
-    handleClose();
-  }, [handleClose]);
-
+export default function DeleteModal({ show, handleClose, userId, refresh }: Props) {
   const handleDelete = useCallback(async () => {
     if (!userId) return;
-    await deleteUser(userId); // Удаление пользователя
-    handleClose(); // Закрытие модала после удаления
-
-    // Перезагружаем страницу после успешного удаления
-    window.location.reload(); // Перезагрузка страницы
-  }, [userId, handleClose]);
-
+    try {
+      await deleteUser(userId);
+      refresh(); // ✅ Обновляем данные
+    } catch (error) {
+      console.error('Ошибка при удалении:', error);
+      alert('Не удалось удалить пользователя');
+    } finally {
+      handleClose();
+    }
+  }, [userId, refresh, handleClose]);
 
 
   return (
@@ -35,7 +35,7 @@ export default function DeleteModal({ show, handleClose, userId }: Props) {
             <h3 className="text-lg font-medium mb-4">Подтвердите удаление</h3>
             <p>Вы уверены, что хотите удалить пользователя?</p>
             <div className="mt-6 flex justify-end gap-3">
-              <button onClick={closeModal} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+              <button onClick={handleClose} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
                 Отмена
               </button>
               <button onClick={handleDelete} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">

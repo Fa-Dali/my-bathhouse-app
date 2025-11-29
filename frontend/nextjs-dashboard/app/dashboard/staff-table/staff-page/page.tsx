@@ -4,10 +4,13 @@
 import React, { useState } from 'react';
 import UserTable from './UserTable'; // Импортируем таблицу пользователей
 import DeleteModal from './DeleteModal'; // Импортируем модальное окно удаления
+import useUsers from './useUsers';
 
 export default function Page() {
 	const [showConfirm, setShowConfirm] = useState(false);
 	const [userToDelete, setUserToDelete] = useState<number | null>(null);
+	const { refresh } = useUsers(); // ✅ Получаем refresh здесь
+
 
 	return (
 		<div className="container">
@@ -23,6 +26,7 @@ export default function Page() {
 						show={showConfirm}
 						handleClose={() => setShowConfirm(false)}
 						userId={userToDelete}
+						refresh={refresh}
 					/>
 				)}
 			</div>
