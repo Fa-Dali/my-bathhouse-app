@@ -4,48 +4,27 @@
 от фронтенда и сохранять их в базу данных.
 '''
 import logging
-
+import os
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import LoginSerializer, UserSerializer
-# ==========================
-# ЧТЕНИЕ ТАБЛИЦЫ ПОЛЬЗОВАТЕЛЕЙ ИЗ БД
-from rest_framework.generics import ListAPIView, DestroyAPIView
-from .models import CustomUser, Role
-# from .serializers import UserSerializer
-# ===========================
-# УДАЛЕНИЕ ПОЛЬЗОВАТЕЛЕЙ ИЗ БД
-# from rest_framework.generics import DestroyAPIView
-# from .models import CustomUser
-# from .serializers import UserSerializer
-# ===========================
-# ЗАМЕНА АВАТАР ПОЛЬЗОВАТЕЛЯ В БД
-from rest_framework.generics import UpdateAPIView
+from rest_framework.generics import ListAPIView, DestroyAPIView, UpdateAPIView
 from rest_framework.parsers import MultiPartParser, FormParser
-# from .models import CustomUser
-# from .serializers import UserSerializer
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework import status
+
+from .serializers import LoginSerializer, UserSerializer
+from .models import CustomUser, Role
 from datetime import datetime
-import os
-from django.conf import settings  # Для доступа к MEDIA_ROOT
-# ===========================
-# ДЛЯ CSRF ТОКЕНА
+from PIL import Image
+
+from django.conf import settings
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
-# ===========================
-# ДЛЯ УДАЛЕНИЯ АВАТАРА ИЗ БД
-from django.core.exceptions import SuspiciousOperation
-# ===========================
-# ДЛЯ ИЗМЕНЕНИЯ РОЛЕЙ ПОЛЬЗОВАТЕЛЯ
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework_simplejwt.authentication import JWTAuthentication
-# from rest_framework.response import Response
-# from .models import CustomUser, Role
-# ===========================
-# from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.core.exceptions import SuspiciousOperation, PermissionDenied
 
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 # ДЛЯ РЕГИСТРАЦИИ ПОЛЬЗОВАТЕЛЯ
@@ -188,50 +167,81 @@ class UpdateAvatarAPI(UpdateAPIView):
     serializer_class = UserSerializer
     parser_classes = [MultiPartParser, FormParser]
     lookup_field = 'pk'
+    http_method_names = ['patch', 'put']  # Только PATCH и PUT
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        user = request.user
+        print("🔹 НАЧАЛО UpdateAvatarAPI.update()")
+        print("🔹 request.user:", request.user)
+        print("🔹 request.user.id:", request.user.id)
+        print("🔹 request.auth:", request.auth)  # JWT-specific
+        print("🔹 Метод запроса:", request.method)
+        print("🔹 Заголовки:", dict(request.headers))
 
-        if user != instance and not user.has_role('admin'):
+        instance = self.get_object()
+        print("🔹 instance.id:", instance.id)
+        print("🔹 instance.username:", instance.username)
+        print("🔹 user == instance:", request.user.id == instance.id)
+
+        if request.user.id != instance.id:
+            print("🚫 Доступ запрещён: пользователь не совпадает")
             return Response(
-                {'error': 'Нет прав на изменение аватара этого пользователя'},
+                {'error': 'Вы можете изменить только свой аватар.'},
                 status=status.HTTP_403_FORBIDDEN
             )
 
+        print("✅ Проверка пройдена — продолжаем обновление")
+
+        user = request.user
+
+        # 🔐 Проверка: можно менять ТОЛЬКО свой аватар
+        if user.id != instance.id:
+            return Response(
+                {'error': 'Вы можете изменить только свой аватар.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # ✅ Разрешаем частичное обновление
         partial = True
-
-        # Логируем, что пришло
-        print("Данные в update:", request.data)
-
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)  # ← будет показывать ошибки
+        serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        # === Логика изменения аватара ===
+        # === Обработка аватара (только если файл загружен) ===
         avatar = request.FILES.get('avatar')
         if avatar:
+            # Удаляем старый аватар, если есть
             if instance.avatar:
                 old_avatar_path = os.path.join(settings.MEDIA_ROOT, instance.avatar.name)
                 if os.path.exists(old_avatar_path):
                     os.remove(old_avatar_path)
 
+            # Подготавливаем путь и имя файла
             extension = avatar.name.split('.')[-1].lower()
             filename = f'{instance.id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}_avatar.{extension}'
             save_path = os.path.join(settings.MEDIA_ROOT, 'avatars', filename)
 
-            resized_avatar = resize_image(avatar, size=(250, 250))
+            # Изменяем размер и сохраняем
+            resized_avatar = self.resize_image(avatar, size=(250, 250))
             resized_avatar.save(save_path)
 
+            # Обновляем поле аватара
             instance.avatar = os.path.join('avatars', filename)
             instance.save(update_fields=['avatar'])
 
         return Response(serializer.data)
 
+    def resize_image(self, image, size):
+        """Изменяет размер изображения."""
+        img = Image.open(image)
+        img.thumbnail(size, Image.Resampling.LANCZOS)
+        return img
+
 
 # Функционал для изменения размера изображения
 def resize_image(image, size):
-    from PIL import Image
     img = Image.open(image)
     img.thumbnail(size, Image.Resampling.LANCZOS)
     return img

@@ -55,6 +55,8 @@ export default function UserTable({
     }
   };
 
+  const API_BASE = 'http://localhost:8000';
+
 
   return (
     <>
@@ -105,19 +107,34 @@ export default function UserTable({
 
                 {/* Фото */}
                 <td className="px-2 py-1 overflow-hidden max-w-[50px]">
-                  <div onClick={() => fileInputRef.current?.click()} className="cursor-pointer">
-                  {user.avatar ? (
-                    <img src={`http://localhost:8000${user.avatar}`} alt={`${user.first_name} ${user.last_name}`} className="h-10 w-10 rounded-full object-cover" />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center cursor-pointer">+</div>
-                  )}
-                </div>
+                  <div
+                    onClick={() => {
+                      // Сохраняем ID пользователя в data-атрибуте
+                      const input = document.getElementById(`avatar-upload-${user.id}`);
+                      input?.click();
+                    }}
+                    className="cursor-pointer"
+                  >
+                    {user.avatar ? (
+                      <img src={user.avatar ? `${API_BASE}${user.avatar}` : '/default-avatar.png'}
+                        alt={`${user.first_name} ${user.last_name}`}
+                        className="h-10 w-10 rounded-full object-cover" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center cursor-pointer">+</div>
+                    )}
+                  </div>
+
+                  {/* Скрытое поле — уникальное для каждого пользователя */}
                   <input
-                    ref={fileInputRef}
+                    id={`avatar-upload-${user.id}`}
                     type="file"
                     accept="image/*"
-                    onChange={(e) => e.target.files && resizeAndUpload(e.target.files[0], user.id)}
-                    style={{ display: 'none' }} // Скрытый элемент
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        resizeAndUpload(e.target.files[0], user.id).then(() => refresh());
+                      }
+                    }}
                   />
                 </td>
 

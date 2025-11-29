@@ -21,15 +21,14 @@ interface User {
   can_edit: boolean;
 }
 
-// ВРЕМЕННО
-
-// ВРЕМЕННО
+let cachedUsers: User[] | null = null;
 
 const useUsers = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<User[]>(cachedUsers || []);
+  const [loading, setLoading] = useState(!cachedUsers);
 
   const fetchUsers = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('authToken');
       const response = await api.get('/api/users/', {
@@ -37,7 +36,10 @@ const useUsers = () => {
         Authorization: `Bearer ${token}`,
       },
     });
+      const data = response.data;
+      console.log('🔄 Получены обновлённые пользователи:', response.data);
       setUsers(response.data);
+      cachedUsers = data;
     } catch (error) {
       console.error('Ошибка при получении данных:', error);
     } finally {
@@ -48,6 +50,8 @@ const useUsers = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const refresh = () => fetchUsers();
 
   return { users, loading, refresh: fetchUsers };
 };
