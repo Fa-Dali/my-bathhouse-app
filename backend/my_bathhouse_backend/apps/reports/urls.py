@@ -10,7 +10,8 @@ from .api_views import (GeneratePDFView,
                         save_report,
                         get_report_by_date,
                         update_report,
-                        test_email)
+                        test_email,
+						MasterReportView)
 
 print("✅ reports/urls.py загружен! /send-report-email/ зарегистрирован")
 
@@ -37,4 +38,9 @@ urlpatterns = [
     # ОТПРАВКА ПИСМА ОТЧЕТ НА ПОЧТУ АДМИНИСТРАЦИИ
     path('send-report-email/', SendReportEmailView.as_view(), name='send_report_email'),
     path('test-email/', test_email, name='test_email'),
+
+    # ОТЧЁТ ДЛЯ МАСТЕРА
+    path('master-reports/', MasterReportView.as_view(), name='master_report'),
+    path('master-reports/date/<str:date>/', MasterReportView.as_view(), name='master_report_by_date'),
+
 ]

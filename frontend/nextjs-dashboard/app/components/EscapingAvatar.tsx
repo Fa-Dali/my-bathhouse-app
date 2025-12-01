@@ -7,8 +7,8 @@ import { useEffect, useRef, useState } from 'react';
 export default function EscapingAvatar() {
 	const { user } = useAuth();
 
-	console.log('🔍 Полный user в EscapingAvatar:', user);
-	
+	// console.log('🔍 Полный user в EscapingAvatar:', user);
+
 	const avatarRef = useRef<HTMLDivElement>(null);
 	const [position, setPosition] = useState({ x: 0, y: 0 });
 	const [isVisible, setIsVisible] = useState(false);
@@ -16,7 +16,7 @@ export default function EscapingAvatar() {
 	const avatarSize = 60;
 	const margin = 20;
 
-	console.log('📸 EscapingAvatar: user.avatar =', user?.avatar); // 🔥 Проверь
+	// console.log('📸 EscapingAvatar: user.avatar =', user?.avatar);
 
 	// Начальная позиция — справа внизу
 	useEffect(() => {
@@ -74,8 +74,8 @@ export default function EscapingAvatar() {
 			: `http://localhost:8000${user.avatar}`
 		: '/default-avatar.png';
 
-	console.log('✅ 3. useAuth вернул:', user);
-	console.log('📸 EscapingAvatar: user.avatar =', user?.avatar);
+	// console.log('✅ 3. useAuth вернул:', user);
+	// console.log('📸 EscapingAvatar: user.avatar =', user?.avatar);
 
 	return (
 		<div

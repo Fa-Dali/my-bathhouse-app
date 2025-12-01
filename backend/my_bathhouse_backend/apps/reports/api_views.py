@@ -9,6 +9,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required  # если нужна проверка авторизации
 from django.conf import settings
 from django.core.mail import send_mail
 
@@ -18,14 +19,22 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from weasyprint import HTML
 from django.shortcuts import get_object_or_404
-from .models import Report
+from .models import Report, MasterReport
 from decimal import Decimal
 import yagmail
 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
+
+
+
 logger = logging.getLogger(__name__)
 
-# === 1. Сохранение отчёта ===
+# === 1. Сохранение отчёта админа===
 @csrf_exempt  # Только если API с внешнего домена (иначе настройте CORS)
 @require_http_methods(["POST"])
 def save_report(request):
@@ -375,3 +384,88 @@ def test_email(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 # =====================================================================
+
+# Вручную добавим проверку авторизации
+def login_required_json(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'Требуется авторизация'}, status=401)
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MasterReportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        date = self.kwargs.get('date')
+        if not date:
+            return Response({'error': 'Требуется параметр date в URL'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            target_date = datetime.strptime(date, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({'error': 'Неверный формат даты. Используйте YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
+
+        report = MasterReport.objects.filter(user=request.user, date=target_date).first()
+        if not report:
+            return Response({'detail': 'Отчёт не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+        data = {
+            'id': report.id,
+            'user': report.user.id,
+            'date': report.date.isoformat(),
+            'data': report.data,
+            'total_clients': float(report.total_clients),
+            'total_salary': float(report.total_salary),
+            'created_at': report.created_at.isoformat(),
+            'updated_at': report.updated_at.isoformat(),
+        }
+        return Response(data)
+
+    def post(self, request):
+        date_str = request.data.get('date')
+        rows = request.data.get('rows', [])
+        total_clients = request.data.get('total_clients', 0)
+        total_salary = request.data.get('total_salary', 0)
+
+        if not date_str or not rows:
+            return Response({'error': 'Поля date и rows обязательны'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({'error': 'Неверный формат даты'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            total_salary = Decimal(str(total_salary))
+            total_clients = Decimal(str(total_clients))
+        except:
+            return Response({'error': 'Неверный формат чисел'}, status=status.HTTP_400_BAD_REQUEST)
+
+        report, created = MasterReport.objects.update_or_create(
+            user=request.user,
+            date=target_date,
+            defaults={
+                'data': rows,
+                'total_clients': total_clients,
+                'total_salary': total_salary,
+            }
+        )
+
+        response_data = {
+            'success': True,
+            'message': 'Отчёт сохранён',
+            'data': {
+                'id': report.id,
+                'user': report.user.id,
+                'date': report.date.isoformat(),
+                'data': report.data,
+                'total_clients': float(report.total_clients),
+                'total_salary': float(report.total_salary),
+                'created_at': report.created_at.isoformat(),
+                'updated_at': report.updated_at.isoformat(),
+            }
+        }
+        return Response(response_data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
