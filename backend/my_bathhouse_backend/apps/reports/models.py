@@ -38,6 +38,16 @@ class MasterReport(models.Model):
     data = models.JSONField("Данные отчёта", help_text="Услуги, клиенты, зарплата")
     total_clients = models.DecimalField("Всего клиентов", max_digits=6, decimal_places=1, default=0)
     total_salary = models.DecimalField("Общая зарплата", max_digits=12, decimal_places=2, default=0)
+    paid = models.BooleanField("Оплачено", default=False, db_index=True)
+    paid_at = models.DateTimeField("Дата оплаты", null=True, blank=True)
+    paid_by = models.ForeignKey(
+        'users.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Кем оплачено",
+        related_name='paid_reports'
+    )
 
     class Meta:
         verbose_name = "Отчёт мастера"

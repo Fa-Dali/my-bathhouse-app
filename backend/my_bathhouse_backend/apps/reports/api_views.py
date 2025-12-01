@@ -3,23 +3,24 @@
 import logging
 import os
 import json
+
 from datetime import datetime
+from django.db.models import Sum
 from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required  # если нужна проверка авторизации
 from django.conf import settings
-from django.core.mail import send_mail
-
-# позволяет: Добавлять вложения (как PDF), Лучше контролировать заголовки
-# Отправлять HTML-письма
-from django.core.mail import EmailMessage
+from django.core.mail import send_mail, EmailMessage
 from django.template.loader import render_to_string
 from weasyprint import HTML
 from django.shortcuts import get_object_or_404
+
 from .models import Report, MasterReport
+from my_bathhouse_backend.apps.users.models import CustomUser
 from decimal import Decimal
 import yagmail
 
@@ -469,3 +470,90 @@ class MasterReportView(APIView):
             }
         }
         return Response(response_data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+# ДЛЯ ОТМЕТКИ ОПЛАЧЕННЫХ ЗАРПЛАТ МАСТЕРАМ
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required_json
+def mark_report_paid(request, report_id):
+    user = request.user
+
+    # Проверка: только администратор
+    if not user.roles.filter(code='admin').exists():
+        return JsonResponse({'error': 'Доступ запрещён'}, status=403)
+
+    # Проверка: только определённые пользователи
+    allowed_usernames = ['Master_para', 'Fa-Dali']
+    if user.username not in allowed_usernames:
+        return JsonResponse({'error': 'Только Master_para и Fa-Dali могут подтверждать оплату'}, status=403)
+
+    try:
+        report = MasterReport.objects.get(id=report_id, user__isnull=False)
+    except MasterReport.DoesNotExist:
+        return JsonResponse({'error': 'Отчёт не найден'}, status=404)
+
+    if report.paid:
+        return JsonResponse({'error': 'Отчёт уже оплачен'}, status=400)
+
+    report.paid = True
+    report.paid_at = timezone.now()
+    report.paid_by = user
+    report.save()
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Отчёт помечен как оплаченный',
+        'report_id': report.id,
+        'paid_at': report.paid_at.isoformat(),
+        'paid_by': user.username
+    })
+
+
+# API для статистики
+class MasterReportStatsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_id = request.query_params.get('user_id')
+
+        if not user_id:
+            return Response({'error': 'Требуется user_id'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            target_user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({'error': 'Пользователь не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Проверка: мастер может смотреть только себя, админ — всех
+        if request.user != target_user and not request.user.roles.filter(code='admin').exists():
+            return Response({'error': 'Доступ запрещён'}, status=status.HTTP_403_FORBIDDEN)
+
+        today = timezone.now().date()
+        start_of_month = today.replace(day=1)
+        start_of_year = today.replace(month=1, day=1)
+
+        # Неоплачено: все отчёты мастера, где paid = False
+        unpaid = MasterReport.objects.filter(
+            user=target_user,
+            paid=False
+        ).aggregate(total=Sum('total_salary'))['total'] or 0
+
+        # Оплачено за месяц
+        monthly = MasterReport.objects.filter(
+            user=target_user,
+            paid=True,
+            date__gte=start_of_month
+        ).aggregate(total=Sum('total_salary'))['total'] or 0
+
+        # Оплачено за год
+        yearly = MasterReport.objects.filter(
+            user=target_user,
+            paid=True,
+            date__gte=start_of_year
+        ).aggregate(total=Sum('total_salary'))['total'] or 0
+
+        return Response({
+            'unpaid': float(unpaid),
+            'monthly': float(monthly),
+            'yearly': float(yearly),
+        })
