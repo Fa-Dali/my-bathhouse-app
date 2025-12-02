@@ -593,3 +593,52 @@ class MasterReportStatsView(APIView):
             'monthly': float(monthly),
             'yearly': float(yearly),
         })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_monthly_stats(request):
+    month = request.query_params.get('month')  # YYYY-MM
+    if not month:
+        return Response({'error': 'Требуется month'}, status=400)
+
+    try:
+        year, month_num = map(int, month.split('-'))
+    except:
+        return Response({'error': 'Неверный формат месяца'}, status=400)
+
+    start_date = timezone.datetime(year, month_num, 1)
+    if month_num == 12:
+        end_date = timezone.datetime(year + 1, 1, 1)
+    else:
+        end_date = timezone.datetime(year, month_num + 1, 1)
+
+    masters = CustomUser.objects.filter(roles__code__in=['master', 'paramaster', 'masseur'])
+    data = []
+
+    for user in masters:
+        # Неоплачено: все отчёты, где paid=False
+        unpaid = MasterReport.objects.filter(
+            user=user, paid=False
+        ).aggregate(total=Sum('total_salary'))['total'] or 0
+
+        # Оплачено в этом месяце
+        monthly = MasterReport.objects.filter(
+            user=user, paid=True, paid_at__gte=start_date, paid_at__lt=end_date
+        ).aggregate(total=Sum('total_salary'))['total'] or 0
+
+        data.append({
+            'id': user.id,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'avatar': user.avatar.url if user.avatar else None,
+            'karma_good': user.karma_good or 0,
+            'karma_bad': user.karma_bad or 0,
+            'stats': {
+                'unpaid': float(unpaid),
+                'monthly': float(monthly),
+            }
+        })
+
+    return Response(data)

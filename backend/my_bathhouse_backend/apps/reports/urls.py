@@ -13,7 +13,8 @@ from .api_views import (GeneratePDFView,
                         test_email,
 						MasterReportStatsView,
                         mark_report_paid,
-                        MasterReportView)
+                        MasterReportView,
+						get_monthly_stats)
 
 print("✅ reports/urls.py загружен! /send-report-email/ зарегистрирован")
 
@@ -47,4 +48,8 @@ urlpatterns = [
     path('master-reports/<int:report_id>/pay/', mark_report_paid, name='mark_report_paid'),
 	path('master-reports/stats/', MasterReportStatsView.as_view(), name='get_master_stats'),
 	path('master-reports/<int:id>/', MasterReportView.as_view(), name='master_report_detail'),
+
+    # ЗАРПЛАТНЫЕ ВЕДОМОСТИ ДЛЯ АДМИНИСТРАЦИИ
+	path('master-reports/stats/monthly/', get_monthly_stats, name='get_monthly_stats'),
+
 ]

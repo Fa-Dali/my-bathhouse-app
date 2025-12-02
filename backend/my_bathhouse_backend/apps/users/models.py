@@ -32,6 +32,9 @@ class CustomUser(AbstractUser):
     pin_code = models.CharField(max_length=5, null=True, blank=True)
       # Место хранения картинок и опции
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    karma_good = models.IntegerField(default=0, verbose_name='Добрая карма')
+    karma_bad = models.IntegerField(default=0, verbose_name='Плохая карма')
+
 
     def __str__(self):
         return self.username
@@ -39,8 +42,3 @@ class CustomUser(AbstractUser):
     def has_role(self, role_code):
         """Проверка: есть ли у пользователя роль"""
         return self.roles.filter(code=role_code).exists()
-
-
-
-
-
