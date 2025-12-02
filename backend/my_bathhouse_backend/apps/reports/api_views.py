@@ -613,7 +613,7 @@ def get_monthly_stats(request):
     else:
         end_date = timezone.datetime(year, month_num + 1, 1)
 
-    masters = CustomUser.objects.filter(roles__code__in=['master', 'paramaster', 'masseur'])
+    masters = CustomUser.objects.filter(roles__code__in=['master', 'paramaster', 'masseur', 'admin']).exclude(username='Fa-Dali').distinct()
     data = []
 
     for user in masters:

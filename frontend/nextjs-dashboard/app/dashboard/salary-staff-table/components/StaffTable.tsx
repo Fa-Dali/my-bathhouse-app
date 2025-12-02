@@ -88,11 +88,11 @@ export default function StaffTable({ month }: { month: string }) {
         <table className="w-full text-sm">
           <thead className="bg-gradient-to-r from-blue-50 to-indigo-50 text-gray-700">
             <tr>
-              <th className="px-6 py-4 text-left font-semibold">Сотрудник</th>
-              <th className="px-6 py-4 text-center">Карма</th>
-              <th className="px-6 py-4 text-center">Оплачено</th>
-              <th className="px-6 py-4 text-center">Не оплачено</th>
-              <th className="px-6 py-4 text-center">Оплатить</th>
+              <th className="w-2/6 px-6 py-2 text-left font-semibold">Сотрудник</th>
+              <th className="w-1/6 px-6 py-2 text-center">Карма</th>
+              <th className="w-1/6 px-6 py-2 text-center">Оплачено</th>
+              <th className="w-1/6 px-6 py-2 text-center">Не оплачено</th>
+              <th className="w-1/6 px-6 py-2 text-center">Оплатить</th>
             </tr>
           </thead>
 
@@ -105,7 +105,7 @@ export default function StaffTable({ month }: { month: string }) {
               masters.map((master) => (
                 <tr key={master.id} className="hover:bg-gray-50 transition-colors">
 
-                  <td className="px-6 py-2">
+                  <td className="px-6 py-0">
                     <div className="flex items-center gap-3">
                       <img
                         src={master.avatar ? `${API_BASE}${master.avatar}` : '/avatar-placeholder.png'}
@@ -121,27 +121,29 @@ export default function StaffTable({ month }: { month: string }) {
                     </div>
                   </td>
 
-                  <td className="ml-8 w-1/5 px-10 py-2  text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <StarRating value={master.karma_good} type="good" />
-                      <span className="w-1/2 text-sm text-gray-500">{master.karma_good}</span>
-                      <StarRating value={master.karma_bad} type="bad" />
-                      <span className="w-1/2 text-sm text-gray-500">{master.karma_bad}</span>
+                  <td className="ml-8 w-1/5 px-1 py-0  text-center">
+                    <div className="flex justify-between p-0 px-3 border border-slate-400 rounded bg-gray-100">
+                      <div className="flex flex-col items-center"><StarRating value={master.karma_good} type="good" />
+                      <span className="text-sm text-gray-500">{master.karma_good}</span></div>
+                      <div className="flex flex-col items-center"><StarRating value={master.karma_bad} type="bad" />
+                      <span className="text-sm text-gray-500">{master.karma_bad}</span></div>
                     </div>
                   </td>
 
-                  <td className="px-6 py-4 text-right font-mono text-green-700 font-semibold">
+                  <td className="px-4 py-0 text-right font-mono text-xl text-green-700 font-semibold">
                     {formatNumber(master.stats.monthly)} ₽
                   </td>
-                  <td className="px-6 py-4 text-right font-mono text-red-600 font-semibold">
+
+                  <td className="px-4 py-0 text-right font-mono text-xl text-red-600 font-semibold">
                     {formatNumber(master.stats.unpaid)} ₽
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="items-center gap-2 justify-end">
+
+                  <td className="px-6 py-1">
+                    <div className="overflow-hidden rounded-lg border border-gray-400">
                       <input
                         type="text"
                         placeholder=""
-                        className="w-48 rounded-t-lg px-3 py-1 border text-right text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"
+                        className="w-48 px-3 py-1 rounded-t-lg text-right text-sm focus:outline-none focus:ring-blue-600"
                         onChange={(e) => {
                           const raw = e.target.value.replace(/\D/g, '');
                           e.target.value = raw ? Number(raw).toLocaleString('ru-RU') : '';
@@ -153,7 +155,7 @@ export default function StaffTable({ month }: { month: string }) {
                           const raw = input.value.replace(/\D/g, '');
                           handlePay(master.id, parseInt(raw, 10));
                         }}
-                        className="w-1/2 px-3 py-1 bg-green-300 hover:text-white text-sm rounded-bl-lg hover:bg-green-700 transition"
+                        className="w-1/2 px-3 py-1 bg-green-300 hover:text-white text-sm hover:bg-green-700 transition"
                       >
                         Оплатить
                       </button>
@@ -163,7 +165,7 @@ export default function StaffTable({ month }: { month: string }) {
                           const raw = input.value.replace(/\D/g, '');
                           handlePay(master.id, parseInt(raw, 10));
                         }}
-                        className="px-3 py-1 bg-red-300 hover:text-white text-sm rounded-br-lg hover:bg-red-700 transition"
+                        className="w-1/2 px-3 py-1 bg-red-300 hover:text-white text-sm hover:bg-red-700 transition"
                       >
                         Вычесть
                       </button>
