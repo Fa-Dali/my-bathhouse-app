@@ -12,7 +12,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.utils import timezone
-from django.contrib.auth.decorators import login_required  # если нужна проверка авторизации
+# если нужна проверка авторизации
+from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.mail import send_mail, EmailMessage
 from django.template.loader import render_to_string
@@ -32,10 +33,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 
 
-
 logger = logging.getLogger(__name__)
 
 # === 1. Сохранение отчёта админа===
+
+
 @csrf_exempt  # Только если API с внешнего домена (иначе настройте CORS)
 @require_http_methods(["POST"])
 def save_report(request):
@@ -49,9 +51,9 @@ def save_report(request):
 
         # Сохраняем
         report = Report.objects.create(
-            admin_name = data['admin_name'],
-            created_at = data['created_at'],
-            data = data['rows'],  # массив
+            admin_name=data['admin_name'],
+            created_at=data['created_at'],
+            data=data['rows'],  # массив
             # total_payment = data['totalPayment'],
             total_payment=Decimal(str(data.get('totalPayment', 0))),
         )
@@ -64,6 +66,8 @@ def save_report(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 # === 2. Проверка сервера ===
+
+
 class CheckServerView(View):
     def get(self, request, *args, **kwargs):
         return JsonResponse({'status': 'ok'})
@@ -87,7 +91,8 @@ class GeneratePDFView(View):
             month = f"{selected_date.month:02d}"
 
             # Путь к файлу
-            media_dir = os.path.join(settings.MEDIA_ROOT, 'reports', 'admin', str(year), month)
+            media_dir = os.path.join(
+                settings.MEDIA_ROOT, 'reports', 'admin', str(year), month)
             os.makedirs(media_dir, exist_ok=True)
             file_path = os.path.join(media_dir, f"{formatted_date}.pdf")
 
@@ -99,7 +104,8 @@ class GeneratePDFView(View):
                 }, status=409)
 
             # Получаем отчёт
-            report = Report.objects.filter(created_at__date=selected_date).first()
+            report = Report.objects.filter(
+                created_at__date=selected_date).first()
             if not report:
                 return JsonResponse({'error': 'Нет данных для этой даты'}, status=404)
 
@@ -129,7 +135,8 @@ class GeneratePDFView(View):
             }
 
             # 🔥 НОВОЕ: Подсчёт по методам оплаты
-            payment_totals = {'Тер': Decimal('0'), 'НАЛ': Decimal('0'), 'Сайт': Decimal('0'), 'Ресеп': Decimal('0')}
+            payment_totals = {'Тер': Decimal('0'), 'НАЛ': Decimal(
+                '0'), 'Сайт': Decimal('0'), 'Ресеп': Decimal('0')}
 
             for row_data in report.data:
                 rent = Decimal(row_data.get('rent', 0))
@@ -190,10 +197,12 @@ class GeneratePDFView(View):
 
             # 🔥 НОВОЕ: Подсчёт итогов для передачи в PDF
             total_payment = sum(payment_totals.values(), Decimal('0'))
-            cash_to_hand = max(payment_totals.get('НАЛ', Decimal('0')) - Decimal('3100'), Decimal('0'))
+            cash_to_hand = max(payment_totals.get(
+                'НАЛ', Decimal('0')) - Decimal('3100'), Decimal('0'))
 
             # 🔥 НОВОЕ: Форматируем для отображения
-            payment_totals = {k: format_num(v) for k, v in payment_totals.items()}
+            payment_totals = {k: format_num(v)
+                              for k, v in payment_totals.items()}
             total_payment = format_num(total_payment)
             cash_to_hand = format_num(cash_to_hand)
 
@@ -251,6 +260,8 @@ def create_report(request):
     return save_report(request)
 
 # === 6. Автоматическое обновление отчета Админа
+
+
 @csrf_exempt
 def get_report_by_date(request, date):
     try:
@@ -283,6 +294,8 @@ def update_report(request, id):
         return JsonResponse({'error': str(e)}, status=400)
 
 # === 7. Отправка отчета на почту администрации
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class SendReportEmailView(View):
     def post(self, request, *args, **kwargs):
@@ -333,7 +346,8 @@ class SendReportEmailView(View):
                 return JsonResponse({'error': 'Нет получателей'}, status=500)
 
             # Отправка через yagmail
-            yag = yagmail.SMTP(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+            yag = yagmail.SMTP(settings.EMAIL_HOST_USER,
+                               settings.EMAIL_HOST_PASSWORD)
 
             sent_count = 0
             failed_count = 0
@@ -352,7 +366,8 @@ class SendReportEmailView(View):
                     failed_count += 1
                     logger.error(f"❌ Ошибка при отправке на {email}: {str(e)}")
 
-            logger.info(f"Рассылка завершена: {sent_count} доставлено, {failed_count} ошибок")
+            logger.info(
+                f"Рассылка завершена: {sent_count} доставлено, {failed_count} ошибок")
 
             return JsonResponse({
                 'success': True,
@@ -362,7 +377,8 @@ class SendReportEmailView(View):
             })
 
         except Exception as e:
-            logger.critical(f"Критическая ошибка в SendReportEmailView: {str(e)}")
+            logger.critical(
+                f"Критическая ошибка в SendReportEmailView: {str(e)}")
             return JsonResponse({'error': str(e)}, status=500)
 
 
@@ -387,6 +403,8 @@ def test_email(request):
 # =====================================================================
 
 # Вручную добавим проверку авторизации
+
+
 def login_required_json(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -409,7 +427,8 @@ class MasterReportView(APIView):
         except ValueError:
             return Response({'error': 'Неверный формат даты. Используйте YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
 
-        report = MasterReport.objects.filter(user=request.user, date=target_date).first()
+        report = MasterReport.objects.filter(
+            user=request.user, date=target_date).first()
         if not report:
             return Response({'detail': 'Отчёт не найден'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -470,6 +489,23 @@ class MasterReportView(APIView):
             }
         }
         return Response(response_data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        report_id = kwargs.get('id')
+        if not report_id:
+            return Response({'error': 'Требуется id отчёта'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            report = MasterReport.objects.get(id=report_id, user=request.user)
+        except MasterReport.DoesNotExist:
+            return Response({'error': 'Отчёт не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+        if report.paid:
+            return Response({'error': 'Оплаченный отчёт нельзя удалить'}, status=status.HTTP_400_BAD_REQUEST)
+
+        report.delete()
+        return Response({'success': 'Отчёт удалён'}, status=status.HTTP_204_NO_CONTENT)
+
 
 # ДЛЯ ОТМЕТКИ ОПЛАЧЕННЫХ ЗАРПЛАТ МАСТЕРАМ
 @csrf_exempt

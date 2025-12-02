@@ -25,10 +25,14 @@ interface Row {
 	salary: string;
 }
 
-export default function ReportMasterPage() {
+interface ReportMasterPageProps {
+	refreshStats: () => void;
+}
+
+export default function ReportMasterPage({ refreshStats }: ReportMasterPageProps) {
 	const { user } = useAuth();
 
-
+	const [selectedReport, setSelectedReport] = useState<any>(null);
 
 
 	const [selectedDate, setSelectedDate] = useState<string>(() => {
@@ -93,6 +97,13 @@ export default function ReportMasterPage() {
 
 			if (res.ok) {
 				const data = await res.json();
+
+				// Сохраняем полный отчёт (включая id и paid)
+				if (data.id) {
+					setSelectedReport(data);
+				} else {
+					setSelectedReport(null);
+				}
 
 				if (!data.data || !Array.isArray(data.data)) {
 					setRows([{ id: Date.now(), service: '', adults: 0.5, children: 0, salary: '' }]);
@@ -163,6 +174,8 @@ export default function ReportMasterPage() {
 
 			if (res.ok) {
 				alert('Отчёт сохранён!');
+				// ✅ Обновляем статистику
+				refreshStats();
 			} else {
 				const data = await res.json();
 				alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
@@ -170,6 +183,43 @@ export default function ReportMasterPage() {
 		} catch (err) {
 			console.error(err);
 			alert('Ошибка сети. Проверьте соединение.');
+		}
+	};
+
+
+	const deleteReport = async () => {
+		if (!selectedReport) return;
+
+		if (!window.confirm('Вы уверены, что хотите удалить этот отчёт?')) {
+			return;
+		}
+
+		try {
+			const token = localStorage.getItem('authToken');
+			const res = await fetch(
+				`http://localhost:8000/api/reports/master-reports/${selectedReport.id}/`,
+				{
+					method: 'DELETE',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+					},
+				}
+			);
+
+			if (res.ok) {
+				alert('Отчёт удалён!');
+				// Сбрасываем таблицу
+				setRows([{ id: Date.now(), service: '', adults: 0.5, children: 0, salary: '' }]);
+				setSelectedReport(null); // убрали id
+				// Обновляем статистику
+				refreshStats();
+			} else {
+				const error = await res.json();
+				alert('Ошибка: ' + (error.error || 'Не удалось удалить'));
+			}
+		} catch (err) {
+			console.error(err);
+			alert('Ошибка сети');
 		}
 	};
 
@@ -307,6 +357,15 @@ export default function ReportMasterPage() {
 				>
 					Сохранить
 				</button>
+				{/* Кнопка удаления */}
+				{selectedReport && !selectedReport.paid && (
+					<button
+						onClick={deleteReport}
+						className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+					>
+						Удалить отчёт
+					</button>
+				)}
 			</div>
 		</div>
 	);

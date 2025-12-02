@@ -46,4 +46,5 @@ urlpatterns = [
     path('master-reports/date/<str:date>/', MasterReportView.as_view(), name='master_report_by_date'),
     path('master-reports/<int:report_id>/pay/', mark_report_paid, name='mark_report_paid'),
 	path('master-reports/stats/', MasterReportStatsView.as_view(), name='get_master_stats'),
+	path('master-reports/<int:id>/', MasterReportView.as_view(), name='master_report_detail'),
 ]

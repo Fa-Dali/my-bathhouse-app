@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/app/auth/contexts/auth-provider';
+import React from 'react';
 
 interface PaymentStats {
   unpaid: number;
@@ -9,36 +8,7 @@ interface PaymentStats {
   yearly: number;
 }
 
-export default function PaymentInfo() {
-  const { user } = useAuth();
-  const [stats, setStats] = useState<PaymentStats>({ unpaid: 0, monthly: 0, yearly: 0 });
-
-  useEffect(() => {
-    if (!user) return;
-
-    const loadStats = async () => {
-      try {
-        const token = localStorage.getItem('authToken');
-        const res = await fetch(
-          `http://localhost:8000/api/reports/master-reports/stats/?user_id=${user.id}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (res.ok) {
-          const data = await res.json();
-          setStats(data);
-        }
-      } catch (err) {
-        console.error('Ошибка загрузки статистики', err);
-      }
-    };
-
-    loadStats();
-  }, [user]);
+export default function PaymentInfo({ stats }: { stats: PaymentStats }) {
 
   return (
     <div className="w-[35%] bg-gray-50 p-4 rounded border ml-6" style={{ minHeight: '400px', minWidth: '300px'}}>
