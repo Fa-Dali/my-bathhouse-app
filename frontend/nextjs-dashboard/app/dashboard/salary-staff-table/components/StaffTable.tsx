@@ -4,6 +4,8 @@
 import { useEffect, useState } from 'react';
 import StarRating from './StarRating';
 import api from '@/app/utils/axiosConfig';
+import { useAuth } from '@/app/auth/contexts/auth-provider';
+import PaymentHistory from '@/app/dashboard/salary-staff-table/components/PaymentHistory';
 
 interface Master {
   id: number;
@@ -29,6 +31,9 @@ const formatNumber = (num: number): string => {
 export default function StaffTable({ month }: { month: string }) {
   const [masters, setMasters] = useState<Master[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+
 
 
   useEffect(() => {
@@ -149,7 +154,8 @@ export default function StaffTable({ month }: { month: string }) {
   if (loading) return <div className="text-center py-10">Загрузка...</div>;
 
   return (
-    <div className="bg-gray-200 rounded-lg shadow-lg overflow-hidden">
+    <div>
+      <div className="bg-gray-200 rounded-lg shadow-lg overflow-hidden">
       <div className="overflow-x-auto beautiful-scroll h-[500px]">
         <table className="w-full text-sm">
           <thead className="bg-gradient-to-r from-blue-50 to-indigo-50 text-gray-700">
@@ -255,6 +261,26 @@ export default function StaffTable({ month }: { month: string }) {
                         Вычесть
                       </button>
                     </div>
+
+                    <button
+                      onClick={() => setSelectedUserId(master.id)}
+                      className="text-xs text-blue-500 hover:underline"
+                    >
+                      История платежей
+                    </button>
+
+                    {/* Модальное окно */}
+                    {selectedUserId && (
+                      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-96 overflow-y-auto">
+                          <PaymentHistory
+                            userId={selectedUserId}
+                            onClose={() => setSelectedUserId(null)}
+                          />
+                        </div>
+                      </div>
+                    )}
+
                   </td>
                 </tr>
               ))
@@ -263,5 +289,7 @@ export default function StaffTable({ month }: { month: string }) {
         </table>
       </div>
     </div>
+    </div>
+
   );
 }

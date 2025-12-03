@@ -11,7 +11,7 @@ interface PaymentStats {
 export default function PaymentInfo({ stats }: { stats: PaymentStats }) {
 
   return (
-    <div className="w-[35%] bg-gray-50 p-4 rounded border ml-6" style={{ minHeight: '400px', minWidth: '300px'}}>
+    <div className="w-[40%] bg-gray-50 p-4 rounded border ml-1 my-2" style={{ minHeight: '400px', minWidth: '300px'}}>
       <h2 className="text-xl font-bold mb-4 text-center">ФИНАНСЫ МАСТЕРА</h2>
 
       <div className="space-y-4">

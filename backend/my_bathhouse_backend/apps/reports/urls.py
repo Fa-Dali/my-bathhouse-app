@@ -16,7 +16,8 @@ from .api_views import (GeneratePDFView,
                         MasterReportView,
 						get_monthly_stats,
 						bulk_pay_reports,
-						auto_pay_reports)
+						auto_pay_reports,
+						get_user_payments)
 
 print("✅ reports/urls.py загружен! /send-report-email/ зарегистрирован")
 
@@ -69,7 +70,10 @@ urlpatterns = [
     #
     path('master-reports/pay-bulk/', bulk_pay_reports, name='bulk_pay_reports'),
 
-    # 
+    #
     path('master-reports/pay/', auto_pay_reports, name='auto_pay_reports'),
+
+
+    path('payments/', get_user_payments, name='get_user_payments'),
 
 ]

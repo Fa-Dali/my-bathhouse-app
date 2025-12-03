@@ -810,3 +810,42 @@ def auto_pay_reports(request):
         'total_applied': float(total_applied),
         'remaining_in_payment': float(amount),  # должно быть 0
     }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_payments(request):
+    """
+    Получить историю платежей для пользователя
+    """
+    user = request.user
+    target_id = request.query_params.get('user_id')
+
+    if not target_id:
+        return Response({'error': 'Требуется user_id'}, status=400)
+
+    try:
+        target_user = CustomUser.objects.get(id=target_id)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'Пользователь не найден'}, status=404)
+
+    # Проверка доступа: либо сам пользователь, либо админ
+    if user != target_user and not user.roles.filter(code='admin').exists():
+        return Response({'error': 'Доступ запрещён'}, status=403)
+
+    # Получаем платежи
+    payments = Payment.objects.filter(user=target_user).order_by('-paid_at')
+
+    data = [
+        {
+            'id': p.id,
+            'amount': float(p.amount),
+            'paid_at': p.paid_at.isoformat(),
+            'paid_by': p.paid_by.username,
+            'comment': p.comment,
+            'is_advance': p.is_advance,
+        }
+        for p in payments
+    ]
+
+    return Response(data)

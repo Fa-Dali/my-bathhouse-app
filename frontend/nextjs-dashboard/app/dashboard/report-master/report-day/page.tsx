@@ -226,7 +226,7 @@ export default function ReportMasterPage({ refreshStats }: ReportMasterPageProps
 
 
 	return (
-		<div className="container mx-auto p-4">
+		<div className="mt-4 bg-white rounded-lg border p-4 shadow-sm">
 			<div className="flex justify-between items-center mb-6">
 				<h1 className="text-2xl font-bold text-center">ОТЧЕТ МАСТЕРА</h1>
 				<div className="flex items-center gap-2">
