@@ -284,3 +284,7 @@ DEFAULT_FROM_EMAIL = 'fa.daliastro@gmail.com'
 REPORT_RECIPIENTS = [
     'fadeev.music.studio@yandex.ru',
 ]
+
+
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'

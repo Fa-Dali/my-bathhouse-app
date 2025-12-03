@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/app/auth/contexts/auth-provider';
 
 const SERVICE_OPTIONS = [
+	'Администратор',
 	'Парение',
 	'Сила Леса',
 	'Без Сю-Сю',
@@ -173,7 +174,7 @@ export default function ReportMasterPage({ refreshStats }: ReportMasterPageProps
 			});
 
 			if (res.ok) {
-				alert('Отчёт сохранён!');
+				// alert('Отчёт сохранён!');  АДЕРТ ДАННЫЕ ЗАГРУЖЕНЫ
 				// ✅ Обновляем статистику
 				refreshStats();
 			} else {

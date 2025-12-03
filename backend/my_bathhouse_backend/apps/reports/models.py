@@ -5,6 +5,7 @@
 # models.py
 from django.db import models
 from decimal import Decimal
+from django.utils import timezone
 
 # Таблица Отчета Администратора Ежедневный
 class Report(models.Model):
@@ -38,7 +39,10 @@ class MasterReport(models.Model):
     data = models.JSONField("Данные отчёта", help_text="Услуги, клиенты, зарплата")
     total_clients = models.DecimalField("Всего клиентов", max_digits=6, decimal_places=1, default=0)
     total_salary = models.DecimalField("Общая зарплата", max_digits=12, decimal_places=2, default=0)
-    paid = models.BooleanField("Оплачено", default=False, db_index=True)
+    paid = models.BooleanField("Полностью оплачено", default=False, db_index=True)
+    partially_paid_amount = models.DecimalField(
+        "Частично оплачено", max_digits=12, decimal_places=2, default=0
+    )
     paid_at = models.DateTimeField("Дата оплаты", null=True, blank=True)
     paid_by = models.ForeignKey(
         'users.CustomUser',
@@ -49,6 +53,11 @@ class MasterReport(models.Model):
         related_name='paid_reports'
     )
 
+    # Опционально: автоматическое вычисление
+    @property
+    def remaining_to_pay(self):
+        return max(0, self.total_salary - self.partially_paid_amount)
+
     class Meta:
         verbose_name = "Отчёт мастера"
         verbose_name_plural = "Отчёты мастеров"
@@ -57,3 +66,15 @@ class MasterReport(models.Model):
 
     def __str__(self):
         return f"{self.user.username} — {self.date}"
+
+
+class Payment(models.Model):
+    user = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, related_name='payments')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    paid_at = models.DateTimeField(default=timezone.now)
+    paid_by = models.ForeignKey('users.CustomUser', on_delete=models.SET_NULL, null=True, related_name='made_payments')
+    comment = models.CharField(max_length=255, blank=True, null=True)  # например: "Аванс"
+    is_advance = models.BooleanField(default=False)  # аванс или погашение долга
+
+    def __str__(self):
+        return f"{self.user.username} — {self.amount} ₽ от {self.paid_at.date()}"

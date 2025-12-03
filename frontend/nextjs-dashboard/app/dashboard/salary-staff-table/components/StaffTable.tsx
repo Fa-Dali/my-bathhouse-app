@@ -33,57 +33,123 @@ export default function StaffTable({ month }: { month: string }) {
 
   useEffect(() => {
     loadMasters();
+    // console.log('Ответ от сервера:', res.data);
   }, [month]);
 
   const loadMasters = async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      const res = await fetch(`http://localhost:8000/api/reports/master-reports/stats/monthly/?month=${month}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+      const res = await api.get('/api/reports/master-reports/stats/monthly/', {
+        params: { month }, // ← автоматически станет ?month=2025-04
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        setMasters(data);
+      console.log('Загружаем данные за:', month);
+
+      setMasters(res.data);
+      // console.log('Ответ от сервера:', res.data);
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        alert('Сессия истекла. Войдите снова.');
+        // Можно перенаправить на вход
       } else {
-        console.error('Ошибка загрузки мастеров');
+        console.error('Ошибка загрузки мастеров:', err);
+        alert('Не удалось загрузить данные');
       }
-    } catch (err) {
-      console.error('Ошибка сети:', err);
     } finally {
       setLoading(false);
     }
   };
 
+  // ✅ Обработка оплаты
   const handlePay = async (masterId: number, amount: number) => {
     if (amount <= 0) {
       alert('Сумма должна быть больше 0');
       return;
     }
 
-    if (!confirm(`Оплатить ${formatNumber(amount)} ₽ мастеру?`)) return;
+    if (!confirm(`Оплатить ${formatNumber(amount)} ₽ мастеру? Система автоматически закроет старые долги.`)) return;
 
     try {
       const token = localStorage.getItem('authToken');
       const res = await api.post(
-        '/api/reports/master-reports/pay/',
-        { master_id: masterId, amount, month },
+        '/api/reports/master-reports/pay/', // ← новый эндпоинт
+        { master_id: masterId, amount },     // ← не нужен month
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (res.data.success) {
-        alert('Оплачено!');
-        loadMasters(); // обновить
+        const msg = [
+          res.data.message,
+          res.data.remaining_amount > 0
+            ? `Остаток долга: ${formatNumber(res.data.total_applied - amount)} ₽`
+            : ''
+        ].filter(Boolean).join('\n\n');
+
+        alert(msg);
+        loadMasters(); // обновить таблицу
+      } else {
+        alert(res.data.error || 'Неизвестная ошибка');
       }
-    } catch (err) {
-      alert('Ошибка оплаты');
+    } catch (err: any) {
+      if (err.response?.data?.error) {
+        alert('Ошибка: ' + err.response.data.error);
+      } else {
+        alert('Сетевая ошибка. Проверьте подключение.');
+      }
+    }
+  };
+
+  const updateKarma = async (masterId: number, type: 'good' | 'bad') => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await api.post(
+        '/api/users/update-karma/',
+        { user_id: masterId, type },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // ✅ Успешно (200)
+      if (res.data.success) {
+        setMasters((prev) =>
+          prev.map((m) =>
+            m.id === masterId
+              ? {
+                ...m,
+                // ✅ Явно указываем, что это число
+                [type === 'good' ? 'karma_good' : 'karma_bad']:
+                  (type === 'good' ? m.karma_good : m.karma_bad) + 1,
+              }
+              : m
+          )
+        );
+      }
+    }
+    // 🚨 Обработка ответа с ошибкой (400, 403 и т.д.) и сетевых проблем
+    catch (err: any) {
+      // Если сервер вернул JSON с ошибкой
+      if (err.response && err.response.data) {
+        const errorMessage = err.response.data.error;
+        if (errorMessage) {
+          alert(errorMessage); // "Карму можно менять только раз в день"
+          return;
+        }
+      }
+
+      // Если это реальная сетевая ошибка
+      alert('Ошибка сети. Попробуйте позже.');
     }
   };
 
   if (loading) return <div className="text-center py-10">Загрузка...</div>;
 
   return (
-    <div className="bg-gray-200 rounded-xl shadow-lg overflow-hidden">
+    <div className="bg-gray-200 rounded-lg shadow-lg overflow-hidden">
       <div className="overflow-x-auto beautiful-scroll h-[500px]">
         <table className="w-full text-sm">
           <thead className="bg-gradient-to-r from-blue-50 to-indigo-50 text-gray-700">
@@ -123,10 +189,29 @@ export default function StaffTable({ month }: { month: string }) {
 
                   <td className="ml-8 w-1/5 px-1 py-0  text-center">
                     <div className="flex justify-between p-0 px-3 border border-slate-400 rounded bg-gray-100">
-                      <div className="flex flex-col items-center"><StarRating value={master.karma_good} type="good" />
-                      <span className="text-sm text-gray-500">{master.karma_good}</span></div>
-                      <div className="flex flex-col items-center"><StarRating value={master.karma_bad} type="bad" />
-                      <span className="text-sm text-gray-500">{master.karma_bad}</span></div>
+
+                      <div className="flex flex-col items-center">
+                        <StarRating
+                          value={master.karma_good}
+                          type="good"
+                          onKarmaChange={() => updateKarma(master.id, 'good')}
+                        />
+                        <span className="text-sm text-gray-500">
+                          {master.karma_good}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col items-center">
+                        <StarRating
+                          value={master.karma_bad}
+                          type="bad"
+                          onKarmaChange={() => updateKarma(master.id, 'bad')}
+                        />
+                        <span className="text-sm text-gray-500">
+                          {master.karma_bad}
+                        </span>
+                      </div>
+
                     </div>
                   </td>
 

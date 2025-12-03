@@ -22,6 +22,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.core.exceptions import SuspiciousOperation, PermissionDenied
+from django.utils import timezone
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -380,3 +381,46 @@ def get_current_user(request):
     }
 
     return Response(data)
+
+# КАРМА ПОЛЬЗОВАТЕЛЯ
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
+def update_karma(request):
+    if not request.user.has_role('admin'):
+        return Response({'error': 'Доступ запрещён'}, status=403)
+
+    user_id = request.data.get('user_id')
+    karma_type = request.data.get('type')  # 'good' или 'bad'
+
+    if karma_type not in ['good', 'bad']:
+        return Response({'error': 'Неверный тип кармы'}, status=400)
+
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'Пользователь не найден'}, status=404)
+
+    # 🔁 Проверка: давал ли админ карму этому пользователю сегодня?
+    today = timezone.now().date()
+    if user.last_karma_date == today:
+        return Response(
+            {'error': 'Карму этому мастеру можно менять только раз в день'},
+            status=400
+        )
+
+    # ✅ Обновляем карму
+    if karma_type == 'good':
+        user.karma_good += 1
+    else:
+        user.karma_bad += 1
+
+    # ✅ Обновляем дату
+    user.last_karma_date = today
+    user.save(update_fields=[f'karma_{karma_type}', 'last_karma_date'])
+
+    return Response({
+        'success': True,
+        'karma_good': user.karma_good,
+        'karma_bad': user.karma_bad
+    })

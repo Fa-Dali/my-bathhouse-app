@@ -1,43 +1,42 @@
 # backend/my-bathhouse-backend/reports/api_views.py
 
+import yagmail
 import logging
-import os
 import json
+import os
 
 from datetime import datetime
-from django.db.models import Sum
-from django.http import JsonResponse
-from django.views import View
-from django.views.decorators.csrf import csrf_exempt
+from decimal import Decimal
+
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+from django.views import View
 from django.utils.decorators import method_decorator
 from django.utils import timezone
-# если нужна проверка авторизации
+from django.http import JsonResponse
+from django.db.models import Sum
+
 from django.contrib.auth.decorators import login_required
-from django.conf import settings
 from django.core.mail import send_mail, EmailMessage
 from django.template.loader import render_to_string
-from weasyprint import HTML
 from django.shortcuts import get_object_or_404
+from django.conf import settings
+from weasyprint import HTML
 
-from .models import Report, MasterReport
 from my_bathhouse_backend.apps.users.models import CustomUser
-from decimal import Decimal
-import yagmail
+from .models import Report, MasterReport, Payment
+from .tasks import recalculate_payments
 
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
 
 
 logger = logging.getLogger(__name__)
 
 # === 1. Сохранение отчёта админа===
-
-
 @csrf_exempt  # Только если API с внешнего домена (иначе настройте CORS)
 @require_http_methods(["POST"])
 def save_report(request):
@@ -66,8 +65,6 @@ def save_report(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 # === 2. Проверка сервера ===
-
-
 class CheckServerView(View):
     def get(self, request, *args, **kwargs):
         return JsonResponse({'status': 'ok'})
@@ -259,9 +256,8 @@ def create_report(request):
     # Можно оставить как алиас для save_report или добавить логику
     return save_report(request)
 
+
 # === 6. Автоматическое обновление отчета Админа
-
-
 @csrf_exempt
 def get_report_by_date(request, date):
     try:
@@ -293,9 +289,8 @@ def update_report(request, id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
+
 # === 7. Отправка отчета на почту администрации
-
-
 @method_decorator(csrf_exempt, name='dispatch')
 class SendReportEmailView(View):
     def post(self, request, *args, **kwargs):
@@ -403,8 +398,6 @@ def test_email(request):
 # =====================================================================
 
 # Вручную добавим проверку авторизации
-
-
 def login_required_json(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -473,6 +466,10 @@ class MasterReportView(APIView):
                 'total_salary': total_salary,
             }
         )
+
+        # 🔥 Если это старый отчёт — пересчитать
+        if created and report.date < timezone.now().date():
+            recalculate_payments.delay(report.user.id)
 
         response_data = {
             'success': True,
@@ -595,10 +592,11 @@ class MasterReportStatsView(APIView):
         })
 
 
+# API для статистики
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_monthly_stats(request):
-    month = request.query_params.get('month')  # YYYY-MM
+    month = request.query_params.get('month')
     if not month:
         return Response({'error': 'Требуется month'}, status=400)
 
@@ -613,19 +611,30 @@ def get_monthly_stats(request):
     else:
         end_date = timezone.datetime(year, month_num + 1, 1)
 
-    masters = CustomUser.objects.filter(roles__code__in=['master', 'paramaster', 'masseur', 'admin']).exclude(username='Fa-Dali').distinct()
+    masters = CustomUser.objects.filter(
+        roles__code__in=['master', 'paramaster', 'masseur', 'admin']
+    ).exclude(username='Fa-Dali').distinct()
+
     data = []
-
     for user in masters:
-        # Неоплачено: все отчёты, где paid=False
-        unpaid = MasterReport.objects.filter(
-            user=user, paid=False
-        ).aggregate(total=Sum('total_salary'))['total'] or 0
+        # Неоплачено: все отчёты, где не полностью оплачены
+        unpaid = MasterReport.objects.filter(user=user, paid=False).aggregate(
+            total=Sum('total_salary')
+        )['total'] or 0
 
-        # Оплачено в этом месяце
-        monthly = MasterReport.objects.filter(
+        # Частично оплачено (но не до конца)
+        partial_paid_amount = MasterReport.objects.filter(
+            user=user, paid=False
+        ).aggregate(
+            total=Sum('partially_paid_amount')
+        )['total'] or 0
+
+        # Полностью оплачено в этом месяце
+        fully_paid = MasterReport.objects.filter(
             user=user, paid=True, paid_at__gte=start_date, paid_at__lt=end_date
         ).aggregate(total=Sum('total_salary'))['total'] or 0
+
+        total_unpaid = float(unpaid) - float(partial_paid_amount)
 
         data.append({
             'id': user.id,
@@ -636,9 +645,168 @@ def get_monthly_stats(request):
             'karma_good': user.karma_good or 0,
             'karma_bad': user.karma_bad or 0,
             'stats': {
-                'unpaid': float(unpaid),
-                'monthly': float(monthly),
+                'unpaid': total_unpaid,  # только остаток
+                'monthly': float(fully_paid + partial_paid_amount),  # уже выплачено
             }
         })
 
     return Response(data)
+
+
+# API для подтверждения оплаты
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def bulk_pay_reports(request):
+    user = request.user
+
+    # Проверка: только администратор
+    if not user.roles.filter(code='admin').exists():
+        return Response({'error': 'Доступ запрещён'}, status=status.HTTP_403_FORBIDDEN)
+
+    # Проверка: только Fa-Dali и Master_para
+    allowed_usernames = ['@Master_para', 'Fa-Dali']
+    if user.username not in allowed_usernames:
+        return Response({'error': 'Только Master_para и Fa-Dali могут подтверждать оплату'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        data = request.data
+        master_id = data.get('master_id')
+        month = data.get('month')  # например, "2025-04"
+    except Exception as e:
+        return Response({'error': 'Неверные данные'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not master_id or not month:
+        return Response({'error': 'Требуются master_id и month'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        target_user = CustomUser.objects.get(id=master_id)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'Пользователь не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        year, month_num = map(int, month.split('-'))
+    except:
+        return Response({'error': 'Неверный формат месяца'}, status=status.HTTP_400_BAD_REQUEST)
+
+    start_date = timezone.datetime(year, month_num, 1)
+    if month_num == 12:
+        end_date = timezone.datetime(year + 1, 1, 1)
+    else:
+        end_date = timezone.datetime(year, month_num + 1, 1)
+
+    # Находим все неоплаченные отчёты мастера за этот месяц
+    reports = MasterReport.objects.filter(
+        user=target_user,
+        paid=False,
+        date__gte=start_date,
+        date__lt=end_date
+    )
+
+    if not reports.exists():
+        return Response({
+            'error': 'Нет неоплаченных отчётов для этого мастера в этом месяце'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    # Метим как оплаченные
+    count = 0
+    total_amount = Decimal('0')
+    for report in reports:
+        report.paid = True
+        report.paid_at = timezone.now()
+        report.paid_by = user
+        report.save()
+        total_amount += report.total_salary
+        count += 1
+
+    return Response({
+        'success': True,
+        'message': f'Оплачено {count} отчётов на сумму {float(total_amount):.2f} ₽',
+        'paid_count': count,
+        'total_amount': float(total_amount),
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def auto_pay_reports(request):
+    user = request.user
+
+    # Проверки (оставь как есть)
+    if not user.roles.filter(code='admin').exists():
+        return Response({'error': 'Доступ запрещён'}, status=status.HTTP_403_FORBIDDEN)
+
+    allowed_usernames = ['Master_para', 'Fa-Dali']
+    if user.username not in allowed_usernames:
+        return Response({'error': 'Только Master_para и Fa-Dali могут подтверждать оплату'}, status=status.HTTP_403_FORBIDDEN)
+
+    # Парсим данные
+    try:
+        data = request.data
+        master_id = data.get('master_id')
+        amount = Decimal(str(data.get('amount')))
+        if amount <= 0:
+            return Response({'error': 'Сумма должна быть больше 0'}, status=status.HTTP_400_BAD_REQUEST)
+    except:
+        return Response({'error': 'Неверные данные'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        target_user = CustomUser.objects.get(id=master_id)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'Пользователь не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Сохраняем платёж
+    payment = Payment.objects.create(
+        user=target_user,
+        amount=amount,
+        paid_by=user,
+        comment="Частичная оплата через ведомость"
+    )
+
+    # Берём все неоплаченные отчёты — от самых старых
+    reports = MasterReport.objects.filter(
+        user=target_user,
+        paid=False  # не полностью оплачен
+    ).order_by('date')
+
+    total_applied = Decimal('0')
+    fully_paid_reports = []
+    partially_paid_report = None
+
+    for report in reports:
+        remaining = report.total_salary - report.partially_paid_amount
+
+        if amount >= remaining:
+            # Полная оплата
+            report.paid = True
+            report.partially_paid_amount = report.total_salary
+            report.paid_at = timezone.now()
+            report.paid_by = user
+            report.save()
+            fully_paid_reports.append(report)
+            amount -= remaining
+            total_applied += remaining
+        elif amount > 0:
+            # Частичная оплата
+            report.partially_paid_amount += amount
+            report.save()
+            partially_paid_report = report
+            total_applied += amount
+            amount = 0  # закончили
+            break
+
+    return Response({
+        'success': True,
+        'message': (
+            f'Оплачено: {len(fully_paid_reports)} полных отчётов на {float(total_applied):.2f} ₽'
+            + (f', частично {partially_paid_report.date} на {float(report.partially_paid_amount):.2f} ₽' if partially_paid_report else '')
+        ),
+        'fully_paid_count': len(fully_paid_reports),
+        'partially_paid': {
+            'report_id': partially_paid_report.id,
+            'date': partially_paid_report.date.isoformat(),
+            'paid_amount': float(partially_paid_report.partially_paid_amount),
+            'total': float(partially_paid_report.total_salary)
+        } if partially_paid_report else None,
+        'total_applied': float(total_applied),
+        'remaining_in_payment': float(amount),  # должно быть 0
+    }, status=status.HTTP_200_OK)

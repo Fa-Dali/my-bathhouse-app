@@ -10,7 +10,8 @@ from .api_views import (UpdateAvatarAPI,
                         LoginAPI,
                         RefreshTokenAPI,
                         RegisterAPI,
-                        UserListAPI,)
+                        UserListAPI,
+						update_karma)
 
 urlpatterns = [
     path('register', RegisterAPI.as_view(), name='register_api'),
@@ -33,4 +34,8 @@ urlpatterns = [
     path('users/<int:user_id>/roles/', api_views.update_user_roles, name='update_user_roles'),
 
     path('me/', api_views.get_current_user, name='get_current_user'),
+
+    # КАРМА ПОЛЬЗОВАТЕЛЯ
+	path('users/update-karma/', update_karma, name='update_karma'),
+
 ]

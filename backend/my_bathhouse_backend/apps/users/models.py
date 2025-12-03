@@ -34,6 +34,7 @@ class CustomUser(AbstractUser):
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     karma_good = models.IntegerField(default=0, verbose_name='Добрая карма')
     karma_bad = models.IntegerField(default=0, verbose_name='Плохая карма')
+    last_karma_date = models.DateField(null=True, blank=True, verbose_name='Последняя дата кармы')
 
 
     def __str__(self):
