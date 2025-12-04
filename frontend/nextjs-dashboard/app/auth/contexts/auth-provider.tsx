@@ -34,29 +34,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState<IUser | null>(null);
 
-  // 🔁 При загрузке проверяем токен и восстанавливаем пользователя
+  // 🔁 Восстановление сессии при загрузке
   useEffect(() => {
     const token = localStorage.getItem('authToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setAuthenticated(true);
 
-      // Подгружаем данные пользователя
-      api
-        .get('/api/me/')
-        .then((res) => {
-          setUser(res.data);
-          console.log('✅ Восстановлен пользователь:', res.data);
-        })
-        .catch((err) => {
-          console.error('❌ Не удалось загрузить /api/me/', err);
-          setAuthenticated(false);
-          setUser(null);
-          localStorage.removeItem('authToken');
-          delete api.defaults.headers.common['Authorization'];
-        });
+      loadUser();
+    } else if (refreshToken) {
+      // 🔁 Если access токена нет, но есть refresh — попробуем обновить
+      refreshAccessToken(refreshToken);
     }
   }, []);
+
+  // Загружаем профиль
+  const loadUser = () => {
+    api
+      .get('/api/me/')
+      .then((res) => {
+        setUser(res.data);
+        console.log('✅ Восстановлен пользователь:', res.data);
+      })
+      .catch(async (err) => {
+        console.error('❌ Ошибка /api/me/', err);
+
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (err.response?.status === 401 && refreshToken) {
+          await refreshAccessToken(refreshToken);
+        } else {
+          // Очищаем всё
+          clearAuth();
+        }
+      });
+  };
+
+  // Обновляем access токен через refresh
+  const refreshAccessToken = async (refreshToken: string) => {
+    try {
+      const response = await api.post('/api/refresh-token', {
+        refresh_token: refreshToken,
+      });
+
+      const newToken = response.data.access_token;
+      localStorage.setItem('authToken', newToken);
+      api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+
+      // Теперь пробуем загрузить пользователя
+      loadUser();
+    } catch (err) {
+      console.error('❌ Не удалось обновить токен', err);
+      clearAuth();
+    }
+  };
+
+  // Очистка сессии
+  const clearAuth = () => {
+    setAuthenticated(false);
+    setUser(null);
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
+    delete api.defaults.headers.common['Authorization'];
+  };
 
   const loginSuccess = (userData: IUser) => {
     console.log('🔐 loginSuccess получил:', userData);
@@ -65,10 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
-    setAuthenticated(false);
-    setUser(null);
-    localStorage.removeItem('authToken');
-    delete api.defaults.headers.common['Authorization'];
+    clearAuth();
   };
 
   return (

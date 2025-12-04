@@ -1,11 +1,35 @@
 // frontend/nextjs-dashboard/app/utils/axiosConfig.tsx
 
+// frontend/nextjs-dashboard/app/utils/axiosConfig.tsx
+
 import axios from 'axios';
-// import { NextRouter, useRouter } from 'next/navigation';
+
+// 🔁 Определяем baseURL динамически
+const getBaseUrl = () => {
+  // Если в браузере
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+
+    // На продакшене — используй домен
+    if (host === 'bathhouse-app.ru' || host === 'www.bathhouse-app.ru') {
+      return 'https://bathhouse-app.ru';
+    }
+
+    // На локальной сети — используй IP компьютера
+    if (host !== 'localhost' && host !== '127.0.0.1') {
+      return 'http://192.168.1.169:8000'; // ← ЗАМЕНИ НА СВОЙ IP!
+    }
+  }
+
+  // По умолчанию — localhost
+  return 'http://localhost:8000';
+};
+
+const baseURL = getBaseUrl();
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
-  withCredentials: false,
+  baseURL,
+  withCredentials: false, // ты не используешь сессии Django
 });
 
 let isRefreshing = false;
@@ -22,6 +46,7 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
+// === Перехватчик запросов ===
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
@@ -31,6 +56,7 @@ api.interceptors.request.use(
       config.headers.set('Authorization', `Bearer ${token}`);
     }
 
+    console.log('🔹 Request to:', config.baseURL + (config.url || ''), 'Auth:', !!token);
     return config;
   },
   (error) => {
@@ -38,7 +64,7 @@ api.interceptors.request.use(
   }
 );
 
-// Перехватчик ответов: ловим 401 и обновляем токен
+// === Перехватчик ответов ===
 api.interceptors.response.use(
   (response) => {
     return response;
@@ -48,12 +74,9 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // Если уже обновляем — ставим в очередь
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        }).catch((err) => {
-          return Promise.reject(err);
-        });
+        }).catch((err) => Promise.reject(err));
       }
 
       originalRequest._retry = true;
@@ -64,20 +87,18 @@ api.interceptors.response.use(
       if (!refreshToken) {
         processQueue(error, null);
         localStorage.removeItem('authToken');
-        window.location.href = '/auth/login'; // или router.push
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/auth/login';
         return Promise.reject(error);
       }
 
       try {
-        // Запрашиваем новый access_token
-        const response = await axios.post('http://localhost:8000/api/refresh-token', {
+        const response = await axios.post(`${baseURL}/api/refresh-token`, {
           refresh_token: refreshToken,
         });
 
         const newAccessToken = response.data.access_token;
         localStorage.setItem('authToken', newAccessToken);
-
-        // Обновляем заголовок и повторяем запрос
         api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
         originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
 
@@ -85,7 +106,6 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        // Очистка
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
         window.location.href = '/auth/login';

@@ -47,6 +47,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
+	'192.168.1.169',
     # 'bathhouse-app.ru',
     # 'www.bathhouse-app.ru',
 ] # ALLOWED_HOSTS = ["*"] Можно оставить открытым для

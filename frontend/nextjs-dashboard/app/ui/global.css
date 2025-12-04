@@ -697,3 +697,40 @@ dialog::backdrop {
 }
 
 /* === КОНЕЦ: СИНХРОНИЗАЦИЯ === */
+
+
+/* === УМЕНЬШЕНИЕ ВЫСОТЫ ШАПКИ КАЛЕНДАРЯ === */
+
+.custom-calendar .rbc-time-header {
+  min-height: 28px !important;
+  height: 28px !important;
+  line-height: 1 !important;
+}
+
+.custom-calendar .rbc-time-header .rbc-header {
+  min-height: 28px !important;
+  height: 28px !important;
+  padding: 2px 0 !important;
+  font-size: 0.75rem !important; /* text-xs */
+  line-height: 1.2 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Убираем лишний отступ сверху у тела календаря */
+.custom-calendar .rbc-time-content {
+  margin-top: 0 !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+/* === КОНЕЦ: УМЕНЬШЕНИЕ ВЫСОТЫ ШАПКИ === */
+
+
+.rbc-body-my .rbc-body {
+  min-height: 60vh;
+  padding-bottom: 100px;
+}

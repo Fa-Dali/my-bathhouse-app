@@ -26,7 +26,7 @@ export default function Page() {
                 type="date"
                 value={selectedDate.toISOString().split('T')[0]}
                 onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                className="input input-bordered h-10"
+                className="input input-bordered h-8"
               />
             </div>
             <h1 className="lg:text-2xl text-indigo-800 font-bold text-center whitespace-nowrap mr-4">

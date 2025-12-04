@@ -84,7 +84,12 @@ const LoginForm = () => {
       });
 
       if (response.status === 200) {
+        // ✅ Сохраняем ОБА токена
+        const accessToken = response.data.access_token;
+        const refreshToken = response.data.refresh_token;
+        
         localStorage.setItem('authToken', response.data.access_token);
+        localStorage.setItem('refreshToken', refreshToken);
 
         // ✅ Установка токена в axios defaults (один раз)
         api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
@@ -93,7 +98,7 @@ const LoginForm = () => {
           const userResponse = await api.get('/api/me/');
 
           console.log('✅ Успешно загружен /api/me/:', userResponse.data);
-          
+
           loginSuccess(userResponse.data); // ✅ Передаём user
         } catch (err) {
           console.error('Не удалось загрузить профиль:', err);

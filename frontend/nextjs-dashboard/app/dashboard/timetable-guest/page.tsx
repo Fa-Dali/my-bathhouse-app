@@ -127,25 +127,25 @@ export default function Page() {
   if (loading) return <div className="p-4">Загрузка...</div>;
 
   return (
-    <div className="p-4">
+    <div className="lg:p-4 p-2">
       {/* ЗАГОЛОВОК И ТАЙМИНГ ВСЕХ МАСТЕРОВ НА ДЕНЬ */}
       <div className="mb-2 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium">Дата:</label>
+          {/* <label className="text-sm font-medium">Дата:</label> */}
           <input
             type="date"
             value={selectedDate.toISOString().split('T')[0]}
             onChange={(e) => setSelectedDate(new Date(e.target.value))}
-            className="input input-bordered h-10"
+            className="input input-bordered h-8"
           />
         </div>
-        <h1 className="text-2xl font-bold text-gray-800 whitespace-nowrap">
-          ТАЙМИНГ АУДИТОРИЙ
+        <h1 className="lg:text-2xl text-indigo-800 font-bold text-center whitespace-nowrap mr-4">
+          АУДИТОРИЙ
         </h1>
       </div>
 
       {/* === СТИКИ ТУЛБАР === */}
-      <div className="sticky top-0 z-30 bg-white border-t border-b border-gray-300 px-4 py-2 flex items-center justify-between mb-2">
+      <div className="sticky top-0 z-30 bg-white border-t border-b border-indigo-700 px-2 py-1 flex items-center justify-between text-sm">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -181,7 +181,8 @@ export default function Page() {
             Вперёд
           </button>
         </div>
-        <div className="text-lg font-semibold text-gray-800">
+
+        <div className="ml-2 font-extralight lg:text-lg text-sm text-gray-800">
           {new Intl.DateTimeFormat('ru', {
             weekday: 'long',
             day: 'numeric',
@@ -192,45 +193,50 @@ export default function Page() {
         </div>
       </div>
 
-      <div className="border border-gray-300 rounded overflow-hidden">
-  {/* Горизонтальная прокрутка */}
-  <div className="overflow-x-auto">
-    {/* Минимальная ширина — чтобы не сжимались колонки */}
-    <div style={{ minWidth: '800px', width: '100%' }}>
-      <RBCalendar
-        localizer={localizer}
-        events={events}
-        startAccessor="start"
-        endAccessor="end"
-        view="day"
-        date={selectedDate}
-        onNavigate={(newDate) => setSelectedDate(newDate)}
-        views={['day']}
-        resources={rooms}
-        resourceIdAccessor="id"
-        resourceTitleAccessor="name"
-        step={30}
-        timeslots={2}
-        min={new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0, 0, 0)}
-        max={new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59)}
-        formats={{
-          timeGutterFormat: (date) => format(date, 'HH:mm', { locale: ru }),
-          eventTimeRangeFormat: ({ start, end }) =>
-            `${format(start, 'HH:mm', { locale: ru })} – ${format(end, 'HH:mm', { locale: ru })}`,
-        }}
-        components={{
-          event: EventComponent,
-          resourceHeader: ({ resource }) => (
-            <div className="p-2 font-medium text-center">{resource.name}</div>
-          ),
-          toolbar: () => null,
-        }}
-        eventPropGetter={eventPropGetter}
-        style={{ height: '77vh', width: '100%' }}
-      />
-    </div>
-  </div>
-</div>
+      <div
+        className="border border-gray-300 rounded beautiful-scroll">
+        {/* Горизонтальная прокрутка */}
+        <div className="overflow-x-auto">
+          {/* Минимальная ширина — чтобы не сжимались колонки */}
+          <div style={{ minWidth: '800px', width: '100%' }}>
+            <RBCalendar
+              localizer={localizer}
+              events={events}
+              startAccessor="start"
+              endAccessor="end"
+              view="day"
+              date={selectedDate}
+              onNavigate={(newDate) => setSelectedDate(newDate)}
+              views={['day']}
+              resources={rooms}
+              resourceIdAccessor="id"
+              resourceTitleAccessor="name"
+              step={30}
+              timeslots={2}
+              min={new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0, 0, 0)}
+              max={new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59)}
+              formats={{
+                timeGutterFormat: (date) => format(date, 'HH:mm', { locale: ru }),
+                eventTimeRangeFormat: ({ start, end }) =>
+                  `${format(start, 'HH:mm', { locale: ru })} – ${format(end, 'HH:mm', { locale: ru })}`,
+              }}
+              components={{
+                event: EventComponent,
+                resourceHeader: ({ resource }) => (
+                  <div className="p-2 font-medium text-center">{resource.name}</div>
+                ),
+                toolbar: () => null,
+              }}
+              eventPropGetter={eventPropGetter}
+              style={{
+                height: 'calc(100vh - 100px)',
+                width: '100%'
+              }}
+              className="custom-calendar"
+            />
+          </div>
+        </div>
+      </div>
 
     </div>
   );
