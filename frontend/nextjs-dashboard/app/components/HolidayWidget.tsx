@@ -72,18 +72,25 @@ export default function HolidayWidget({
 		const days: DayStatus[] = [];
 		const firstDay = new Date(currentYear, currentMonth, 1);
 		const lastDay = new Date(currentYear, currentMonth + 1, 0);
+
+		// Начинаем с понедельника недели, в которой находится 1-е число
 		const startDate = new Date(firstDay);
-		startDate.setDate(startDate.getDate() - firstDay.getDay() + 1); // Пн недели
+		const dayOfWeek = startDate.getDay(); // 0 = воскресенье
+		const offset = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // сдвиг до понедельника
+		startDate.setDate(startDate.getDate() - offset);
 
 		const endDate = new Date(lastDay);
-		endDate.setDate(endDate.getDate() + (7 - endDate.getDay()));
+		endDate.setDate(endDate.getDate() + (6 - endDate.getDay())); // до воскресенья
 
 		let currentDate = new Date(startDate);
 
 		while (currentDate <= endDate) {
-			const dateStr = currentDate.toISOString().split('T')[0];
-			const dayInMonth = currentDate.getMonth() === currentMonth;
-			const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+			// ✅ Фиксируем дату именно в часовом поясе Москвы
+			const dateStr = currentDate.toLocaleDateString('sv-SE', { timeZone: 'Europe/Moscow' }); // → "2025-12-04"
+
+			const isCurrentMonth = currentDate.getMonth() === currentMonth;
+			const dayInWeek = currentDate.toLocaleDateString('ru', { weekday: 'long', timeZone: 'Europe/Moscow' });
+			const isWeekend = dayInWeek === 'суббота' || dayInWeek === 'воскресенье';
 
 			const holiday = holidays.find((h) => h.date.iso.startsWith(dateStr));
 			const isHoliday = !!holiday;
@@ -95,13 +102,17 @@ export default function HolidayWidget({
 				holiday: isHoliday ? holiday : undefined,
 			});
 
-			currentDate.setDate(currentDate.getDate() + 1);
+			// Переход к следующему дню
+			const nextDate = new Date(currentDate);
+			nextDate.setDate(nextDate.getDate() + 1);
+			currentDate = nextDate;
 		}
 
 		return days;
 	};
 
 	const days = getMonthDays();
+
 	const weeks = [];
 	for (let i = 0; i < days.length; i += 7) {
 		weeks.push(days.slice(i, i + 7));

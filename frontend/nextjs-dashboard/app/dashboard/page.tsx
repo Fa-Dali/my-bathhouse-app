@@ -12,12 +12,12 @@ export default function Page() {
   return (
     <div className="p-4">
       {/* СЕТКА: 2/3 | 1/3 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 beautiful-scroll overflow-y-auto h-[550px]">
 
 
         {/* === ЛЕВАЯ КОЛОНКА (2/3) === */}
 
-        <div className="lg:col-span-2 space-y-2 beautiful-scroll overflow-y-auto h-[580px]">
+        <div className="lg:col-span-2 space-y-2 lg:beautiful-scroll lg:overflow-y-auto lg:h-[580px]">
           {/* === ВЫБОР ДАТЫ === */}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2">
@@ -29,7 +29,7 @@ export default function Page() {
                 className="input input-bordered h-10"
               />
             </div>
-            <h1 className="text-2xl font-bold text-gray-600 whitespace-nowrap ">
+            <h1 className="lg:text-2xl text-indigo-800 font-bold text-center whitespace-nowrap mr-4">
               ДАШБОРД
             </h1>
           </div>
@@ -37,7 +37,7 @@ export default function Page() {
 
 
           {/* === СТИКИ ТУЛБАР === */}
-          <div className="sticky top-0 z-30 bg-white border-t border-b border-indigo-700 px-4 py-2 flex items-center justify-between">
+          <div className="sticky top-0 z-30 bg-white border-t border-b border-indigo-700 px-2 py-1 flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -73,7 +73,7 @@ export default function Page() {
                 Вперёд
               </button>
             </div>
-            <div className="text-lg font-semibold text-gray-800">
+            <div className=" ml-2 font-extralight lg:text-lg text-sm text-gray-800">
               {new Intl.DateTimeFormat('ru', {
                 weekday: 'long',
                 day: 'numeric',
@@ -86,12 +86,6 @@ export default function Page() {
 
           {/* === ВИДЖЕТ ПОГОДЫ === */}
           <WeatherWidget selectedDate={selectedDate} />
-
-          {/* Основной контент дашборда */}
-          {/* <div className="mt-6">
-            <p className="text-lg font-medium text-gray-800">ДОСТУПНА: ВСЕМ</p>
-            <p className="text-gray-600">Страница: Дашборд</p>
-          </div> */}
         </div>
 
 

@@ -56,25 +56,7 @@ export default function Page() {
             </Link>
           </div>
           <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
-            {/* Добавьте изображения героя здесь */}
-            {/* hiddenдля - удаления изображения из DOM на мобильных экранах и */}
-            {/* md:blockдля - отображения изображения на экранах настольных компьютеров */}
-            {/* ВИДИМОСТЬ НА КОМПЬЮТЕРЕ */}
-            {/* <Image
-              src="/hero-desktop.png"
-              width={1000}
-              height={760}
-              className="hidden md:block"
-              alt="Скриншоты проекта панели управления, показывающие версию для настольного компьютера"
-            /> */}
-            {/* ВИДИМОСТЬ НА МОБИЛЬНОМ */}
-            {/* <Image
-              src="/hero-mobile.png"
-              width={560}
-              height={620}
-              className="block md:hidden"
-              alt="Снимок экрана проекта панели управления, показывающий мобильную версию"
-            /> */}
+           
 
           </div>
         </div>

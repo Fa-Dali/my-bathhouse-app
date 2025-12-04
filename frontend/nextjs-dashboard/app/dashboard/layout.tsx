@@ -21,9 +21,9 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <div className="flex h-screen flex-col md:flex-row md:overflow-hidden relative">
+    <div className="bg-stone-100 flex h-screen flex-col md:flex-row md:overflow-hidden relative">
       {/* Сайдбар слева */}
-      <div className="w-full flex-none md:w-64 order-last md:order-first -mt-5">
+      <div className="w-full flex-none md:w-64 order-last md:order-first -mt-5 z-40">
         <SideNav />
       </div>
 
