@@ -2,13 +2,13 @@
 import os
 from celery import Celery
 
-# Установи переменную окружения для Django
+# Переменная окружения для Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'my_bathhouse_backend.settings')
 
 app = Celery('my_bathhouse_backend')
 
-# Загрузи настройки из Django
+# Настройки из Django
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# Автоматически находи задачи в приложениях
+# Автоматически находит задачи в приложениях
 app.autodiscover_tasks()

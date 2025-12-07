@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       loadUser();
     } else if (refreshToken) {
-      // 🔁 Если access токена нет, но есть refresh — попробуем обновить
+      // 🔁 Если access токена нет, но есть refresh — пробуем обновить
       refreshAccessToken(refreshToken);
     }
   }, []);
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Очистка сессии
+  // Очистка сессии и локального хранилища при выходе из приложения
   const clearAuth = () => {
     setAuthenticated(false);
     setUser(null);
@@ -99,12 +99,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     delete api.defaults.headers.common['Authorization'];
   };
 
+  // Вход через форму
   const loginSuccess = (userData: IUser) => {
     console.log('🔐 loginSuccess получил:', userData);
     setAuthenticated(true);
     setUser(userData);
   };
 
+  // Выход из приложения
   const logout = () => {
     clearAuth();
   };

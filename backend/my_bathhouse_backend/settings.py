@@ -28,34 +28,26 @@ MEDIA_URL = '/media/'  # URL для обращений к загруженным
 # Отключаем автоматическое добавление слэша к URL
 APPEND_SLASH = True
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# SECURITY WARNING: держите секретный ключ, используемый в продакшне, в секрете!
 SECRET_KEY = 'django-insecure-bd2td8c*d9pyy3^8$%oko6%ng#=w7_-)x))u2j2kqa&(*@2@-n'
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# SECURITY WARNING: не запускайте с включённой отладкой в продакшене!
+# включён для удобства разработки (при отключённом режиме производится дополнительная проверка производительности и безопасности).
 DEBUG = True
 
-# ALLOWED_HOSTS = ['bathhouse-app.ru', 'www.bathhouse-app.ru']
-# ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-# ['localhost', '127.0.0.1']: Эти два адреса означают, что приложение
-#   примет запросы только с локальных машин (например, при разработке).
-#   Когда вы развертываете сайт публично, вам потребуется добавить
-#   реальные домены, на которых ваше приложение размещено
-#   (например, example.com, www.example.com).
+
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
 	'192.168.1.169',
     # 'bathhouse-app.ru',
     # 'www.bathhouse-app.ru',
-] # ALLOWED_HOSTS = ["*"] Можно оставить открытым для
-# тестирования
+]
 
 
-# Application definition
 
+# Здесь перечислены подключённые приложения
 INSTALLED_APPS = [
     # 'my_bathhouse_backend.apps.users.apps.UsersConfig',
     'django.contrib.admin',
@@ -77,6 +69,7 @@ INSTALLED_APPS = [
     'my_bathhouse_backend.apps.scheduling',
 ]
 
+# Порядок обработчиков промежуточного слоя важен для правильной обработки запросов.
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -88,11 +81,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS_ALLOWED_ORIGIN_REGEXES = [
-#     r'^http://localhost:3000.*$',
-#     # 'http://192.168.1.169:3000',
-#     # '*'
-# ]
 
 # === ДОВЕРЕННЫЕ ИСТОЧНИКИ ДЛЯ CSRF ===
 CSRF_TRUSTED_ORIGINS = [
@@ -104,12 +92,12 @@ CSRF_TRUSTED_ORIGINS = [
 # Без CSRF_TRUSTED_ORIGINS Django блокирует POST-запросы с фронтенда,
 # даже если CORS разрешён.
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',  # фронтенд на localhost:3000
+    'http://localhost:3000',
     "http://127.0.0.1:3000",
     "http://192.168.1.169:3000",
 ]
 
-# CORS_ALLOWED_ALL_ORIGINS = True
+
 
 # Опционально: разрешить куки/авторизацию (если нужны)
 CORS_ALLOW_CREDENTIALS = True
@@ -144,7 +132,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.debug', # добавлено 14.10.25
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -156,9 +144,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'my_bathhouse_backend.wsgi.application'
 
 ASGI_APPLICATION = 'my_bathhouse_backend.asgi.application'
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
@@ -172,7 +157,7 @@ DATABASES = {
 }
 
 # =========================
-# Активируйте ведение журнала запросов в Django,
+# Активирует ведение журнала запросов в Django,
 # чтобы видеть подробности SQL-запросов и ошибок:
 
 LOGGING = {
@@ -204,9 +189,6 @@ LOGGING = {
 }
 # =========================
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -224,8 +206,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
@@ -236,21 +216,14 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ===================================
-# ДЛЯ : INSTALLED_APPS = [
-#     # Другие установленные приложения...
-#     'rest_framework_simplejwt.token_blacklist',
-# ]
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -266,14 +239,14 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,  # ✅ Явно указываем
+    'SIGNING_KEY': SECRET_KEY,
     'VERIFYING_KEY': None,
     'AUTH_HEADER_TYPES': ('Bearer',),
     # refresh-токена
 }
 # ===================================
 
-# Email настройки — Yandex
+# Email настройки — Gmail
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
