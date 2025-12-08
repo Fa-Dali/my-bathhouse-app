@@ -8,6 +8,7 @@ import MoneyOfMaster from '@/app/dashboard/report-master/money-of-master/page';
 import { useAuth } from '@/app/auth/contexts/auth-provider';
 import { useState, useEffect } from 'react';
 import PaymentHistory from '@/app/dashboard/salary-staff-table/components/PaymentHistory';
+import api from '@/app/utils/axiosConfig';
 
 export default function Page() {
   const { user } = useAuth();
@@ -20,7 +21,7 @@ export default function Page() {
       try {
         const token = localStorage.getItem('authToken');
         const res = await fetch(
-          `http://localhost:8000/api/reports/master-reports/stats/?user_id=${user.id}`,
+          `${api.defaults.baseURL}/api/reports/master-reports/stats/?user_id=${user.id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

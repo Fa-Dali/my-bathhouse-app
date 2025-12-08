@@ -1,7 +1,5 @@
 // frontend/nextjs-dashboard/app/utils/axiosConfig.tsx
 
-// frontend/nextjs-dashboard/app/utils/axiosConfig.tsx
-
 import axios from 'axios';
 
 // 🔁 Определяем baseURL динамически
@@ -120,3 +118,10 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+// Вставка в файлы должна быть такая
+// import api from '@/app/utils/axiosConfig';
+
+// // ...
+
+// src={`${api.defaults.baseURL}${worker.avatar}`}

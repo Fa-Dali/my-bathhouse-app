@@ -48,14 +48,13 @@ export default function SideNav() {
 
       {/* 🔽 Условный рендер: только если showClock = true */}
       {showClock && (
-        <Link
+        <div
           className=" flex h-20 items-center justify-center rounded-md bg-stone-300 p-4 md:h-40"
-          href="/"
         >
           <div className="w-32 text-white md:w-40">
             <Clock />
           </div>
-        </Link>
+        </div>
       )}
 
       <div className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2">

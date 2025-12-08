@@ -173,6 +173,7 @@ class UpdateAvatarAPI(UpdateAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    # пользователь может изменить только свой аватар
     def update(self, request, *args, **kwargs):
         print("🔹 НАЧАЛО UpdateAvatarAPI.update()")
         print("🔹 request.user:", request.user)
@@ -298,11 +299,12 @@ def user_list(request):
 
     return Response(data)
 
-
+# админ может изменять роли пользователей, кроме Fa-Dali
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([JWTAuthentication])
 def update_user_roles(request, user_id):
+
 
     print("🔹 User в update_user_roles:", request.user)
     print("🔹 User ID:", request.user.id)
@@ -382,6 +384,7 @@ def get_current_user(request):
 
     return Response(data)
 
+# =================================================
 # КАРМА ПОЛЬЗОВАТЕЛЯ
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

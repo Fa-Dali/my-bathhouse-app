@@ -301,9 +301,7 @@ input[type='time']::-webkit-calendar-picker-indicator {
 
 /* *** END *** АНИМАЦИЯ ЗАГРУЗКИ ОТЧЕТА ТАБЛИЦЫ АДМИНИСТРАТОРА */
 
-/* ==== ИИ ============================================================================/ */
 
-/* frontend/nextjs-dashboard/app/ui/global.css */
 
 /* === СТИЛИ ДЛЯ ТАБЛИЦЫ АДМИНИСТРАТОРА === */
 
@@ -412,37 +410,6 @@ input[type="text"] {
 
 /* === END: СТИЛИ ТАБЛИЦЫ === */
 
-/* === МОБИЛЬНЫЙ: СТИЛИ ТАБЛИЦЫ === */
-
-/* @media (max-width: 768px) {
-  #admin-report-table th,
-  #admin-report-table td {
-    padding: 0.25rem 0rem;
-    font-size: 0.75rem;
-  }
-
-  #admin-report-table input,
-  #admin-report-table select,
-  #admin-report-table input[type="text"],
-  #admin-report-table input[type="number"],
-  #admin-report-table input[type="time"] {
-    font-size: 0.75rem;
-    padding: 0.125rem 0.25rem;
-    height: auto;
-  }
-
-  /* Адаптация кнопок внизу */
-  /* #admin-report-table .p-1 {
-    padding: 0.25rem;
-  } */
-
-  /* #admin-report-table button {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-  }
-} */
-
-/* === END: МОБИЛЬНЫЙ: СТИЛИ ТАБЛИЦЫ === */
 
 
 /* === СТИЛИ для React Big Calendar === */
@@ -488,8 +455,6 @@ dialog::backdrop {
 /* === END: ДЛЯ МОДАЛЬНОГО ОКНА В КАЛЕНДАРЕ === */
 
 
-
-
 /* === СИНХРОНИЗАЦИЯ КОЛОНОК МАСТЕРОВ И ШАПКИ — 110px === */
 * {
   box-sizing: border-box;
@@ -497,9 +462,18 @@ dialog::backdrop {
 
 .custom-resource-calendar .rbc-header {
   padding: 0 !important;
+  /* height: "8px" !important;  */
 }
 /* ============================================ */
-/* Гарантируем одинаковую ширину — ШАПКА */
+
+/* ГАРАНТИРУЕМ ГОРИЗОНТАЛЬНУЮ ПРОКРУТКУ */
+.custom-resource-calendar .rbc-time-content {
+  min-width: fit-content !important;
+  width: auto !important;
+  display: flex !important;
+  overflow-x: auto !important;
+}
+
 /* Гарантируем одинаковую ширину — ШАПКА */
 .custom-resource-calendar .rbc-header {
   min-width: 110px !important;
@@ -512,7 +486,8 @@ dialog::backdrop {
 }
 
 /* Гарантируем одинаковую ширину — ТЕЛО (каждая ячейка времени) */
-.custom-resource-calendar .rbc-day-slot {
+.custom-resource-calendar .rbc-day-slot
+.custom-resource-calendar .rbc-time-column {
   min-width: 110px !important;
   max-width: 110px !important;
   width: 110px !important;
@@ -528,11 +503,17 @@ dialog::backdrop {
 
 /* На всякий случай — если используется table-layout */
 .custom-resource-calendar .rbc-time-header-content {
-  flex: none !important; /* Отключаем растяжение */
+  height: "8px" !important;
+  min-width: fit-content !important;
+  width: auto !important;
+  overflow-x: auto !important;
+  flex: none !important;
 }
 
 .custom-resource-calendar .rbc-time-content > div {
-  flex: none !important;
+  display: inline-block !important;
+  width: auto !important;
+  min-width: fit-content !important;
 }
 /* ================================================ */
 .custom-resource-calendar .rbc-header {
@@ -699,38 +680,50 @@ dialog::backdrop {
 /* === КОНЕЦ: СИНХРОНИЗАЦИЯ === */
 
 
-/* === УМЕНЬШЕНИЕ ВЫСОТЫ ШАПКИ КАЛЕНДАРЯ === */
-
-.custom-calendar .rbc-time-header {
-  min-height: 28px !important;
-  height: 28px !important;
+/* === УМЕНЬШЕНИЕ ВЫСОТЫ ШАПКИ RBC (ПОД АВАТАРКАМИ) === */
+.custom-resource-calendar .rbc-time-header {
+  min-height: 0px !important;
+  height: 0px !important;
   line-height: 1 !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-.custom-calendar .rbc-time-header .rbc-header {
-  min-height: 28px !important;
-  height: 28px !important;
-  padding: 2px 0 !important;
-  font-size: 0.75rem !important; /* text-xs */
-  line-height: 1.2 !important;
+.custom-resource-calendar .rbc-time-header .rbc-header {
+  min-height: 0px !important;
+  height: 0px !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-size: 0.65rem !important;
+  font-weight: 600;
+  color: #1e293b;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-align: center;
+  overflow: hidden;
 }
 
-/* Убираем лишний отступ сверху у тела календаря */
-.custom-calendar .rbc-time-content {
+/* Для первой колонки (время слева) */
+.custom-resource-calendar .rbc-time-header .rbc-header:first-child {
+  background-color: #f8fafc !important;
+  font-weight: 700;
+  font-size: 0.6rem !important;
+}
+
+/* Убираем лишний отступ у контента */
+.custom-resource-calendar .rbc-time-content {
   margin-top: 0 !important;
-  border-top: 1px solid #e2e8f0 !important;
 }
 
 /* === КОНЕЦ: УМЕНЬШЕНИЕ ВЫСОТЫ ШАПКИ === */
 
 
 .rbc-body-my .rbc-body {
-  min-height: 60vh;
+  min-height: 70vh;
   padding-bottom: 100px;
 }
+
+
+/*  */

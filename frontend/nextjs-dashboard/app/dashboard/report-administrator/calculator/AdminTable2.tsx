@@ -293,8 +293,8 @@ export default function Page({ }: PageProps) {
 
     const method = currentReportId ? 'PUT' : 'POST';
     const url = currentReportId
-      ? `http://localhost:8000/api/reports/${currentReportId}/`
-      : 'http://localhost:8000/api/reports/';
+      ? `${api.defaults.baseURL}/api/reports/${currentReportId}/`
+      : `${api.defaults.baseURL}/api/reports/`;
 
     try {
       const res = await fetch(url, {
@@ -327,7 +327,7 @@ export default function Page({ }: PageProps) {
   const loadReportByDate = async (date: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/reports/date/${date}/`);
+      const response = await fetch(`${api.defaults.baseURL}/api/reports/date/${date}/`);
       if (response.ok) {
         const data: ReportResponse = await response.json();
         const normalized = data.reports.map((row: any) => {
@@ -388,7 +388,7 @@ export default function Page({ }: PageProps) {
 
   const handleGeneratePDF = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/reports/generate-pdf/', {
+      const response = await fetch(`${api.defaults.baseURL}/api/reports/generate-pdf/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ date: selectedDate })
@@ -403,7 +403,7 @@ export default function Page({ }: PageProps) {
         if (!overwrite) return;
 
         // Перезапись
-        const overwriteRes = await fetch('http://localhost:8000/api/reports/generate-pdf/', {
+        const overwriteRes = await fetch(`${api.defaults.baseURL}/api/reports/generate-pdf/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ date: selectedDate, overwrite: true })

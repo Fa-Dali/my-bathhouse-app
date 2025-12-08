@@ -3,6 +3,7 @@
 
 import { useAuth } from '@/app/auth/contexts/auth-provider';
 import { useEffect, useRef, useState } from 'react';
+import api from '@/app/utils/axiosConfig';
 
 export default function EscapingAvatar() {
   const { user } = useAuth();
@@ -93,7 +94,7 @@ export default function EscapingAvatar() {
   const avatarUrl = user.avatar
     ? user.avatar.startsWith('http')
       ? user.avatar
-      : `http://localhost:8000${user.avatar}`
+      : `${api.defaults.baseURL}${user.avatar}`
     : '/default-avatar.png';
 
   return (

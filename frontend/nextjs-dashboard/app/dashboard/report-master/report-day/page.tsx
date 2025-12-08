@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/app/auth/contexts/auth-provider';
+import api from '@/app/utils/axiosConfig';
 
 const SERVICE_OPTIONS = [
 	'Администратор',
@@ -88,7 +89,7 @@ export default function ReportMasterPage({ refreshStats }: ReportMasterPageProps
 				return;
 			}
 
-			const res = await fetch(`http://localhost:8000/api/reports/master-reports/date/${date}/`, {
+			const res = await fetch(`${api.defaults.baseURL}/api/reports/master-reports/date/${date}/`, {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json',
@@ -164,7 +165,7 @@ export default function ReportMasterPage({ refreshStats }: ReportMasterPageProps
 		};
 
 		try {
-			const res = await fetch('http://localhost:8000/api/reports/master-reports/', {
+			const res = await fetch(`${api.defaults.baseURL}/api/reports/master-reports/`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -198,7 +199,7 @@ export default function ReportMasterPage({ refreshStats }: ReportMasterPageProps
 		try {
 			const token = localStorage.getItem('authToken');
 			const res = await fetch(
-				`http://localhost:8000/api/reports/master-reports/${selectedReport.id}/`,
+				`${api.defaults.baseURL}/api/reports/master-reports/${selectedReport.id}/`,
 				{
 					method: 'DELETE',
 					headers: {
