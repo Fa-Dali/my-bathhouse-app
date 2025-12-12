@@ -83,7 +83,7 @@ export default function Page({ }: PageProps) {
   const [userRole, setUserRole] = useState<'admin' | 'other' | null>(null);
   const [adminName, setAdminName] = useState('');
   const [selectedDate, setSelectedDate] = useState<string>(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split('T')[0]; // ISO 8601 2023-10-15T00:00:00.000Z
   });
 
   const isReadOnly = userRole !== 'admin';
@@ -107,7 +107,7 @@ export default function Page({ }: PageProps) {
   };
 
   const [rows, setRows] = useState<ReportRow[]>([getEmptyRow()]);
-  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const [selectedRows, setSelectedRows] = useState<number[]>([]); // id строк в блоке-строке
   const [currentReportId, setCurrentReportId] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [isLoading, setIsLoading] = useState(true);

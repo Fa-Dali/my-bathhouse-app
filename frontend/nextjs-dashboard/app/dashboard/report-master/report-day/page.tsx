@@ -36,7 +36,7 @@ export default function ReportMasterPage({ refreshStats }: ReportMasterPageProps
 
 	const [selectedReport, setSelectedReport] = useState<any>(null);
 
-
+	// выбор даты
 	const [selectedDate, setSelectedDate] = useState<string>(() => {
 		return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 	});
@@ -54,33 +54,37 @@ export default function ReportMasterPage({ refreshStats }: ReportMasterPageProps
 		setTotalSalary(totalSal);
 	}, [rows]);
 
+	// добавление новой строки
 	const addRow = () => {
 		setRows([...rows, { id: Date.now(), service: '', adults: 0.5, children: 0, salary: '' }]);
 	};
 
 	const lastServiceRef = useRef<HTMLSelectElement>(null);
 
+	// добавление новой строки при фокусе на последний инпут
 	useEffect(() => {
 		if (lastServiceRef.current) {
 			lastServiceRef.current.focus();
 		}
 	}, [rows.length]);
 
+	// функция удаления строки
 	const removeRow = (id: number) => {
 		setRows(rows.filter(r => r.id !== id));
 	};
 
+	// функция обновления строки
 	const updateRow = (id: number, field: keyof Row, value: any) => {
 		setRows(rows.map(r => r.id === id ? { ...r, [field]: value } : r));
 	};
 
-
-
+	// функция форматирования числа
 	const formatNumber = (value: string | number) => {
 		const num = String(value).replace(/\D/g, '');
 		return num ? parseInt(num, 10).toLocaleString('ru-RU') : '';
 	};
 
+	// функция загрузки отчёта
 	const loadReport = async (date: string) => {
 		try {
 			const token = localStorage.getItem('authToken');
@@ -88,7 +92,7 @@ export default function ReportMasterPage({ refreshStats }: ReportMasterPageProps
 				alert('Токен не найден. Пожалуйста, войдите снова.');
 				return;
 			}
-
+			// Отправляем запрос на API
 			const res = await fetch(`${api.defaults.baseURL}/api/reports/master-reports/date/${date}/`, {
 				method: 'GET',
 				headers: {
@@ -106,18 +110,18 @@ export default function ReportMasterPage({ refreshStats }: ReportMasterPageProps
 				} else {
 					setSelectedReport(null);
 				}
-
+				// делаем проверку на пустой массив
 				if (!data.data || !Array.isArray(data.data)) {
 					setRows([{ id: Date.now(), service: '', adults: 0.5, children: 0, salary: '' }]);
 					return;
 				}
-
+				// Маппинг данных отчёта
 				const mappedRows = data.data.map((r: any) => ({
-					id: Date.now() + Math.random(),
-					service: r.service,
-					adults: r.clients.adults,
-					children: r.clients.children,
-					salary: String(r.salary),
+					id: Date.now() + Math.random(),  // Генерируем уникальный идентификатор
+					service: r.service,              // Название услуги
+					adults: r.clients.adults,        // Количество взрослых клиентов
+					children: r.clients.children,    // Количество детей-клиентов
+					salary: String(r.salary),        // Зарплата сотрудника (преобразуется в строку)
 				}));
 				setRows(mappedRows.length > 0 ? mappedRows : [{ id: Date.now(), service: '', adults: 0.5, children: 0, salary: '' }]);
 			} else if (res.status === 404) {
@@ -163,7 +167,7 @@ export default function ReportMasterPage({ refreshStats }: ReportMasterPageProps
 			total_clients: totalClients,
 			total_salary: totalSalary
 		};
-
+		// асинхронный запрос POST на сервер для отправки отчёта
 		try {
 			const res = await fetch(`${api.defaults.baseURL}/api/reports/master-reports/`, {
 				method: 'POST',
@@ -175,7 +179,7 @@ export default function ReportMasterPage({ refreshStats }: ReportMasterPageProps
 			});
 
 			if (res.ok) {
-				// alert('Отчёт сохранён!');  АДЕРТ ДАННЫЕ ЗАГРУЖЕНЫ
+				// alert('Отчёт сохранён!');  АЛЕРТ ДАННЫЕ ЗАГРУЖЕНЫ
 				// ✅ Обновляем статистику
 				refreshStats();
 			} else {

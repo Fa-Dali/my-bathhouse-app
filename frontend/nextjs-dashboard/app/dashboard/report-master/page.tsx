@@ -14,7 +14,7 @@ export default function Page() {
   const { user } = useAuth();
   const [stats, setStats] = useState({ unpaid: 0, monthly: 0, yearly: 0 });
 
-  // ✅ useEffect — ДО всех условий!
+  // изменяет состояние stats при изменении user
   useEffect(() => {
     const refreshStats = async () => {
       if (!user) return;
@@ -57,12 +57,14 @@ export default function Page() {
   }
 
   return (
-    <div className="flex gap-1 bg-gray-600">
-      <div className="w-[60%]">
+    <div className="flex flex-col lg:flex lg:flex-row gap-4 p-2 bg-gray-500 min-h-screen beautiful-scroll overflow-y-auto h-[300px]">
+      <div className=" w-full lg:w-[60%]">
         <ReportMaster refreshStats={() => {}} />
         <PaymentHistory userId={user.id} />
       </div>
-      <MoneyOfMaster stats={stats} />
+      <div>
+        <MoneyOfMaster stats={stats} />
+      </div>
     </div>
   );
 }

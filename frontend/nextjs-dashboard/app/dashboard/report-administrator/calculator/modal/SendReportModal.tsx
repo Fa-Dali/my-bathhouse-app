@@ -2,6 +2,9 @@
 
 import React from 'react';
 
+// ОТПРАВКА ОТЧЕТА ПО ВЫБРАННОЙ ДАТЕ или СЕГОДНЯ НА ЕМАЙЛ АДМИНИСТРАЦИИ
+
+// пропсы для компонента
 interface SendReportModalProps {
 	isOpen: boolean;
 	onClose: () => void;
@@ -12,6 +15,7 @@ const SendReportModal: React.FC<SendReportModalProps> = ({ isOpen, onClose, onSe
 	const [emailMode, setEmailMode] = React.useState<'today' | 'date'>('today');
 	const [customDate, setCustomDate] = React.useState<string>('');
 
+	// формируем дату для отправки (сегодня или дата)
 	const handleSubmit = () => {
 		let dateToSend = '';
 		if (emailMode === 'today') {
